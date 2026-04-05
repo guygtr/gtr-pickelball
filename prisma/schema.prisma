@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["pb"]
+}
+
+/**
+ * Modèle pour une Ligue de Pickleball.
+ * Un gestionnaire peut posséder plusieurs ligues.
+ */
+model League {
+  id          String   @id @default(cuid())
+  name        String   // Nom de la ligue
+  managerId   String   // ID de l'utilisateur Supabase Auth (Gestionnaire)
+  description String?  // Description optionnelle
+  settings    Json?    // Paramètres de la ligue (ex: playerLimit)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  players     Player[]
+  courts      Court[]
+  sessions    Session[]
+
+  @@index([managerId])
+  @@map("pb_leagues")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour un Joueur au sein d'une ligue.
+ */
+model Player {
+  id          String   @id @default(cuid())
+  firstName   String   // Prénom
+  lastName    String   // Nom
+  email       String?  // Courriel (optionnel)
+  phone       String?  // Téléphone (optionnel)
+  skillLevel  Float    @default(2.0) // Niveau actuel (ex: 2.0, 3.5, 4.0)
+  isActive    Boolean  @default(true)
+  
+  leagueId    String
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  attendances Attendance[]
+
+  @@index([leagueId])
+  @@map("pb_players")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour un Terrain.
+ */
+model Court {
+  id             String   @id @default(cuid())
+  name           String   // Ex: "Terrain 1"
+  note           String?  // Ex: "extérieur - vent"
+  playerCapacity Int      @default(4) // 2 pour simple, 4 pour double
+  
+  leagueId       String
+  league         League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  matches        Match[]
+
+  @@index([leagueId])
+  @@map("pb_courts")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour une session de jeu (Jour de ligue).
+ */
+model Session {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  status      String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED
+  
+  leagueId    String
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  attendances Attendance[]
+  matches     Match[]
+
+  @@index([leagueId])
+  @@map("pb_sessions")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour la présence d'un joueur à une session.
+ */
+model Attendance {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  isPresent Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, playerId])
+  @@index([sessionId])
+  @@index([playerId])
+  @@map("pb_attendances")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour une partie (Match).
+ */
+model Match {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  startTime DateTime?
+  duration  Int?     // Durée en minutes
+
+  // Stockage des équipes et scores au format JSON pour plus de flexibilité (Fair Play Algorithm)
+  // Format attendu: { team1: [playerIds], team2: [playerIds], score1: int, score2: int }
+  data      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([courtId])
+  @@map("pb_matches")
+  @@schema("pb")
+}

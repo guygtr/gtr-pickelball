@@ -1,0 +1,9 @@
+{
+  "name": "GTR-Pickelball",
+  "role": "Modern, mobile-first pickleball league management application.",
+  "urls": {
+    "production": "https://pickelball.gtremblay.com",
+    "staging": ""
+  },
+  "stack": ["Next.js 15", "Prisma", "Supabase", "TailwindCSS", "shadcn/ui"]
+}
