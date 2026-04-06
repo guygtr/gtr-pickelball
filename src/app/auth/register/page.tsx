@@ -9,7 +9,7 @@ export default function RegisterPage() {
       <div className="glass max-w-md w-full p-10 rounded-3xl space-y-8 border border-white/10 shadow-2xl">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold tracking-tight">Rejoignez-nous</h1>
-          <p className="text-foreground/60">Créez votre profil de joueur aujourd'hui.</p>
+          <p className="text-foreground/60">Créez votre profil de joueur aujourd&apos;hui.</p>
         </div>
 
         <form className="space-y-5">

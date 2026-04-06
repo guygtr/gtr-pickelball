@@ -7,7 +7,15 @@ import React from 'react';
  * @param {string} className - Classes CSS additionnelles.
  * @param {boolean} hoverEffect - Active l'effet de survol lumineux.
  */
-export const GlassCard = ({ children, className = '', hoverEffect = true }) => {
+export const GlassCard = ({ 
+  children, 
+  className = '', 
+  hoverEffect = true 
+}: { 
+  children: React.ReactNode; 
+  className?: string; 
+  hoverEffect?: boolean;
+}) => {
   const baseClasses = "glass p-6 rounded-xl border border-white/10";
   const hoverClasses = hoverEffect ? "glass-hover cursor-pointer" : "";
   

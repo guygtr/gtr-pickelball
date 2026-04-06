@@ -1,7 +1,13 @@
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { League } from "@prisma/client";
 import Link from "next/link";
+
+interface LeagueUI {
+  id: string;
+  name: string;
+  description: string | null;
+  settings: any;
+}
 
 export default async function LeaguesPage() {
   const supabase = await createClient();
@@ -54,7 +60,7 @@ export default async function LeaguesPage() {
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">Aucune ligue trouvée</h3>
             <p className="text-slate-400 mb-8 max-w-sm mx-auto">
-              Vous n'avez pas encore créé de ligue. Commencez dès maintenant pour organiser vos sessions.
+              Vous n&apos;avez pas encore créé de ligue. Commencez dès maintenant pour organiser vos sessions.
             </p>
             <Link
               href="/leagues/create"
@@ -65,7 +71,7 @@ export default async function LeaguesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {leagues.map((league: any) => (
+            {(leagues as LeagueUI[]).map((league) => (
               <Link key={league.id} href={`/leagues/${league.id}`}>
                 <div className="glass-card p-6 rounded-3xl border border-white/10 hover:border-emerald-500/30 transition-all group cursor-pointer h-full flex flex-col">
                   <div className="flex justify-between items-start mb-4">
@@ -73,7 +79,7 @@ export default async function LeaguesPage() {
                       <span className="text-2xl">🏆</span>
                     </div>
                     <span className="text-xs font-medium px-3 py-1 bg-white/5 rounded-full text-slate-400 border border-white/5">
-                      {league.settings?.maxPlayers || 0} Joueurs
+                      {(league.settings as any)?.maxPlayers || 0} Joueurs
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">

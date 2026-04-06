@@ -1,15 +1,17 @@
-# Règles Spécifiques au Projet (Local Override)
+# Règles Spécifiques au Projet — GTR-Pickelball 🎾
 
-Ce fichier permet de surcharger ou de compléter les règles globales définies dans le Hub Central `d:\GTR-Team\.agents\MASTER_SKILLS.md`.
-Les règles décrites ici ne s'appliquent qu'à **ce projet**.
+Ce fichier définit les contraintes critiques pour garantir l'intégrité du projet Pickleball au sein de l'écosystème GTR.
 
-## 1. Contexte Métier
-Décrivez ici les règles métier spécifiques à ce projet.
-*Exemple : "Les utilisateurs de type 'Guest' n'ont accès qu'à la route /public."*
+## 1. Isolation de la Base de Données (CRITIQUE)
+- **Schéma PostgreSQL** : Toutes les tables du projet DOIVENT résider dans le schéma `pb`.
+- **Isolation Partagée** : Ce projet partage l'instance Supabase avec `GTR-Bourse`. Ne JAMAIS modifier ou lire les tables hors du schéma `pb`.
+- **Prisma** : Le `schema.prisma` doit inclure `@@map("pb_tableName")` pour chaque modèle.
 
-## 2. Configuration Technique Locale
-- Variables d'environnement spécifiques (.env.local) requises.
-- Outils ou bibliothèques third-party utilisées de manière exclusive sur ce projet (ex: Stripe, Algolia).
+## 2. Design System — GTR-Glass 2026
+- **Esthétique** : Utiliser exclusivement les tokens GTR-Glass (Glassmorphism, gradients vibrants, flous d'arrière-plan).
+- **Mobile-First** : Toute nouvelle interface doit être testée et optimisée pour mobile avant validation desktop.
+- **Logo** : Utiliser uniquement `GTR-PickelballNew.png`.
 
-## 3. Personnalisation des Agents
-*Exemple : "Pour ce projet, C-3PO doit générer la documentation en anglais au lieu du français."*
+## 3. Architecture & Qualité
+- **Server Actions** : Toutes les mutations de données doivent passer par des Server Actions validées par `Zod`.
+- **Schémas Zod** : Chaque mutation doit avoir son schéma de validation exporté.

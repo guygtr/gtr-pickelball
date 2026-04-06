@@ -1,5 +1,9 @@
 {
   "name": "GTR-Pickelball",
+  "clientId": "guygtr",
+  "version": "1.0.0",
+  "priority": "P1",
+  "owner": "GTR-Team",
   "role": "Modern, mobile-first pickleball league management application.",
   "urls": {
     "production": "https://pickelball.gtremblay.com",

@@ -89,7 +89,11 @@ model Court {
 model Session {
   id          String   @id @default(cuid())
   date        DateTime @default(now())
-  status      String   @default("DRAFT") // DRAFT, ACTIVE, COMPLETED
+  status      String   @default("DRAFT") // DRAFT, PLANNED, ACTIVE, COMPLETED
+  
+  location    String?  // Lieu de la session
+  maxPlayers  Int      @default(20) // Capacité maximale
+  description String?  // Notes optionnelles
   
   leagueId    String
   league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)

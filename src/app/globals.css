@@ -7,6 +7,9 @@
   --color-accent-foreground: var(--accent-foreground);
   
   --color-pickle-green: #dcfc44;
+  --color-pickle-orange: #fb923c;
+  --color-pickle-pink: #f43f5e;
+  --color-pickle-blue: #22d3ee;
   --color-pickle-dark: #1a1c1e;
   
   --radius-xl: 1rem;
