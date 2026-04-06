@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { playerSchema, playerImportSchema, PlayerInput, PlayerImportInput } from "@/lib/validations/player";
+import { playerSchema, playerImportSchema, PlayerInput } from "@/lib/validations/player";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -33,7 +33,7 @@ export async function addPlayer(data: PlayerInput) {
 /**
  * Action pour importer des joueurs en masse (CSV).
  */
-export async function importPlayers(leagueId: string, players: any[]) {
+export async function importPlayers(leagueId: string, players: Record<string, unknown>[]) {
   try {
     // Note: 'any' car on reçoit des données brutes du CSV qu'on valide ensuite
     const validatedPlayers = players.map(p => ({
@@ -41,7 +41,7 @@ export async function importPlayers(leagueId: string, players: any[]) {
       lastName: String(p.lastName || ""),
       email: p.email ? String(p.email) : "",
       phone: p.phone ? String(p.phone) : "",
-      skillLevel: p.skillLevel ? parseFloat(p.skillLevel) : 2.0,
+      skillLevel: p.skillLevel ? parseFloat(String(p.skillLevel)) : 2.0,
     }));
 
     // Validation Zod de l'ensemble

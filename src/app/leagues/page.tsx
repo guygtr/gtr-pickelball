@@ -2,11 +2,15 @@ import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
+interface LeagueSettings {
+  maxPlayers?: number;
+}
+
 interface LeagueUI {
   id: string;
   name: string;
   description: string | null;
-  settings: any;
+  settings: LeagueSettings | null;
 }
 
 export default async function LeaguesPage() {
@@ -79,7 +83,7 @@ export default async function LeaguesPage() {
                       <span className="text-2xl">🏆</span>
                     </div>
                     <span className="text-xs font-medium px-3 py-1 bg-white/5 rounded-full text-slate-400 border border-white/5">
-                      {(league.settings as any)?.maxPlayers || 0} Joueurs
+                      {(league.settings as LeagueSettings)?.maxPlayers || 0} Joueurs
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">

@@ -64,9 +64,25 @@ export default async function SessionDetailsPage({
         session={{ id: session.id }} 
         leaguePlayers={session.league.players}
         initialAttendances={session.attendances}
-        initialMatches={session.matches.map((m: { id: string; player1Id: string; player2Id: string; player3Id: string; player4Id: string; score1: number; score2: number; data: unknown }) => ({
-          ...m,
-          data: m.data as { court?: number; startTime?: string }
+        initialMatches={(session.matches as unknown as Array<{ 
+          id: string; 
+          courtId: string | null; 
+          court: { name: string } | null; 
+          player1Id: string; 
+          player2Id: string; 
+          player3Id: string; 
+          player4Id: string; 
+          score1: number; 
+          score2: number; 
+          data: unknown;
+        }>).map((m) => ({
+          id: m.id,
+          courtId: m.courtId,
+          court: m.court,
+          data: (m.data as { team1: string[]; team2: string[] }) || {
+            team1: [m.player1Id, m.player2Id],
+            team2: [m.player3Id, m.player4Id]
+          }
         }))}
       />
     </div>

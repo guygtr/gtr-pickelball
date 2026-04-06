@@ -24,7 +24,7 @@ export async function createLeague(formData: FormData) {
 
   const validatedData = leagueSchema.parse(rawData);
 
-  const league = await prisma.league.create({
+  await prisma.league.create({
     data: {
       name: validatedData.name,
       description: validatedData.description,
