@@ -195,7 +195,7 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
             ) : (
               <Download className="w-5 h-5" />
             )}
-            Exporter l'intégralité (JSON)
+            Exporter l&apos;intégralité (JSON)
           </button>
         </div>
       </form>

@@ -4,7 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { ensureLeagueManager } from "@/lib/auth-utils";
 import { revalidatePath } from "next/cache";
 
-export async function importLeaguePlayers(leagueId: string, players: any[]) {
+interface ImportPlayer {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    level?: number;
+    skillLevel?: number;
+}
+
+export async function importLeaguePlayers(leagueId: string, players: ImportPlayer[]) {
     await ensureLeagueManager(leagueId);
 
     if (!Array.isArray(players)) {

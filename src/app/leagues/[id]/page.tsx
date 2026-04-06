@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
-import { Users, Calendar, Trophy, TrendingUp } from "lucide-react";
+import { Users, Calendar, Trophy, TrendingUp, MapPin, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import Link from "next/link";
 
 export default async function LeagueDashboard({
   params,
@@ -77,7 +80,7 @@ export default async function LeagueDashboard({
         </h3>
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {league.players.length > 0 ? (
-            league.players.map((player: any) => (
+            league.players.map((player: { id: string, firstName: string, lastName: string, email: string | null, skillLevel: number }) => (
               <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
@@ -107,7 +110,7 @@ export default async function LeagueDashboard({
         </h3>
         <div className="space-y-4">
           {league.sessions.length > 0 ? (
-            league.sessions.map((session: any) => (
+            league.sessions.map((session: { id: string, date: Date, location: string | null, maxPlayers: number, _count: { attendances: number } }) => (
               <Link 
                 key={session.id} 
                 href={`/leagues/${resolvedParams.id}/sessions/${session.id}`}
@@ -151,7 +154,3 @@ export default async function LeagueDashboard({
   );
 }
 
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { ChevronRight, MapPin } from "lucide-react";
-import Link from "next/link";
