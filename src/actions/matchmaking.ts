@@ -145,3 +145,17 @@ export async function deleteMatch(matchId: string) {
     
     revalidatePath(`/leagues/${match.session.leagueId}/sessions/${match.sessionId}`);
 }
+
+export async function deleteAllMatches(sessionId: string) {
+    const session = await prisma.session.findUnique({
+        where: { id: sessionId }
+    });
+    
+    if (!session) throw new Error("Session non trouvée");
+    
+    await prisma.match.deleteMany({
+        where: { sessionId }
+    });
+    
+    revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
+}

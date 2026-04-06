@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Users, Play, CheckCircle2, Circle, Trophy, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { toggleAttendance, generateMatches, deleteMatch } from "@/actions/matchmaking";
+import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches } from "@/actions/matchmaking";
 import { useRouter } from "next/navigation";
 
 interface Player {
@@ -80,6 +80,19 @@ export function SessionDetailsClient({
     }
   }
 
+  async function handleDeleteAllMatches() {
+    if (!confirm("⚠️ ATTENTION : Voulez-vous supprimer TOUS les matchs de cette session ? Cette action est irréversible.")) return;
+    setLoading(true);
+    try {
+      await deleteAllMatches(session.id);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const presentCount = initialAttendances.filter(a => a.isPresent).length;
 
   return (
@@ -140,11 +153,22 @@ export function SessionDetailsClient({
 
       {/* Liste des Matchs */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-2xl font-black text-white flex items-center gap-3">
             <Trophy className="w-6 h-6 text-pickle-orange" />
             MATCHS DE LA SESSION
           </h3>
+
+          {initialMatches.length > 0 && (
+            <button
+                onClick={handleDeleteAllMatches}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-red-500 hover:text-white border border-red-500/30 hover:bg-red-500 rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
+            >
+                <Trash2 className="w-3 h-3" />
+                Tout supprimer
+            </button>
+          )}
         </div>
 
         {initialMatches.length === 0 ? (
