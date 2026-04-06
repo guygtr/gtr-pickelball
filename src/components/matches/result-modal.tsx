@@ -80,8 +80,8 @@ export function ResultModal({
         <div className="p-8 space-y-8">
           <div className="text-center space-y-2">
             <p className="text-pickle-orange font-bold text-sm uppercase tracking-widest">Étape de Saisie</p>
-            <h4 className="text-white text-lg font-medium italic">"Qui a remporté la victoire ?"</h4>
-            <p className="text-slate-500 text-xs">Sélectionnez l'équipe gagnante pour enregistrer le résultat.</p>
+            <h4 className="text-white text-lg font-medium italic">&quot;Qui a remporté la victoire ?&quot;</h4>
+            <p className="text-slate-500 text-xs">Sélectionnez l&apos;équipe gagnante pour enregistrer le résultat.</p>
           </div>
 
           <div className="flex items-stretch gap-4">

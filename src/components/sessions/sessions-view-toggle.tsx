@@ -25,7 +25,7 @@ export function SessionsViewToggle({
   sessions, 
   leagueId 
 }: { 
-  sessions: any[]; 
+  sessions: Session[]; 
   leagueId: string;
 }) {
   const [view, setView] = useState<"grid" | "list">("grid");

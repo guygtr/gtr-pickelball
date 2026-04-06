@@ -57,9 +57,10 @@ export function ImportExportCard({ leagueId }: { leagueId: string }) {
                         message: `Importation réussie : ${result.results.created} créés, ${result.results.updated} mis à jour.` 
                     });
                 }
-            } catch (error: any) {
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'importation.";
                 console.error(error);
-                setStatus({ type: 'error', message: error.message || "Erreur lors de l'importation." });
+                setStatus({ type: 'error', message: errorMessage });
             } finally {
                 setLoading(false);
                 e.target.value = ''; // Réinitialise l'input

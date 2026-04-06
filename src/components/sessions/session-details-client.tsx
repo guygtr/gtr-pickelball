@@ -34,7 +34,7 @@ interface Match {
 
 interface Session {
   id: string;
-  settings?: any;
+  settings?: Record<string, unknown>;
 }
 
 export function SessionDetailsClient({ 
