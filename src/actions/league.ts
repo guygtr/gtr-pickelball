@@ -1,18 +1,13 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { leagueSchema } from "@/lib/validations/league";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getEnsuredUser, ensureLeagueManager } from "@/lib/auth-utils";
 
 export async function createLeague(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Vous devez être connecté pour créer une ligue.");
-  }
+  const user = await getEnsuredUser();
 
   const rawData = {
     name: formData.get("name"),
@@ -48,10 +43,7 @@ export async function createLeague(formData: FormData) {
 }
 
 export async function updateLeague(leagueId: string, formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Non autorisé");
+  const user = await ensureLeagueManager(leagueId);
 
   const rawData = {
     name: formData.get("name"),

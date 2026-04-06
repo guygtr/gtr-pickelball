@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { sessionSchema } from "@/lib/validations/session";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { ensureLeagueManager } from "@/lib/auth-utils";
 
 export async function createSession(data: z.infer<typeof sessionSchema>) {
   try {
     const validated = sessionSchema.parse(data);
+    await ensureLeagueManager(validated.leagueId);
     
     const session = await prisma.session.create({
       data: {

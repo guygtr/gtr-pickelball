@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { Attendance, Match, Player } from "@prisma/client";
+import { Attendance, Match, Player, Prisma } from "@prisma/client";
+import { ensureSessionManager, ensureMatchManager } from "@/lib/auth-utils";
 
 interface MatchData {
   status: "UPCOMING" | "LIVE" | "COMPLETED";
@@ -14,6 +15,8 @@ interface MatchData {
 }
 
 export async function generateMatches(sessionId: string) {
+  await ensureSessionManager(sessionId);
+  
   // 1. Récupérer la session et la ligue
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
@@ -58,70 +61,113 @@ export async function generateMatches(sessionId: string) {
   const sessionDuration = session.duration || 120; // 2h par défaut
   const roundsCount = Math.max(1, Math.floor(sessionDuration / matchDuration));
   
-  const matchesToCreate = [];
+  const matchesToCreate: Prisma.MatchCreateManyInput[] = [];
   
-  // Suivi global pour l'équilibrage
+  // 3. Hydratation de l'historique
   const playCount = new Map<string, number>(presentPlayers.map(p => [p.id, 0]));
-  // Suivi des partenariats : clé = sort(id1, id2).join(',')
   const partnershipCount = new Map<string, number>();
+  const oppositionCount = new Map<string, number>();
 
   function getPartnershipKey(id1: string, id2: string) {
     return [id1, id2].sort().join(',');
   }
 
+  session.matches.forEach(m => {
+    const d = m.data as unknown as MatchData;
+    if (!d) return;
+
+    [...d.team1, ...d.team2].forEach(id => {
+      if (playCount.has(id)) {
+        playCount.set(id, (playCount.get(id) || 0) + 1);
+      }
+    });
+
+    if (d.team1.length === 2 && playCount.has(d.team1[0]) && playCount.has(d.team1[1])) {
+      const key = getPartnershipKey(d.team1[0], d.team1[1]);
+      partnershipCount.set(key, (partnershipCount.get(key) || 0) + 1);
+    }
+    if (d.team2.length === 2 && playCount.has(d.team2[0]) && playCount.has(d.team2[1])) {
+      const key = getPartnershipKey(d.team2[0], d.team2[1]);
+      partnershipCount.set(key, (partnershipCount.get(key) || 0) + 1);
+    }
+
+    // Suivi des oppositions
+    d.team1.forEach(t1Id => {
+        d.team2.forEach(t2Id => {
+            if (playCount.has(t1Id) && playCount.has(t2Id)) {
+                const key = getPartnershipKey(t1Id, t2Id);
+                oppositionCount.set(key, (oppositionCount.get(key) || 0) + 1);
+            }
+        });
+    });
+  });
+
   for (let round = 0; round < roundsCount; round++) {
-    // Joueurs encore disponibles pour ce round spécifique
-    const availableInRound = [...presentPlayers].sort((a, b) => 
+    // 1. Sélectionner les joueurs pour ce round (ceux qui ont le moins joué au global)
+    const sortedCandidates = [...presentPlayers].sort((a, b) => 
       (playCount.get(a.id) || 0) - (playCount.get(b.id) || 0) || Math.random() - 0.5
     );
 
-    for (let i = 0; i < courts.length && availableInRound.length >= 2; i++) {
-        // 1. Choisir le joueur qui a le moins joué au global
-        const p1 = availableInRound.shift()!;
-        
-        const team1: string[] = [p1.id];
-        let team2: string[] = [];
+    const totalPlaces = courts.length * 4;
+    const playersInRound = sortedCandidates.slice(0, Math.min(sortedCandidates.length, totalPlaces));
+    
+    // Si on n'a pas au moins 2 joueurs, on arrête
+    if (playersInRound.length < 2) break;
 
-        // 2. Décider si on fait du Double ou du Simple
-        // Si on a assez de monde pour faire du double sur ce terrain (4+)
-        // OU si c'est le seul moyen de faire jouer tout le monde
-        const canDoDoubles = availableInRound.length >= 3; // p1 + 3 autres = 4
+    // --- OPTIMISATION GLOBALE MONTE CARLO (v3) ---
+    // On teste 10 000 configurations pour trouver l'optimum global (partenariats + oppositions)
+    let bestRoundMatches: { team1: Player[], team2: Player[], courtId: string }[] = [];
+    let minRoundCost = Infinity;
 
-        if (canDoDoubles) {
-            // Trouver le meilleur partenaire pour p1 parmi les restants
-            // Critère : celui avec qui il a le moins fait équipe
-            availableInRound.sort((a, b) => {
-                const countA = partnershipCount.get(getPartnershipKey(p1.id, a.id)) || 0;
-                const countB = partnershipCount.get(getPartnershipKey(p1.id, b.id)) || 0;
-                return countA - countB || (playCount.get(a.id) || 0) - (playCount.get(b.id) || 0) || Math.random() - 0.5;
-            });
-            const p2 = availableInRound.shift()!;
-            team1.push(p2.id);
+    const ITERATIONS = 10000;
+    for (let i = 0; i < ITERATIONS; i++) {
+        const shuffled = [...playersInRound].sort(() => Math.random() - 0.5);
+        let currentCost = 0;
+        const matches: { team1: Player[], team2: Player[], courtId: string }[] = [];
+        const tempPlayers = [...shuffled];
+
+        for (let c = 0; c < courts.length && tempPlayers.length >= 2; c++) {
+            const isDoubles = tempPlayers.length >= 4;
+            const courtPlayers = isDoubles ? tempPlayers.splice(0, 4) : tempPlayers.splice(0, 2);
             
-            // Enregistrer le partenariat
-            const key = getPartnershipKey(p1.id, p2.id);
-            partnershipCount.set(key, (partnershipCount.get(key) || 0) + 1);
+            const t1 = isDoubles ? [courtPlayers[0], courtPlayers[1]] : [courtPlayers[0]];
+            const t2 = isDoubles ? [courtPlayers[2], courtPlayers[3]] : [courtPlayers[1]];
 
-            // Equipe 2 (les 2 suivants qui ont le moins joué)
-            // On pourrait aussi optimiser leur partenariat ici
-            const p3 = availableInRound.shift()!;
-            const p4 = availableInRound.shift()!;
-            team2 = [p3.id, p4.id];
-            
-            const key2 = getPartnershipKey(p3.id, p4.id);
-            partnershipCount.set(key2, (partnershipCount.get(key2) || 0) + 1);
-        } else {
-            // Simple (p1 vs p2)
-            const p2 = availableInRound.shift()!;
-            team2 = [p2.id];
+            // Calcul du coût du match
+            if (isDoubles) {
+                // Coût Partenariats (Poids 1000)
+                const p1 = partnershipCount.get(getPartnershipKey(t1[0].id, t1[1].id)) || 0;
+                const p2 = partnershipCount.get(getPartnershipKey(t2[0].id, t2[1].id)) || 0;
+                // Coût Oppositions (Poids 1)
+                const o1 = oppositionCount.get(getPartnershipKey(t1[0].id, t2[0].id)) || 0;
+                const o2 = oppositionCount.get(getPartnershipKey(t1[0].id, t2[1].id)) || 0;
+                const o3 = oppositionCount.get(getPartnershipKey(t1[1].id, t2[0].id)) || 0;
+                const o4 = oppositionCount.get(getPartnershipKey(t1[1].id, t2[1].id)) || 0;
+                currentCost += (p1 + p2) * 1000 + (o1 + o2 + o3 + o4);
+            } else {
+                // Simple : Opposition uniquement
+                const o = oppositionCount.get(getPartnershipKey(t1[0].id, t2[0].id)) || 0;
+                currentCost += o;
+            }
+
+            matches.push({ team1: t1, team2: t2, courtId: courts[c].id });
         }
 
-        // Mettre à jour le playCount global
-        [...team1, ...team2].forEach(id => playCount.set(id, (playCount.get(id) || 0) + 1));
+        if (currentCost < minRoundCost) {
+            minRoundCost = currentCost;
+            bestRoundMatches = matches;
+            if (minRoundCost === 0) break; // Perfection globale trouvée
+        }
+    }
+
+    // Appliquer le meilleur round trouvé et mettre à jour les statistiques
+    bestRoundMatches.forEach(m => {
+        const team1 = m.team1.map(p => p.id);
+        const team2 = m.team2.map(p => p.id);
 
         matchesToCreate.push({
             sessionId,
-            courtId: courts[i].id,
+            courtId: m.courtId,
             data: {
                 team1,
                 team2,
@@ -131,7 +177,26 @@ export async function generateMatches(sessionId: string) {
                 type: team1.length === 2 ? "DOUBLES" : "SINGLES"
             }
         });
-    }
+
+        // 1. Mettre à jour le playCount global
+        [...team1, ...team2].forEach(id => playCount.set(id, (playCount.get(id) || 0) + 1));
+
+        // 2. Mettre à jour les partenariats
+        if (team1.length === 2) {
+            const k1 = getPartnershipKey(team1[0], team1[1]);
+            const k2 = getPartnershipKey(team2[0], team2[1]);
+            partnershipCount.set(k1, (partnershipCount.get(k1) || 0) + 1);
+            partnershipCount.set(k2, (partnershipCount.get(k2) || 0) + 1);
+        }
+
+        // 3. Mettre à jour les oppositions
+        m.team1.forEach(p1 => {
+            m.team2.forEach(p2 => {
+                const key = getPartnershipKey(p1.id, p2.id);
+                oppositionCount.set(key, (oppositionCount.get(key) || 0) + 1);
+            });
+        });
+    });
   }
 
   // Enregistrer tous les rounds
@@ -145,6 +210,8 @@ export async function generateMatches(sessionId: string) {
 }
 
 export async function toggleAttendance(sessionId: string, playerId: string, isPresent: boolean) {
+    await ensureSessionManager(sessionId);
+    
     await prisma.attendance.upsert({
         where: {
             sessionId_playerId: { sessionId, playerId }
@@ -160,6 +227,8 @@ export async function toggleAttendance(sessionId: string, playerId: string, isPr
 }
 
 export async function deleteMatch(matchId: string) {
+    await ensureMatchManager(matchId);
+    
     const match = await prisma.match.findUnique({
         where: { id: matchId },
         include: { session: true }
@@ -175,6 +244,8 @@ export async function deleteMatch(matchId: string) {
 }
 
 export async function deleteAllMatches(sessionId: string) {
+    await ensureSessionManager(sessionId);
+    
     const session = await prisma.session.findUnique({
         where: { id: sessionId }
     });

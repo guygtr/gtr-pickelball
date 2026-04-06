@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { playerSchema, playerImportSchema, PlayerInput } from "@/lib/validations/player";
 import { revalidatePath } from "next/cache";
+import { ensureLeagueManager } from "@/lib/auth-utils";
 
 /**
  * Action pour ajouter un joueur manuellement.
@@ -10,6 +11,7 @@ import { revalidatePath } from "next/cache";
 export async function addPlayer(data: PlayerInput) {
   try {
     const validated = playerSchema.parse(data);
+    await ensureLeagueManager(validated.leagueId);
     
     const player = await prisma.player.create({
       data: {
@@ -35,6 +37,8 @@ export async function addPlayer(data: PlayerInput) {
  */
 export async function importPlayers(leagueId: string, players: Record<string, unknown>[]) {
   try {
+    await ensureLeagueManager(leagueId);
+    
     // Note: 'any' car on reçoit des données brutes du CSV qu'on valide ensuite
     const validatedPlayers = players.map(p => ({
       firstName: String(p.firstName || ""),
@@ -70,6 +74,8 @@ export async function importPlayers(leagueId: string, players: Record<string, un
  */
 export async function deletePlayer(playerId: string, leagueId: string) {
   try {
+    await ensureLeagueManager(leagueId);
+    
     await prisma.player.delete({
       where: { id: playerId },
     });
