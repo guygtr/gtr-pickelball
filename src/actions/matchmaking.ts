@@ -60,49 +60,77 @@ export async function generateMatches(sessionId: string) {
   
   const matchesToCreate = [];
   
-  // Suivi du nombre de matchs par joueur pour équilibrer
+  // Suivi global pour l'équilibrage
   const playCount = new Map<string, number>(presentPlayers.map(p => [p.id, 0]));
+  // Suivi des partenariats : clé = sort(id1, id2).join(',')
+  const partnershipCount = new Map<string, number>();
+
+  function getPartnershipKey(id1: string, id2: string) {
+    return [id1, id2].sort().join(',');
+  }
 
   for (let round = 0; round < roundsCount; round++) {
-    // Trier les joueurs par temps de jeu (ceux qui ont le moins joué d'abord)
-    const availablePlayers = [...presentPlayers].sort((a, b) => 
+    // Joueurs encore disponibles pour ce round spécifique
+    const availableInRound = [...presentPlayers].sort((a, b) => 
       (playCount.get(a.id) || 0) - (playCount.get(b.id) || 0) || Math.random() - 0.5
     );
 
-    let playerIdx = 0;
-    for (let i = 0; i < courts.length && playerIdx + 1 < availablePlayers.length; i++) {
-        const playersLeft = availablePlayers.length - playerIdx;
+    for (let i = 0; i < courts.length && availableInRound.length >= 2; i++) {
+        // 1. Choisir le joueur qui a le moins joué au global
+        const p1 = availableInRound.shift()!;
         
-        let team1: string[] = [];
+        const team1: string[] = [p1.id];
         let team2: string[] = [];
 
-        if (playersLeft >= 4) {
-            team1 = [availablePlayers[playerIdx].id, availablePlayers[playerIdx + 1].id];
-            team2 = [availablePlayers[playerIdx + 2].id, availablePlayers[playerIdx + 3].id];
-            playerIdx += 4;
-        } else if (playersLeft >= 2) {
-            team1 = [availablePlayers[playerIdx].id];
-            team2 = [availablePlayers[playerIdx + 1].id];
-            playerIdx += 2;
-        }
+        // 2. Décider si on fait du Double ou du Simple
+        // Si on a assez de monde pour faire du double sur ce terrain (4+)
+        // OU si c'est le seul moyen de faire jouer tout le monde
+        const canDoDoubles = availableInRound.length >= 3; // p1 + 3 autres = 4
 
-        if (team1.length > 0) {
-            // Mettre à jour le playCount
-            [...team1, ...team2].forEach(id => playCount.set(id, (playCount.get(id) || 0) + 1));
-
-            matchesToCreate.push({
-                sessionId,
-                courtId: courts[i].id,
-                data: {
-                    team1,
-                    team2,
-                    score1: 0,
-                    score2: 0,
-                    status: "UPCOMING",
-                    type: team1.length === 2 ? "DOUBLES" : "SINGLES"
-                }
+        if (canDoDoubles) {
+            // Trouver le meilleur partenaire pour p1 parmi les restants
+            // Critère : celui avec qui il a le moins fait équipe
+            availableInRound.sort((a, b) => {
+                const countA = partnershipCount.get(getPartnershipKey(p1.id, a.id)) || 0;
+                const countB = partnershipCount.get(getPartnershipKey(p1.id, b.id)) || 0;
+                return countA - countB || (playCount.get(a.id) || 0) - (playCount.get(b.id) || 0) || Math.random() - 0.5;
             });
+            const p2 = availableInRound.shift()!;
+            team1.push(p2.id);
+            
+            // Enregistrer le partenariat
+            const key = getPartnershipKey(p1.id, p2.id);
+            partnershipCount.set(key, (partnershipCount.get(key) || 0) + 1);
+
+            // Equipe 2 (les 2 suivants qui ont le moins joué)
+            // On pourrait aussi optimiser leur partenariat ici
+            const p3 = availableInRound.shift()!;
+            const p4 = availableInRound.shift()!;
+            team2 = [p3.id, p4.id];
+            
+            const key2 = getPartnershipKey(p3.id, p4.id);
+            partnershipCount.set(key2, (partnershipCount.get(key2) || 0) + 1);
+        } else {
+            // Simple (p1 vs p2)
+            const p2 = availableInRound.shift()!;
+            team2 = [p2.id];
         }
+
+        // Mettre à jour le playCount global
+        [...team1, ...team2].forEach(id => playCount.set(id, (playCount.get(id) || 0) + 1));
+
+        matchesToCreate.push({
+            sessionId,
+            courtId: courts[i].id,
+            data: {
+                team1,
+                team2,
+                score1: 0,
+                score2: 0,
+                status: "UPCOMING",
+                type: team1.length === 2 ? "DOUBLES" : "SINGLES"
+            }
+        });
     }
   }
 
