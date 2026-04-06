@@ -52,6 +52,33 @@ export async function importPlayers(leagueId: string, players: any[]) {
   return { success: true, count: createdPlayers.length };
 }
 
+export async function updatePlayer(data: {
+  id: string;
+  leagueId: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  skillLevel: number;
+}) {
+  await ensureLeagueManager(data.leagueId);
+
+  const player = await prisma.player.update({
+    where: { id: data.id, leagueId: data.leagueId },
+    data: {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      skillLevel: data.skillLevel,
+    },
+  });
+
+  revalidatePath(`/leagues/${data.leagueId}/players`);
+  revalidatePath(`/leagues/${data.leagueId}`);
+  return player;
+}
+
 export async function deletePlayer(leagueId: string, playerId: string) {
   await ensureLeagueManager(leagueId);
 

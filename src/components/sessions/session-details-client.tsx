@@ -1,10 +1,8 @@
-"use client";
-
 import { useState } from "react";
-import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Crown } from "lucide-react";
+import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Lock, Unlock } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches } from "@/actions/matchmaking";
+import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matchmaking";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
 
@@ -28,11 +26,13 @@ interface Match {
     team1: string[];
     team2: string[];
     winner?: number; // 1, 2, or 0 (draw)
+    status?: string;
   };
 }
 
 interface Session {
   id: string;
+  settings?: any;
 }
 
 export function SessionDetailsClient({ 
@@ -53,6 +53,7 @@ export function SessionDetailsClient({
   const router = useRouter();
 
   const attendancesMap = new Map(initialAttendances.map(a => [a.playerId, a.isPresent]));
+  const closedRounds = (session.settings as { closedRounds?: number[] })?.closedRounds || [];
 
   async function handleToggleAttendance(playerId: string, currentStatus: boolean) {
     try {
@@ -72,6 +73,15 @@ export function SessionDetailsClient({
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleToggleRoundStatus(roundIdx: number, isClosed: boolean) {
+    try {
+      await toggleRoundStatus(session.id, roundIdx, isClosed);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -190,19 +200,37 @@ export function SessionDetailsClient({
           <div className="space-y-12">
             {Array.from({ length: Math.ceil(initialMatches.length / Math.max(1, courtCount)) }).map((_, roundIdx) => {
               const roundMatches = initialMatches.slice(roundIdx * courtCount, (roundIdx + 1) * courtCount);
+              const isRoundClosed = closedRounds.includes(roundIdx);
               const gridCols = courtCount === 2 ? 'md:grid-cols-2' : courtCount >= 3 ? 'lg:grid-cols-3' : 'md:grid-cols-2';
               
               return (
-                <div key={roundIdx} className="space-y-6">
+                <div key={roundIdx} className={`space-y-6 transition-all duration-500 ${isRoundClosed ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                   <div className="flex items-center gap-4">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
                     <div className="flex flex-col items-center">
                       <span className="text-xs font-black text-pickle-green uppercase tracking-[0.3em] mb-1">
                         TEMPS DE JEU
                       </span>
-                      <span className="text-sm font-black text-white uppercase tracking-[0.2em] bg-pickle-green/10 px-6 py-1.5 rounded-full border border-pickle-green/30 shadow-[0_0_15px_rgba(132,204,22,0.1)]">
-                        RONDE {roundIdx + 1}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-sm font-black text-white uppercase tracking-[0.2em] px-6 py-1.5 rounded-full border transition-all duration-300 ${
+                          isRoundClosed 
+                            ? 'bg-slate-800 border-white/10 text-slate-400' 
+                            : 'bg-pickle-green/10 border-pickle-green/30 shadow-[0_0_15px_rgba(132,204,22,0.1)]'
+                        }`}>
+                          RONDE {roundIdx + 1}
+                        </span>
+                        <button
+                          onClick={() => handleToggleRoundStatus(roundIdx, !isRoundClosed)}
+                          className={`p-1.5 rounded-lg border transition-all ${
+                            isRoundClosed 
+                              ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white' 
+                              : 'bg-pickle-green/10 border-pickle-green/30 text-pickle-green hover:bg-pickle-green hover:text-white'
+                          }`}
+                          title={isRoundClosed ? "Ouvrir la ronde" : "Fermer la ronde"}
+                        >
+                          {isRoundClosed ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
                   </div>
@@ -217,24 +245,26 @@ export function SessionDetailsClient({
                           key={match.id} 
                           className={`overflow-hidden group hover:border-pickle-green/50 transition-all duration-500 hover:shadow-2xl hover:shadow-pickle-green/5 ${
                             hasWinner ? 'ring-1 ring-pickle-green/30' : ''
-                          }`}
+                          } ${isRoundClosed ? 'pointer-events-none' : ''}`}
                         >
                           <div className="bg-white/5 p-4 border-b border-white/5 flex justify-between items-center">
                               <span className="text-sm font-black text-pickle-green uppercase tracking-wider flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-pickle-green animate-pulse" />
+                                  <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-green animate-pulse'}`} />
                                   {match.court?.name || `TERRAIN ${idx + 1}`}
                               </span>
                               <div className="flex items-center gap-3">
                                   <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">
                                     MATCH #{globalIdx + 1}
                                   </span>
-                                  <button 
-                                      onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
-                                      className="p-1 text-slate-600 hover:text-red-500 transition-colors"
-                                      title="Supprimer le match"
-                                  >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                  {!isRoundClosed && (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
+                                        className="p-1 text-slate-600 hover:text-red-500 transition-colors"
+                                        title="Supprimer le match"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
                               </div>
                           </div>
                           
@@ -288,20 +318,23 @@ export function SessionDetailsClient({
                               </div>
                           </div>
 
-                          <div className="bg-white/5 p-3 text-center border-t border-white/5 group-hover:bg-pickle-green/10 transition-all duration-300">
+                          <div className={`bg-white/5 p-3 text-center border-t border-white/5 ${!isRoundClosed ? 'group-hover:bg-pickle-green/10' : ''} transition-all duration-300`}>
                               <button 
-                                onClick={() => setSelectedMatch(match)}
-                                className="text-xs font-black text-pickle-green uppercase tracking-[0.2em] w-full flex items-center justify-center gap-2"
+                                onClick={() => !isRoundClosed && setSelectedMatch(match)}
+                                disabled={isRoundClosed}
+                                className={`text-xs font-black uppercase tracking-[0.2em] w-full flex items-center justify-center gap-2 ${
+                                  isRoundClosed ? 'text-slate-600' : 'text-pickle-green'
+                                }`}
                               >
                                   {hasWinner ? (
                                     <>
                                       <CheckCircle2 className="w-3 h-3" />
-                                      MODIFIER RÉSULTAT
+                                      {isRoundClosed ? "RÉSULTAT VERROUILLÉ" : "MODIFIER RÉSULTAT"}
                                     </>
                                   ) : (
                                     <>
                                       <Trophy className="w-3 h-3" />
-                                      SAISIR RÉSULTAT
+                                      {isRoundClosed ? "MATCH FERMÉ" : "SAISIR RÉSULTAT"}
                                     </>
                                   )}
                               </button>

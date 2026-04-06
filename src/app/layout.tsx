@@ -34,7 +34,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-accent selection:text-accent-foreground`}
       >
         <Navbar userEmail={user?.email} />
-        <main className="min-h-screen">
+        <main className="min-h-screen pt-24">
           {children}
         </main>
       </body>

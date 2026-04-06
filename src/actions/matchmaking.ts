@@ -258,3 +258,36 @@ export async function deleteAllMatches(sessionId: string) {
     
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
 }
+
+export async function toggleRoundStatus(sessionId: string, roundIdx: number, isClosed: boolean) {
+    await ensureSessionManager(sessionId);
+    
+    const session = await prisma.session.findUnique({
+        where: { id: sessionId }
+    });
+    
+    if (!session) throw new Error("Session non trouvée");
+    
+    const settings = (session.settings as { closedRounds?: number[] }) || {};
+    let closedRounds = settings.closedRounds || [];
+    
+    if (isClosed) {
+        if (!closedRounds.includes(roundIdx)) {
+            closedRounds.push(roundIdx);
+        }
+    } else {
+        closedRounds = closedRounds.filter(r => r !== roundIdx);
+    }
+    
+    await prisma.session.update({
+        where: { id: sessionId },
+        data: {
+            settings: {
+                ...settings,
+                closedRounds
+            }
+        }
+    });
+    
+    revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
+}

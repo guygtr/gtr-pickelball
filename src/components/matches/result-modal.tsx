@@ -78,6 +78,12 @@ export function ResultModal({
         </div>
 
         <div className="p-8 space-y-8">
+          <div className="text-center space-y-2">
+            <p className="text-pickle-orange font-bold text-sm uppercase tracking-widest">Étape de Saisie</p>
+            <h4 className="text-white text-lg font-medium italic">"Qui a remporté la victoire ?"</h4>
+            <p className="text-slate-500 text-xs">Sélectionnez l'équipe gagnante pour enregistrer le résultat.</p>
+          </div>
+
           <div className="flex items-stretch gap-4">
             {/* Team 1 */}
             <button 
@@ -86,7 +92,7 @@ export function ResultModal({
               className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
                 match.data.winner === 1 
                   ? "bg-pickle-orange/20 border-pickle-orange shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
-                  : "bg-white/5 border-white/5 hover:border-white/20"
+                  : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
               }`}
             >
               <div className="space-y-1 text-center">
@@ -112,7 +118,7 @@ export function ResultModal({
               className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
                 match.data.winner === 2 
                   ? "bg-pickle-orange/20 border-pickle-orange shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
-                  : "bg-white/5 border-white/5 hover:border-white/20"
+                  : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
               }`}
             >
               <div className="space-y-1 text-center">
@@ -144,9 +150,9 @@ export function ResultModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-3 rounded-xl border border-white/10 text-slate-500 hover:text-white font-bold text-[10px] uppercase tracking-widest transition-all mt-4"
+              className="w-full py-2 text-slate-600 hover:text-slate-400 font-bold text-[10px] uppercase tracking-widest transition-all"
             >
-              Fermer
+              Annuler
             </button>
           </div>
         </div>

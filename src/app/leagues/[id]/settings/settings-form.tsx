@@ -20,9 +20,10 @@ interface SettingsFormProps {
     defaultDuration?: number;
     defaultLocation?: string;
   };
+  children?: React.ReactNode;
 }
 
-export function SettingsForm({ league, settings }: SettingsFormProps) {
+export function SettingsForm({ league, settings, children }: SettingsFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -167,7 +168,9 @@ export function SettingsForm({ league, settings }: SettingsFormProps) {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        {children}
+
+        <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-white/5">
           <button
             type="submit"
             disabled={isSaving}
@@ -192,7 +195,7 @@ export function SettingsForm({ league, settings }: SettingsFormProps) {
             ) : (
               <Download className="w-5 h-5" />
             )}
-            Exporter (JSON)
+            Exporter l'intégralité (JSON)
           </button>
         </div>
       </form>

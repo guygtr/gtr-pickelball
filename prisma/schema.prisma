@@ -95,6 +95,7 @@ model Session {
   maxPlayers  Int      @default(20) // Capacité maximale
   duration    Int?     // Durée en minutes
   description String?  // Notes optionnelles
+  settings    Json?    // Paramètres optionnels (ex: closedRounds)
   
   leagueId    String
   league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)

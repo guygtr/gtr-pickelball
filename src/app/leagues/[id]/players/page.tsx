@@ -17,7 +17,7 @@ export default async function PlayersPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-pickle-green" />
@@ -28,7 +28,9 @@ export default async function PlayersPage({
           </p>
         </div>
         
-        <PlayerListClient leagueId={resolvedParams.id} />
+        <div className="flex items-center gap-3">
+          <PlayerListClient leagueId={resolvedParams.id} />
+        </div>
       </div>
 
       <GlassCard className="overflow-hidden">
@@ -78,8 +80,7 @@ export default async function PlayersPage({
                   <td className="px-6 py-4 text-right">
                     <PlayerActions 
                       leagueId={resolvedParams.id} 
-                      playerId={player.id} 
-                      playerName={`${player.firstName} ${player.lastName}`} 
+                      player={player}
                     />
                   </td>
                 </tr>

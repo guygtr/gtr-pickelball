@@ -51,15 +51,24 @@ export async function exportLeagueData(leagueId: string) {
       id: s.id,
       date: s.date,
       status: s.status,
+      location: s.location,
+      maxPlayers: s.maxPlayers,
+      duration: s.duration,
+      description: s.description,
+      settings: s.settings,
       matches: s.matches.map((m: any) => ({
         id: m.id,
         court: (m.court as any)?.name || "N/A",
+        startTime: m.startTime,
+        duration: m.duration,
         data: m.data,
       }))
     })),
     courts: league.courts.map((c: any) => ({
       id: c.id,
       name: c.name,
+      note: c.note,
+      capacity: c.playerCapacity,
     })),
   };
 
