@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Calendar as CalendarIcon, MapPin } from "lucide-react";
+import { X, Calendar as CalendarIcon, MapPin, Clock } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { createSession } from "@/actions/sessions";
@@ -16,8 +16,29 @@ export function AddSessionModal({
   onClose: () => void; 
   leagueId: string;
 }) {
-  const [date, setDate] = useState("");
+  // Helper to get initials states rounded to 15m
+  const getInitialValues = () => {
+    const now = new Date();
+    
+    // Date part (YYYY-MM-DD)
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    const datePart = new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
+    
+    // Time parts
+    const hourPart = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes();
+    const roundedMinutes = (Math.ceil(minutes / 15) * 15) % 60;
+    const minutePart = roundedMinutes.toString().padStart(2, '0');
+    
+    return { datePart, hourPart, minutePart };
+  };
+
+  const initial = getInitialValues();
+  const [datePart, setDatePart] = useState(initial.datePart);
+  const [hourPart, setHourPart] = useState(initial.hourPart);
+  const [minutePart, setMinutePart] = useState(initial.minutePart);
   const [location, setLocation] = useState("");
+  const [duration, setDuration] = useState("120"); // 2h default
   const [maxPlayers] = useState(20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +51,15 @@ export function AddSessionModal({
     setLoading(true);
     setError(null);
     try {
+      // Recombine date and time
+      const dateTimeStr = `${datePart}T${hourPart}:${minutePart}:00`;
+      const finalDate = new Date(dateTimeStr);
+
       const result = await createSession({
         leagueId,
-        date: new Date(date).toISOString(),
+        date: finalDate.toISOString(),
         location,
+        duration: parseInt(duration),
         maxPlayers,
       });
 
@@ -51,6 +77,17 @@ export function AddSessionModal({
     }
   }
 
+  const durationOptions = [];
+  for (let mins = 30; mins <= 240; mins += 15) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const label = `${h}h${m.toString().padStart(2, '0')}`;
+    durationOptions.push({ value: mins.toString(), label });
+  }
+
+  const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  const minuteOptions = ["00", "15", "30", "45"];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <GlassCard className="w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
@@ -65,31 +102,74 @@ export function AddSessionModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Date et Heure</label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="datetime-local"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all"
-              />
-            </div>
-          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Date</label>
+                <div className="relative">
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                  <input
+                    type="date"
+                    required
+                    value={datePart}
+                    onChange={(e) => setDatePart(e.target.value)}
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all text-sm"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Lieu (Optionnel)</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Ex: Centre Sportif GTR"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all"
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Heure de début</label>
+                <div className="flex gap-2">
+                  <select
+                    value={hourPart}
+                    onChange={(e) => setHourPart(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
+                  >
+                    {hourOptions.map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                  <span className="text-white self-center">:</span>
+                  <select
+                    value={minutePart}
+                    onChange={(e) => setMinutePart(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
+                  >
+                    {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Durée</label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-sm"
+                >
+                  {durationOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value} className="bg-slate-900">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Lieu (Optionnel)</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Ex: Centre Sportif GTR"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all text-sm"
+                />
+              </div>
             </div>
           </div>
           
@@ -110,7 +190,7 @@ export function AddSessionModal({
             <NeonButton 
               className="flex-1" 
               variant="blue"
-              onClick={() => {}} // Form will handle it
+              type="submit"
             >
               {loading ? "Création..." : "Planifier"}
             </NeonButton>

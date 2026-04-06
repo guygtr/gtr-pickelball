@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Play, CheckCircle2, Circle, Trophy } from "lucide-react";
+import { Users, Play, CheckCircle2, Circle, Trophy, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { toggleAttendance, generateMatches } from "@/actions/matchmaking";
+import { toggleAttendance, generateMatches, deleteMatch } from "@/actions/matchmaking";
 import { useRouter } from "next/navigation";
 
 interface Player {
@@ -70,6 +70,16 @@ export function SessionDetailsClient({
     }
   }
 
+  async function handleDeleteMatch(matchId: string) {
+    if (!confirm("Supprimer ce match ?")) return;
+    try {
+      await deleteMatch(matchId);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const presentCount = initialAttendances.filter(a => a.isPresent).length;
 
   return (
@@ -122,7 +132,7 @@ export function SessionDetailsClient({
               {loading ? "Génération..." : "Lancer le Matchmaking"}
             </NeonButton>
             <p className="text-[10px] text-center text-slate-500 mt-4 uppercase font-bold tracking-widest">
-              Algorithme Fair Play GTR v2.0
+              Algorithme Fair Play GTR v2.1
             </p>
           </div>
         </GlassCard>
@@ -155,7 +165,16 @@ export function SessionDetailsClient({
                     <span className="text-xs font-black text-pickle-orange uppercase tracking-tighter">
                         {match.court?.name || `Terrain ${idx + 1}`}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase">Match #{idx + 1}</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-slate-500 font-bold uppercase">Match #{idx + 1}</span>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
+                            className="p-1 text-slate-600 hover:text-red-500 transition-colors"
+                            title="Supprimer le match"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                 </div>
                 <div className="p-4 space-y-4">
                     <div className="flex items-center justify-between gap-4">

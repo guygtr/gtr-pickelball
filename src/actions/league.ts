@@ -20,6 +20,7 @@ export async function createLeague(formData: FormData) {
     maxPlayers: formData.get("maxPlayers"),
     levelMin: formData.get("levelMin"),
     levelMax: formData.get("levelMax"),
+    courtCount: formData.get("courtCount"),
   };
 
   const validatedData = leagueSchema.parse(rawData);
@@ -34,9 +35,47 @@ export async function createLeague(formData: FormData) {
         levelMax: validatedData.levelMax || 5.0,
       },
       managerId: user.id,
+      courts: {
+        create: Array.from({ length: validatedData.courtCount }).map((_, i) => ({
+          name: `Terrain ${i + 1}`,
+        })),
+      },
     },
   });
 
   revalidatePath("/leagues");
   redirect("/leagues");
+}
+
+export async function updateLeague(leagueId: string, formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Non autorisé");
+
+  const rawData = {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    maxPlayers: formData.get("maxPlayers"),
+    levelMin: formData.get("levelMin"),
+    levelMax: formData.get("levelMax"),
+    courtCount: 1, // Non utilisé ici mais requis par le schéma
+  };
+
+  const validatedData = leagueSchema.partial().parse(rawData);
+
+  await prisma.league.update({
+    where: { id: leagueId, managerId: user.id },
+    data: {
+      name: validatedData.name,
+      description: validatedData.description,
+      settings: {
+        maxPlayers: validatedData.maxPlayers,
+        levelMin: validatedData.levelMin,
+        levelMax: validatedData.levelMax,
+      }
+    }
+  });
+
+  revalidatePath(`/leagues/${leagueId}/settings`);
 }

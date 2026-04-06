@@ -93,6 +93,7 @@ model Session {
   
   location    String?  // Lieu de la session
   maxPlayers  Int      @default(20) // Capacité maximale
+  duration    Int?     // Durée en minutes
   description String?  // Notes optionnelles
   
   leagueId    String

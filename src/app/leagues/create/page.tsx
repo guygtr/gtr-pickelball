@@ -13,18 +13,36 @@ export default function CreateLeaguePage() {
           </p>
 
           <form action={createLeague} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
-                Nom de la ligue
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                required
-                placeholder="Ex: Ligue du Lundi Soir"
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+                  Nom de la ligue
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Ex: Ligue du Lundi Soir"
+                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="courtCount" className="block text-sm font-medium text-slate-300 mb-2">
+                  Nombre de terrains
+                </label>
+                <input
+                  type="number"
+                  id="courtCount"
+                  name="courtCount"
+                  required
+                  defaultValue={1}
+                  min={1}
+                  max={10}
+                  className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+                />
+              </div>
             </div>
 
             <div>

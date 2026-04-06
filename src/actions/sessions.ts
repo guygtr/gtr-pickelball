@@ -15,6 +15,7 @@ export async function createSession(data: z.infer<typeof sessionSchema>) {
         date: new Date(validated.date),
         location: validated.location || null,
         maxPlayers: validated.maxPlayers,
+        duration: validated.duration || null,
         description: validated.description || null,
         status: "PLANNED",
       },

@@ -6,6 +6,7 @@ export const leagueSchema = z.object({
   maxPlayers: z.preprocess((val) => Number(val), z.number().min(2, "Minimum 2 joueurs")),
   levelMin: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(1).max(6).optional()),
   levelMax: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(1).max(6).optional()),
+  courtCount: z.preprocess((val) => val ? Number(val) : 1, z.number().min(1).max(10).default(1)),
 });
 
 export type LeagueSchema = z.infer<typeof leagueSchema>;
