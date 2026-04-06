@@ -153,13 +153,13 @@ export function SessionDetailsClient({
 
           <div className="mt-6 pt-6 border-t border-white/5">
             <NeonButton 
-              className="w-full" 
+              className="w-full py-4 text-[11px] tracking-[0.2em]" 
               variant="green"
               disabled={presentCount < 2 || loading}
               onClick={handleGenerateMatches}
             >
-              <Play className="w-4 h-4 mr-2" />
-              {loading ? "Génération..." : "Lancer le Matchmaking"}
+              <Play className="w-5 h-5 flex-shrink-0" />
+              {loading ? "GÉNÉRATION EN COURS..." : "LANCER LE MATCHMAKING"}
             </NeonButton>
             <p className="text-[10px] text-center text-slate-500 mt-4 uppercase font-bold tracking-widest">
               Algorithme Fair Play GTR v2.1

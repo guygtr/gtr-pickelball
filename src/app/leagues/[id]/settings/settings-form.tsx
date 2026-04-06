@@ -5,6 +5,7 @@ import { updateLeague } from "@/actions/league";
 import { exportLeagueData } from "@/actions/export";
 import { useRouter } from "next/navigation";
 import { Download, Save, CheckCircle2 } from "lucide-react";
+import { NeonButton } from "@/components/ui/gtr/neon-button";
 
 interface SettingsFormProps {
   league: {
@@ -171,32 +172,34 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
         {children}
 
         <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-white/5">
-          <button
+          <NeonButton
             type="submit"
             disabled={isSaving}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-[0.98]"
+            variant="green"
+            className="flex-1 py-4"
           >
             {isSaving ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <Save className="w-5 h-5" />
             )}
-            Enregistrer les modifications
-          </button>
+            ENREGISTRER LES MODIFICATIONS
+          </NeonButton>
 
-          <button
+          <NeonButton
             type="button"
             onClick={handleExport}
             disabled={isExporting}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl border border-white/10 transition-all active:scale-[0.98]"
+            variant="blue"
+            className="py-4"
           >
             {isExporting ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <Download className="w-5 h-5" />
             )}
-            Exporter l&apos;intégralité (JSON)
-          </button>
+            EXPORTER L&apos;INTÉGRALITÉ (JSON)
+          </NeonButton>
         </div>
       </form>
     </div>

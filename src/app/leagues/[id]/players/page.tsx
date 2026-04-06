@@ -3,6 +3,7 @@ import { Users, Filter, Search } from "lucide-react";
 import { PlayerListClient } from "@/components/players/player-list-client";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { PlayerActions } from "@/components/players/player-actions";
+import { NeonButton } from "@/components/ui/gtr/neon-button";
 
 export default async function PlayersPage({
   params,
@@ -42,10 +43,10 @@ export default async function PlayersPage({
               className="w-full bg-slate-900/50 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white text-sm focus:ring-2 focus:ring-pickle-green/50 outline-none transition-all"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-300 text-sm font-medium transition-all">
-            <Filter className="w-4 h-4" />
-            Filtrer
-          </button>
+          <NeonButton variant="blue" className="py-2 text-[10px]">
+            <Filter className="w-4 h-4 flex-shrink-0" />
+            FILTRER
+          </NeonButton>
         </div>
 
         <div className="overflow-x-auto">

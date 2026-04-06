@@ -12,16 +12,16 @@ export function PlayerListClient({ leagueId }: { leagueId: string }) {
 
   return (
     <div className="flex items-center gap-3">
-      <button 
+      <NeonButton 
         onClick={() => setIsImportModalOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-300 text-sm font-medium transition-all"
+        variant="blue"
       >
         <Upload className="w-4 h-4" />
         Importer CSV
-      </button>
+      </NeonButton>
       
       <NeonButton onClick={() => setIsAddModalOpen(true)} variant="green">
-        <Plus className="w-4 h-4 mr-2" />
+        <Plus className="w-4 h-4" />
         Ajouter un Joueur
       </NeonButton>
 

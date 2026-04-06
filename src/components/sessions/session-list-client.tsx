@@ -13,9 +13,8 @@ export function SessionListClient({ leagueId }: { leagueId: string }) {
       <div className="flex gap-3">
         <NeonButton 
           onClick={() => setShowAddModal(true)}
-          className="h-10 px-4"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           Planifier
         </NeonButton>
       </div>
