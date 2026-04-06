@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Lock, Unlock } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
