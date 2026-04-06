@@ -174,16 +174,17 @@ export function AddSessionModal({
           </div>
           
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-sm font-medium">
+            <div className="my-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-500 text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               {error}
             </div>
           )}
           
-          <div className="pt-4 flex gap-3">
+          <div className="pt-6 flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-slate-300 font-medium transition-all"
+              className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-white/70 hover:text-white font-bold transition-all text-sm uppercase tracking-widest"
             >
               Annuler
             </button>

@@ -7,6 +7,9 @@ export const leagueSchema = z.object({
   levelMin: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(1).max(6).optional()),
   levelMax: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(1).max(6).optional()),
   courtCount: z.preprocess((val) => val ? Number(val) : 1, z.number().min(1).max(10).default(1)),
+  defaultStartTime: z.string().optional(),
+  defaultDuration: z.preprocess((val) => val ? Number(val) : undefined, z.number().min(15).max(480).optional()),
+  defaultLocation: z.string().optional(),
 });
 
 export type LeagueSchema = z.infer<typeof leagueSchema>;

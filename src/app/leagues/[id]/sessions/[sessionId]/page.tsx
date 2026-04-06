@@ -19,11 +19,13 @@ export default async function SessionDetailsPage({
         include: {
           players: {
             orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
-          }
+          },
+          courts: true
         }
       },
       attendances: true,
       matches: {
+        orderBy: { createdAt: 'asc' },
         include: {
           court: true
         }
@@ -64,6 +66,7 @@ export default async function SessionDetailsPage({
         session={{ id: session.id }} 
         leaguePlayers={session.league.players}
         initialAttendances={session.attendances}
+        courtCount={session.league.courts.length}
         initialMatches={(session.matches as unknown as Array<{ 
           id: string; 
           courtId: string | null; 

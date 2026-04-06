@@ -24,7 +24,7 @@ export default async function LeaguesPage() {
           <h2 className="text-2xl font-bold text-white mb-4">Accès Restreint</h2>
           <p className="text-slate-400 mb-6">Veuillez vous connecter pour gérer vos ligues.</p>
           <Link 
-            href="/login" 
+            href="/auth/login" 
             className="inline-block bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-8 rounded-xl transition-all"
           >
             Se connecter

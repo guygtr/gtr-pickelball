@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Play, CheckCircle2, Circle, Trophy, Trash2 } from "lucide-react";
+import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Crown } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches } from "@/actions/matchmaking";
 import { useRouter } from "next/navigation";
+import { ResultModal } from "@/components/matches/result-modal";
 
 interface Player {
   id: string;
@@ -26,6 +27,7 @@ interface Match {
   data: {
     team1: string[];
     team2: string[];
+    winner?: number; // 1, 2, or 0 (draw)
   };
 }
 
@@ -37,14 +39,17 @@ export function SessionDetailsClient({
   session, 
   leaguePlayers, 
   initialAttendances,
-  initialMatches 
+  initialMatches,
+  courtCount 
 }: { 
   session: Session; 
   leaguePlayers: Player[]; 
   initialAttendances: Attendance[];
   initialMatches: Match[];
+  courtCount: number;
 }) {
   const [loading, setLoading] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 
   const attendancesMap = new Map(initialAttendances.map(a => [a.playerId, a.isPresent]));
@@ -182,51 +187,142 @@ export function SessionDetailsClient({
             </p>
           </GlassCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {initialMatches.map((match, idx) => (
-              <GlassCard key={match.id} className="overflow-hidden group hover:border-pickle-orange/50 transition-colors">
-                <div className="bg-white/5 p-3 border-b border-white/5 flex justify-between items-center">
-                    <span className="text-xs font-black text-pickle-orange uppercase tracking-tighter">
-                        {match.court?.name || `Terrain ${idx + 1}`}
-                    </span>
-                    <div className="flex items-center gap-3">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase">Match #{idx + 1}</span>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
-                            className="p-1 text-slate-600 hover:text-red-500 transition-colors"
-                            title="Supprimer le match"
+          <div className="space-y-12">
+            {Array.from({ length: Math.ceil(initialMatches.length / Math.max(1, courtCount)) }).map((_, roundIdx) => {
+              const roundMatches = initialMatches.slice(roundIdx * courtCount, (roundIdx + 1) * courtCount);
+              const gridCols = courtCount === 2 ? 'md:grid-cols-2' : courtCount >= 3 ? 'lg:grid-cols-3' : 'md:grid-cols-2';
+              
+              return (
+                <div key={roundIdx} className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
+                    <div className="flex flex-col items-center">
+                      <span className="text-xs font-black text-pickle-green uppercase tracking-[0.3em] mb-1">
+                        TEMPS DE JEU
+                      </span>
+                      <span className="text-sm font-black text-white uppercase tracking-[0.2em] bg-pickle-green/10 px-6 py-1.5 rounded-full border border-pickle-green/30 shadow-[0_0_15px_rgba(132,204,22,0.1)]">
+                        RONDE {roundIdx + 1}
+                      </span>
+                    </div>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
+                  </div>
+
+                  <div className={`grid grid-cols-1 gap-6 ${gridCols}`}>
+                    {roundMatches.map((match, idx) => {
+                      const globalIdx = roundIdx * courtCount + idx;
+                      const hasWinner = match.data.winner !== undefined && match.data.winner !== null;
+                      
+                      return (
+                        <GlassCard 
+                          key={match.id} 
+                          className={`overflow-hidden group hover:border-pickle-green/50 transition-all duration-500 hover:shadow-2xl hover:shadow-pickle-green/5 ${
+                            hasWinner ? 'ring-1 ring-pickle-green/30' : ''
+                          }`}
                         >
-                            <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
+                          <div className="bg-white/5 p-4 border-b border-white/5 flex justify-between items-center">
+                              <span className="text-sm font-black text-pickle-green uppercase tracking-wider flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-pickle-green animate-pulse" />
+                                  {match.court?.name || `TERRAIN ${idx + 1}`}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">
+                                    MATCH #{globalIdx + 1}
+                                  </span>
+                                  <button 
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
+                                      className="p-1 text-slate-600 hover:text-red-500 transition-colors"
+                                      title="Supprimer le match"
+                                  >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                              </div>
+                          </div>
+                          
+                          <div className="p-6 space-y-6">
+                              <div className="flex items-center justify-between gap-6 relative">
+                                  {/* Team 1 */}
+                                  <div className={`flex-1 space-y-2 transition-all duration-500 ${match.data.winner === 1 ? 'scale-105' : match.data.winner === 2 ? 'opacity-30 grayscale' : ''}`}>
+                                      {match.data.team1.map((pId: string) => {
+                                          const p = leaguePlayers.find(lp => lp.id === pId);
+                                          return (
+                                            <div key={pId} className="flex items-center gap-2.5">
+                                              <div className={`w-1.5 h-4 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-green' : 'bg-white/10'}`} />
+                                              <div className="text-base font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
+                                            </div>
+                                          )
+                                      })}
+                                  </div>
+
+                                  {/* VS Indicator */}
+                                  <div className="flex flex-col items-center justify-center shrink-0">
+                                    <div className="h-8 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+                                    <div className={`text-xs font-black italic p-2 rounded-full border transition-all duration-700 ${
+                                      hasWinner 
+                                        ? 'bg-pickle-green/5 border-pickle-green/20 text-pickle-green/40' 
+                                        : 'bg-white/5 border-white/10 text-pickle-blue'
+                                    }`}>
+                                      VS
+                                    </div>
+                                    <div className="h-8 w-px bg-gradient-to-t from-transparent via-white/10 to-transparent" />
+                                  </div>
+
+                                  {/* Team 2 */}
+                                  <div className={`flex-1 space-y-2 text-right transition-all duration-500 ${match.data.winner === 2 ? 'scale-105' : match.data.winner === 1 ? 'opacity-30 grayscale' : ''}`}>
+                                      {match.data.team2.map((pId: string) => {
+                                          const p = leaguePlayers.find(lp => lp.id === pId);
+                                          return (
+                                            <div key={pId} className="flex items-center justify-end gap-2.5">
+                                              <div className="text-base font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
+                                              <div className={`w-1.5 h-4 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-green' : 'bg-white/10'}`} />
+                                            </div>
+                                          )
+                                      })}
+                                  </div>
+
+                                  {/* Winner Icon Overlay */}
+                                  {hasWinner && (
+                                    <div className={`absolute top-1/2 -translate-y-1/2 ${match.data.winner === 1 ? 'left-0' : 'right-0'} opacity-20 pointer-events-none`}>
+                                      <Trophy className="w-12 h-12 text-pickle-green" />
+                                    </div>
+                                  )}
+                              </div>
+                          </div>
+
+                          <div className="bg-white/5 p-3 text-center border-t border-white/5 group-hover:bg-pickle-green/10 transition-all duration-300">
+                              <button 
+                                onClick={() => setSelectedMatch(match)}
+                                className="text-xs font-black text-pickle-green uppercase tracking-[0.2em] w-full flex items-center justify-center gap-2"
+                              >
+                                  {hasWinner ? (
+                                    <>
+                                      <CheckCircle2 className="w-3 h-3" />
+                                      MODIFIER RÉSULTAT
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trophy className="w-3 h-3" />
+                                      SAISIR RÉSULTAT
+                                    </>
+                                  )}
+                              </button>
+                          </div>
+                        </GlassCard>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="p-4 space-y-4">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 space-y-1">
-                            {match.data.team1.map((pId: string) => {
-                                const p = leaguePlayers.find(lp => lp.id === pId);
-                                return <div key={pId} className="text-sm font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
-                            })}
-                        </div>
-                        <div className="text-xl font-black text-pickle-blue italic">VS</div>
-                        <div className="flex-1 space-y-1 text-right">
-                            {match.data.team2.map((pId: string) => {
-                                const p = leaguePlayers.find(lp => lp.id === pId);
-                                return <div key={pId} className="text-sm font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
-                            })}
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-pickle-orange/5 p-2 text-center border-t border-pickle-orange/10 group-hover:bg-pickle-orange/10 transition-colors">
-                    <button className="text-[10px] font-black text-pickle-orange uppercase tracking-widest">
-                        Saisir le Score
-                    </button>
-                </div>
-              </GlassCard>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
+
+      <ResultModal 
+        isOpen={!!selectedMatch}
+        onClose={() => setSelectedMatch(null)}
+        match={selectedMatch}
+        leaguePlayers={leaguePlayers}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { Users, Filter, Search } from "lucide-react";
 import { PlayerListClient } from "@/components/players/player-list-client";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
+import { PlayerActions } from "@/components/players/player-actions";
 
 export default async function PlayersPage({
   params,
@@ -75,9 +76,11 @@ export default async function PlayersPage({
                     {player.email || player.phone || "-"}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-slate-500 hover:text-pickle-green transition-colors text-xs font-medium uppercase tracking-wider">
-                      Modifier
-                    </button>
+                    <PlayerActions 
+                      leagueId={resolvedParams.id} 
+                      playerId={player.id} 
+                      playerName={`${player.firstName} ${player.lastName}`} 
+                    />
                   </td>
                 </tr>
               ))}

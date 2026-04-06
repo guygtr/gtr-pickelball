@@ -1,0 +1,201 @@
+"use client";
+
+import { useState } from "react";
+import { updateLeague } from "@/actions/league";
+import { exportLeagueData } from "@/actions/export";
+import { useRouter } from "next/navigation";
+import { Download, Save, CheckCircle2 } from "lucide-react";
+
+interface SettingsFormProps {
+  league: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+  settings: {
+    maxPlayers?: number;
+    levelMin?: number;
+    levelMax?: number;
+    defaultStartTime?: string;
+    defaultDuration?: number;
+    defaultLocation?: string;
+  };
+}
+
+export function SettingsForm({ league, settings }: SettingsFormProps) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsSaving(true);
+    try {
+      await updateLeague(league.id, formData);
+      setShowSuccess(true);
+      setTimeout(() => {
+        router.push(`/leagues/${league.id}`);
+        router.refresh();
+      }, 1500);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde :", error);
+      alert("Une erreur est survenue lors de la sauvegarde.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const data = await exportLeagueData(league.id);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `league_export_${league.name.replace(/\s+/g, "_").toLowerCase()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erreur lors de l'exportation :", error);
+      alert("Une erreur est survenue lors de l'exportation.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {showSuccess && (
+        <div className="bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-5 h-5" />
+          <p className="font-medium">Paramètres enregistrés avec succès. Redirection...</p>
+        </div>
+      )}
+
+      <form action={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Nom de la ligue</label>
+            <input
+              type="text"
+              name="name"
+              defaultValue={league.name}
+              required
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-600"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Description</label>
+            <textarea
+              name="description"
+              defaultValue={league.description || ""}
+              rows={3}
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              placeholder="Décrivez votre ligue..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Joueurs max / terrain</label>
+              <input
+                type="number"
+                name="maxPlayers"
+                defaultValue={settings?.maxPlayers || 4}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Niveau Min (1-6)</label>
+              <input
+                type="number"
+                step="0.5"
+                name="levelMin"
+                defaultValue={settings?.levelMin || 2.0}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Niveau Max (1-6)</label>
+              <input
+                type="number"
+                step="0.5"
+                name="levelMax"
+                defaultValue={settings?.levelMax || 5.0}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="h-px bg-white/5 my-4" />
+          <h3 className="text-lg font-semibold text-slate-200">Paramètres de session par défaut</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Heure de début</label>
+              <input
+                type="time"
+                name="defaultStartTime"
+                defaultValue={settings?.defaultStartTime || "19:00"}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Durée (minutes)</label>
+              <input
+                type="number"
+                name="defaultDuration"
+                defaultValue={settings?.defaultDuration || 120}
+                className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Lieu par défaut</label>
+            <input
+              type="text"
+              name="defaultLocation"
+              defaultValue={settings?.defaultLocation || ""}
+              className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
+              placeholder="Ex: Centre Sportif, Court Extérieur..."
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-900/20 active:scale-[0.98]"
+          >
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            Enregistrer les modifications
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl border border-white/10 transition-all active:scale-[0.98]"
+          >
+            {isExporting ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Download className="w-5 h-5" />
+            )}
+            Exporter (JSON)
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

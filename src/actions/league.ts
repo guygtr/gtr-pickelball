@@ -52,6 +52,9 @@ export async function updateLeague(leagueId: string, formData: FormData) {
     levelMin: formData.get("levelMin"),
     levelMax: formData.get("levelMax"),
     courtCount: 1, // Non utilisé ici mais requis par le schéma
+    defaultStartTime: formData.get("defaultStartTime"),
+    defaultDuration: formData.get("defaultDuration"),
+    defaultLocation: formData.get("defaultLocation"),
   };
 
   const validatedData = leagueSchema.partial().parse(rawData);
@@ -65,9 +68,13 @@ export async function updateLeague(leagueId: string, formData: FormData) {
         maxPlayers: validatedData.maxPlayers,
         levelMin: validatedData.levelMin,
         levelMax: validatedData.levelMax,
+        defaultStartTime: validatedData.defaultStartTime,
+        defaultDuration: validatedData.defaultDuration,
+        defaultLocation: validatedData.defaultLocation,
       }
     }
   });
 
   revalidatePath(`/leagues/${leagueId}/settings`);
+  revalidatePath(`/leagues/${leagueId}`);
 }
