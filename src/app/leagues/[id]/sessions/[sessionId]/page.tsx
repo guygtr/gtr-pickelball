@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar } from "lucide-react";
 import { SessionDetailsClient } from "@/components/sessions/session-details-client";
+import { getSessionStatus } from "@/lib/session-utils";
 
 export default async function SessionDetailsPage({
   params,
@@ -52,18 +53,19 @@ export default async function SessionDetailsPage({
         </div>
         
         <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
-            <div className={`px-4 py-2 rounded-xl text-sm font-black tracking-widest ${
-                session.status === 'DRAFT' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' :
-                session.status === 'ACTIVE' ? 'bg-pickle-green/20 text-pickle-green border border-pickle-green/30' :
-                'bg-slate-500/20 text-slate-400 border border-slate-500/30'
-            }`}>
-                {session.status}
-            </div>
+          {(() => {
+            const status = getSessionStatus(session);
+            return (
+              <div className={`px-4 py-2 rounded-xl text-sm font-black tracking-widest ${status.color}`}>
+                {status.label.toUpperCase()}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
       <SessionDetailsClient 
-        session={{ id: session.id }} 
+        session={{ id: session.id, settings: session.settings as Record<string, unknown> }} 
         leaguePlayers={session.league.players}
         initialAttendances={session.attendances}
         courtCount={session.league.courts.length}

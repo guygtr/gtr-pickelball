@@ -2,6 +2,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { getEnsuredUser } from "@/lib/auth-utils";
 import { ExportDataButton } from "@/components/settings/export-data-button";
+import { ImportDataButton } from "@/components/settings/import-data-button";
 import { User, Shield, Database } from "lucide-react";
 
 export default async function SettingsPage() {
@@ -58,6 +59,7 @@ export default async function SettingsPage() {
 
           <div className="space-y-4">
             <ExportDataButton />
+            <ImportDataButton />
           </div>
         </section>
 

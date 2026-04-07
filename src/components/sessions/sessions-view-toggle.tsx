@@ -19,8 +19,8 @@ interface Session {
   _count?: {
     matches: number;
   };
+  matches?: { data: any }[];
 }
-
 export function SessionsViewToggle({ 
   sessions, 
   leagueId 

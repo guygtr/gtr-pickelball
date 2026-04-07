@@ -81,9 +81,15 @@ export async function exportUserData() {
   const managedLeagues = await prisma.league.findMany({
     where: { managerId: user.id },
     include: {
-      players: true,
+      players: {
+        include: {
+          attendances: true
+        }
+      },
+      courts: true,
       sessions: {
         include: {
+          attendances: true,
           matches: true
         }
       }
@@ -91,18 +97,55 @@ export async function exportUserData() {
   });
 
   return {
+    exportVersion: "1.0",
     exportDate: new Date().toISOString(),
     user: {
       id: user.id,
       email: user.email,
     },
-    managedLeagues: managedLeagues.map((l: any) => ({
+    leagues: managedLeagues.map((l: any) => ({
       id: l.id,
       name: l.name,
       description: l.description,
-      playerCount: l.players.length,
-      sessionCount: l.sessions.length,
+      settings: l.settings,
       createdAt: l.createdAt,
+      players: l.players.map((p: any) => ({
+        id: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+        phone: p.phone,
+        skillLevel: p.skillLevel,
+        isActive: p.isActive,
+        createdAt: p.createdAt,
+      })),
+      courts: l.courts.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        note: c.note,
+        playerCapacity: c.playerCapacity,
+      })),
+      sessions: l.sessions.map((s: any) => ({
+        id: s.id,
+        date: s.date,
+        status: s.status,
+        location: s.location,
+        maxPlayers: s.maxPlayers,
+        duration: s.duration,
+        description: s.description,
+        settings: s.settings,
+        attendances: s.attendances.map((a: any) => ({
+          playerId: a.playerId,
+          isPresent: a.isPresent,
+        })),
+        matches: s.matches.map((m: any) => ({
+          id: m.id,
+          courtId: m.courtId,
+          startTime: m.startTime,
+          duration: m.duration,
+          data: m.data,
+        }))
+      }))
     })),
   };
 }

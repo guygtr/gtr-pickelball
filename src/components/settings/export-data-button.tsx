@@ -44,7 +44,7 @@ export const ExportDataButton = () => {
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
         </div>
         <div className="text-left">
-          <p className="font-bold text-white group-hover:text-pickle-green transition-colors">Exporter mes données</p>
+          <p className="font-bold text-white group-hover:text-pickle-green transition-colors">Exporter l&apos;intégralité de mes ligues</p>
           <p className="text-xs text-slate-400">Téléchargez toutes vos informations au format JSON</p>
         </div>
       </div>

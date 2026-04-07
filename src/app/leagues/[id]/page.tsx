@@ -12,6 +12,8 @@ export default async function LeagueDashboard({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
+  
+  // 1. Charger les données de la ligue
   const league = await prisma.league.findUnique({
     where: { id: resolvedParams.id },
     include: {
@@ -35,7 +37,7 @@ export default async function LeagueDashboard({
             select: { attendances: true }
           },
           matches: {
-            select: { id: true }
+            select: { data: true }
           }
         }
       }
@@ -46,11 +48,25 @@ export default async function LeagueDashboard({
     notFound();
   }
 
+  // 2. Compter le nombre total de matchs de la ligue
+  const matchCount = await prisma.match.count({
+    where: {
+      session: {
+        leagueId: league.id
+      }
+    }
+  });
+
+  // 3. Préparer les statistiques
+  const avgLevel = league.players.length > 0 
+    ? (league.players.reduce((acc: number, p: { skillLevel: number }) => acc + p.skillLevel, 0) / league.players.length).toFixed(1)
+    : "0.0";
+
   const stats = [
     { label: "Joueurs", value: league._count.players, icon: Users, color: "text-blue-400" },
     { label: "Sessions", value: league._count.sessions, icon: Calendar, color: "text-emerald-400" },
-    { label: "Matchs Joués", value: 0, icon: Trophy, color: "text-amber-400" }, // TODO: Compter les matchs
-    { label: "Niveau Moyen", value: "3.2", icon: TrendingUp, color: "text-purple-400" }, // TODO: Calculer
+    { label: "Matchs Joués", value: matchCount, icon: Trophy, color: "text-amber-400" },
+    { label: "Niveau Moyen", value: avgLevel, icon: TrendingUp, color: "text-purple-400" },
   ];
 
   return (

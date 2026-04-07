@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { updateLeague } from "@/actions/league";
-import { exportLeagueData } from "@/actions/export";
 import { useRouter } from "next/navigation";
-import { Download, Save, CheckCircle2 } from "lucide-react";
+import { Save, CheckCircle2 } from "lucide-react";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 
 interface SettingsFormProps {
@@ -27,7 +26,6 @@ interface SettingsFormProps {
 export function SettingsForm({ league, settings, children }: SettingsFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
@@ -44,27 +42,6 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
       alert("Une erreur est survenue lors de la sauvegarde.");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const data = await exportLeagueData(league.id);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `league_export_${league.name.replace(/\s+/g, "_").toLowerCase()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Erreur lors de l'exportation :", error);
-      alert("Une erreur est survenue lors de l'exportation.");
-    } finally {
-      setIsExporting(false);
     }
   };
 
@@ -184,21 +161,6 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
               <Save className="w-5 h-5" />
             )}
             ENREGISTRER LES MODIFICATIONS
-          </NeonButton>
-
-          <NeonButton
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-            variant="blue"
-            className="py-4"
-          >
-            {isExporting ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Download className="w-5 h-5" />
-            )}
-            EXPORTER L&apos;INTÉGRALITÉ (JSON)
           </NeonButton>
         </div>
       </form>

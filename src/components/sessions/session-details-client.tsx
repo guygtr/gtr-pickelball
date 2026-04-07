@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Lock, Unlock } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matchmaking";
+import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matches";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
 
@@ -153,16 +153,16 @@ export function SessionDetailsClient({
 
           <div className="mt-6 pt-6 border-t border-white/5">
             <NeonButton 
-              className="w-full py-4 text-[11px] tracking-[0.2em]" 
+              className="w-full py-5 text-[12px] tracking-[0.25em]" 
               variant="green"
               disabled={presentCount < 2 || loading}
               onClick={handleGenerateMatches}
             >
               <Play className="w-5 h-5 flex-shrink-0" />
-              {loading ? "GÉNÉRATION EN COURS..." : "LANCER LE MATCHMAKING"}
+              {loading ? "GÉNÉRATION..." : "GÉNÉRER LES PARTIES"}
             </NeonButton>
-            <p className="text-[10px] text-center text-slate-500 mt-4 uppercase font-bold tracking-widest">
-              Algorithme Fair Play GTR v2.1
+            <p className="text-[9px] text-center text-slate-500 mt-4 uppercase font-bold tracking-[0.3em] opacity-40">
+              GTR FAIR PLAY ENGINE v2.2
             </p>
           </div>
         </GlassCard>
@@ -173,7 +173,7 @@ export function SessionDetailsClient({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-2xl font-black text-white flex items-center gap-3">
             <Trophy className="w-6 h-6 text-pickle-orange" />
-            MATCHS DE LA SESSION
+            {"VUE D'ENSEMBLE DES MATCHS"}
           </h3>
 
           {initialMatches.length > 0 && (
@@ -189,13 +189,13 @@ export function SessionDetailsClient({
         </div>
 
         {initialMatches.length === 0 ? (
-          <GlassCard className="p-12 text-center border-dashed">
-            <div className="bg-white/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="w-8 h-8 text-slate-600" />
+          <GlassCard className="p-16 text-center border-dashed border-white/5">
+            <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Play className="w-10 h-10 text-slate-700" />
             </div>
-            <h4 className="text-xl font-bold text-slate-300">Aucun match généré</h4>
-            <p className="text-slate-500 mt-2 max-w-sm mx-auto">
-                Sélectionnez les joueurs présents et cliquez sur &quot;Lancer le Matchmaking&quot; pour organiser les terrains.
+            <h4 className="text-xl font-bold text-slate-300">Aucune partie générée</h4>
+            <p className="text-slate-500 mt-4 max-w-sm mx-auto text-sm leading-relaxed">
+                Sélectionnez les joueurs présents et cliquez sur &quot;GÉNÉRER LES PARTIES&quot; pour organiser les rencontres sur les terrains.
             </p>
           </GlassCard>
         ) : (
@@ -206,35 +206,30 @@ export function SessionDetailsClient({
               const gridCols = courtCount === 2 ? 'md:grid-cols-2' : courtCount >= 3 ? 'lg:grid-cols-3' : 'md:grid-cols-2';
               
               return (
-                <div key={roundIdx} className={`space-y-6 transition-all duration-500 ${isRoundClosed ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                <div key={roundIdx} className={`space-y-8 transition-all duration-700 ${isRoundClosed ? 'opacity-95' : ''}`}>
                   <div className="flex items-center gap-4">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs font-black text-pickle-green uppercase tracking-[0.3em] mb-1">
-                        TEMPS DE JEU
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-sm font-black text-white uppercase tracking-[0.2em] px-6 py-1.5 rounded-full border transition-all duration-300 ${
-                          isRoundClosed 
-                            ? 'bg-slate-800 border-white/10 text-slate-400' 
-                            : 'bg-pickle-green/10 border-pickle-green/30 shadow-[0_0_15px_rgba(132,204,22,0.1)]'
-                        }`}>
-                          RONDE {roundIdx + 1}
-                        </span>
-                        <button
-                          onClick={() => handleToggleRoundStatus(roundIdx, !isRoundClosed)}
-                          className={`p-1.5 rounded-lg border transition-all ${
-                            isRoundClosed 
-                              ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white' 
-                              : 'bg-pickle-green/10 border-pickle-green/30 text-pickle-green hover:bg-pickle-green hover:text-white'
-                          }`}
-                          title={isRoundClosed ? "Ouvrir la ronde" : "Fermer la ronde"}
-                        >
-                          {isRoundClosed ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                        </button>
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <div className="flex items-center gap-3">
+                      <div className={`px-6 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md transition-all duration-500 ${
+                        isRoundClosed 
+                          ? 'bg-slate-900/40 border-white/5 text-slate-600' 
+                          : 'bg-pickle-green/10 border-pickle-green/30 text-pickle-green shadow-[0_0_20px_rgba(132,204,22,0.15)]'
+                      }`}>
+                        RONDE {roundIdx + 1}
                       </div>
+                      <button
+                        onClick={() => handleToggleRoundStatus(roundIdx, !isRoundClosed)}
+                        className={`p-2 rounded-full border transition-all duration-300 ${
+                          isRoundClosed 
+                            ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white' 
+                            : 'bg-white/5 border-white/10 text-slate-500 hover:border-pickle-blue/50 hover:text-pickle-blue'
+                        }`}
+                        title={isRoundClosed ? "Réactiver la ronde" : "Verrouiller la ronde"}
+                      >
+                        {isRoundClosed ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                      </button>
                     </div>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-pickle-green/20 to-transparent" />
+                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                   </div>
 
                   <div className={`grid grid-cols-1 gap-6 ${gridCols}`}>
@@ -245,102 +240,110 @@ export function SessionDetailsClient({
                       return (
                         <GlassCard 
                           key={match.id} 
-                          className={`overflow-hidden group hover:border-pickle-green/50 transition-all duration-500 hover:shadow-2xl hover:shadow-pickle-green/5 ${
-                            hasWinner ? 'ring-1 ring-pickle-green/30' : ''
-                          } ${isRoundClosed ? 'pointer-events-none' : ''}`}
+                          className={`group relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${
+                            hasWinner 
+                              ? 'border-pickle-green/30 bg-pickle-green/[0.03] shadow-[0_0_40px_rgba(132,204,22,0.05)]' 
+                              : 'hover:border-white/20'
+                          } ${isRoundClosed ? 'grayscale-[0.2] pointer-events-none' : ''}`}
                         >
-                          <div className="bg-white/5 p-4 border-b border-white/5 flex justify-between items-center">
-                              <span className="text-sm font-black text-pickle-green uppercase tracking-wider flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-green animate-pulse'}`} />
-                                  {match.court?.name || `TERRAIN ${idx + 1}`}
+                          {/* Header du Match */}
+                          <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-green shadow-[0_0_8px_rgba(132,204,22,0.5)]'}`} />
+                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                                {match.court?.name || `TERRAIN ${idx + 1}`}
                               </span>
-                              <div className="flex items-center gap-3">
-                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">
-                                    MATCH #{globalIdx + 1}
-                                  </span>
-                                  {!isRoundClosed && (
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
-                                        className="p-1 text-slate-600 hover:text-red-500 transition-colors"
-                                        title="Supprimer le match"
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
-                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest border border-white/5 px-2 py-0.5 rounded-md">
+                                #{globalIdx + 1}
+                              </span>
+                              {!isRoundClosed && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
+                                  className="p-1 text-slate-700 hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           
-                          <div className="p-6 space-y-6">
-                              <div className="flex items-center justify-between gap-6 relative">
-                                  {/* Team 1 */}
-                                  <div className={`flex-1 space-y-2 transition-all duration-500 ${match.data.winner === 1 ? 'scale-105' : match.data.winner === 2 ? 'opacity-30 grayscale' : ''}`}>
-                                      {match.data.team1.map((pId: string) => {
-                                          const p = leaguePlayers.find(lp => lp.id === pId);
-                                          return (
-                                            <div key={pId} className="flex items-center gap-2.5">
-                                              <div className={`w-1.5 h-4 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-green' : 'bg-white/10'}`} />
-                                              <div className="text-base font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
-                                            </div>
-                                          )
-                                      })}
-                                  </div>
-
-                                  {/* VS Indicator */}
-                                  <div className="flex flex-col items-center justify-center shrink-0">
-                                    <div className="h-8 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-                                    <div className={`text-xs font-black italic p-2 rounded-full border transition-all duration-700 ${
-                                      hasWinner 
-                                        ? 'bg-pickle-green/5 border-pickle-green/20 text-pickle-green/40' 
-                                        : 'bg-white/5 border-white/10 text-pickle-blue'
-                                    }`}>
-                                      VS
+                          {/* Corps du Match */}
+                          <div className="p-6 relative">
+                            <div className="flex items-center justify-between gap-4">
+                              {/* Équipe 1 */}
+                              <div className={`flex-1 space-y-3 transition-all duration-500 ${match.data.winner === 1 ? 'scale-[1.02]' : match.data.winner === 2 ? 'opacity-30' : ''}`}>
+                                {match.data.team1.map((pId: string) => {
+                                  const p = leaguePlayers.find(lp => lp.id === pId);
+                                  return (
+                                    <div key={pId} className="flex items-center gap-3">
+                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-green shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
+                                      <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
                                     </div>
-                                    <div className="h-8 w-px bg-gradient-to-t from-transparent via-white/10 to-transparent" />
+                                  )
+                                })}
+                                {match.data.winner === 1 && (
+                                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-pickle-green/20 border border-pickle-green/30 rounded-md mt-2">
+                                    <Trophy className="w-3 h-3 text-pickle-green" />
+                                    <span className="text-[8px] font-black text-pickle-green uppercase tracking-tighter">Vainqueur</span>
                                   </div>
-
-                                  {/* Team 2 */}
-                                  <div className={`flex-1 space-y-2 text-right transition-all duration-500 ${match.data.winner === 2 ? 'scale-105' : match.data.winner === 1 ? 'opacity-30 grayscale' : ''}`}>
-                                      {match.data.team2.map((pId: string) => {
-                                          const p = leaguePlayers.find(lp => lp.id === pId);
-                                          return (
-                                            <div key={pId} className="flex items-center justify-end gap-2.5">
-                                              <div className="text-base font-bold text-white truncate">{p?.firstName} {p?.lastName}</div>
-                                              <div className={`w-1.5 h-4 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-green' : 'bg-white/10'}`} />
-                                            </div>
-                                          )
-                                      })}
-                                  </div>
-
-                                  {/* Winner Icon Overlay */}
-                                  {hasWinner && (
-                                    <div className={`absolute top-1/2 -translate-y-1/2 ${match.data.winner === 1 ? 'left-0' : 'right-0'} opacity-20 pointer-events-none`}>
-                                      <Trophy className="w-12 h-12 text-pickle-green" />
-                                    </div>
-                                  )}
+                                )}
                               </div>
+
+                              {/* VS Middle */}
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-4 w-[1px] bg-white/5" />
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border transition-all duration-700 ${
+                                  hasWinner 
+                                    ? 'bg-slate-900/80 border-white/5 text-slate-700' 
+                                    : 'bg-white/5 border-white/10 text-slate-500 group-hover:border-pickle-blue group-hover:text-pickle-blue group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                                }`}>
+                                  VS
+                                </div>
+                                <div className="h-4 w-[1px] bg-white/5" />
+                              </div>
+
+                              {/* Équipe 2 */}
+                              <div className={`flex-1 space-y-3 text-right transition-all duration-500 ${match.data.winner === 2 ? 'scale-[1.02]' : match.data.winner === 1 ? 'opacity-30' : ''}`}>
+                                {match.data.team2.map((pId: string) => {
+                                  const p = leaguePlayers.find(lp => lp.id === pId);
+                                  return (
+                                    <div key={pId} className="flex items-center justify-end gap-3">
+                                      <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
+                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-green shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
+                                    </div>
+                                  )
+                                })}
+                                {match.data.winner === 2 && (
+                                  <div className="inline-flex items-center justify-end gap-1.5 px-2 py-0.5 bg-pickle-green/20 border border-pickle-green/30 rounded-md mt-2 ml-auto">
+                                    <span className="text-[8px] font-black text-pickle-green uppercase tracking-tighter">Vainqueur</span>
+                                    <Trophy className="w-3 h-3 text-pickle-green" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
 
-                          <div className={`bg-white/5 p-3 text-center border-t border-white/5 ${!isRoundClosed ? 'group-hover:bg-pickle-green/10' : ''} transition-all duration-300`}>
-                              <button 
-                                onClick={() => !isRoundClosed && setSelectedMatch(match)}
-                                disabled={isRoundClosed}
-                                className={`text-xs font-black uppercase tracking-[0.2em] w-full flex items-center justify-center gap-2 ${
-                                  isRoundClosed ? 'text-slate-600' : 'text-pickle-green'
-                                }`}
-                              >
-                                  {hasWinner ? (
-                                    <>
-                                      <CheckCircle2 className="w-3 h-3" />
-                                      {isRoundClosed ? "RÉSULTAT VERROUILLÉ" : "MODIFIER RÉSULTAT"}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Trophy className="w-3 h-3" />
-                                      {isRoundClosed ? "MATCH FERMÉ" : "SAISIR RÉSULTAT"}
-                                    </>
-                                  )}
-                              </button>
-                          </div>
+                          {/* Footer / Bouton */}
+                          <button 
+                            onClick={() => !isRoundClosed && setSelectedMatch(match)}
+                            disabled={isRoundClosed}
+                            className={`w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 transition-all duration-500 flex items-center justify-center gap-2 ${
+                              isRoundClosed 
+                                ? 'bg-slate-900/20 text-slate-700' 
+                                : hasWinner
+                                  ? 'bg-pickle-green/5 text-pickle-green hover:bg-pickle-green hover:text-black'
+                                  : 'bg-white/[0.02] text-slate-500 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            {hasWinner ? (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            ) : (
+                              <Play className="w-3.5 h-3.5" />
+                            )}
+                            {hasWinner ? "MODIFIER RÉSULTAT" : "SAISIR RÉSULTAT"}
+                          </button>
                         </GlassCard>
                       );
                     })}

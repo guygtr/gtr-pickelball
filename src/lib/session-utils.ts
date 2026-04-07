@@ -3,33 +3,47 @@ import { isBefore } from "date-fns";
 export type SessionWithMeta = {
   date: Date;
   status: string;
-  matches?: { id: string }[];
+  matches?: { data: any }[];
   _count?: {
     matches: number;
   };
 };
 
 export function getSessionStatus(session: SessionWithMeta) {
-  const now = new Date();
-  
-  // 1. Terminé si la date est passée
-  if (isBefore(session.date, now)) {
+  const matches = session.matches || [];
+  const totalMatches = matches.length || (session._count?.matches || 0);
+
+  // S'il n'y a pas de matchs générés, c'est forcément "À venir"
+  if (totalMatches === 0) {
+    return {
+      label: "À venir",
+      color: "bg-pickle-green/10 text-pickle-green",
+    };
+  }
+
+  // Calculer le nombre de matchs ayant un résultat (winner défini dans data)
+  const finishedMatches = matches.filter(m => {
+    const data = m.data as any;
+    return data && (data.winner !== undefined && data.winner !== null);
+  }).length;
+
+  // 1. Terminé : Si TOUS les matchs ont un résultat
+  if (finishedMatches > 0 && finishedMatches === totalMatches) {
     return {
       label: "Terminé",
-      color: "bg-slate-500/10 text-slate-400",
+      color: "bg-slate-500/10 text-slate-400 font-bold",
     };
   }
 
-  // 2. Prêt si des matchs sont générés (parties cédulées)
-  const hasMatches = (session.matches && session.matches.length > 0) || (session._count && session._count.matches > 0);
-  if (hasMatches) {
+  // 2. En cours : S'il y a au moins un match terminé (mais pas tous)
+  if (finishedMatches > 0) {
     return {
-      label: "Prêt",
-      color: "bg-pickle-blue/10 text-pickle-blue",
+      label: "En cours",
+      color: "bg-pickle-blue/10 text-pickle-blue font-bold shadow-[0_0_15px_rgba(59,130,246,0.1)]",
     };
   }
 
-  // 3. À venir (par défaut)
+  // 3. À venir : Par défaut (aucun match terminé)
   return {
     label: "À venir",
     color: "bg-pickle-green/10 text-pickle-green",

@@ -12,6 +12,9 @@ export default async function SessionsPage({
   const sessions = await prisma.session.findMany({
     where: { leagueId: resolvedParams.id },
     include: {
+      matches: {
+        select: { data: true }
+      },
       _count: {
         select: { matches: true }
       }

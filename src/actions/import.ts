@@ -1,83 +1,174 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { ensureLeagueManager } from "@/lib/auth-utils";
+import { getEnsuredUser } from "@/lib/auth-utils";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
-interface ImportPlayer {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-    level?: number;
-    skillLevel?: number;
-}
+// Schéma de validation pour l'importation
+const ImportSchema = z.object({
+  exportVersion: z.string().optional(),
+  leagues: z.array(z.object({
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    settings: z.any().nullable().optional(),
+    players: z.array(z.object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      email: z.string().nullable().optional(),
+      phone: z.string().nullable().optional(),
+      skillLevel: z.number(),
+      isActive: z.boolean(),
+    })).optional().default([]),
+    courts: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      note: z.string().nullable().optional(),
+      playerCapacity: z.number(),
+    })).optional().default([]),
+    sessions: z.array(z.object({
+      id: z.string(),
+      date: z.string(),
+      status: z.string(),
+      location: z.string().nullable().optional(),
+      maxPlayers: z.number(),
+      duration: z.number().nullable().optional(),
+      description: z.string().nullable().optional(),
+      settings: z.any().nullable().optional(),
+      attendances: z.array(z.object({
+        playerId: z.string(),
+        isPresent: z.boolean(),
+      })).optional().default([]),
+      matches: z.array(z.object({
+        id: z.string(),
+        courtId: z.string().nullable().optional(),
+        startTime: z.string().nullable().optional(),
+        duration: z.number().nullable().optional(),
+        data: z.any().nullable().optional(),
+      })).optional().default([]),
+    })).optional().default([]),
+  }))
+});
 
-export async function importLeaguePlayers(leagueId: string, players: ImportPlayer[]) {
-    await ensureLeagueManager(leagueId);
+/**
+ * Importe l'intégralité des ligues depuis un objet JSON.
+ * Gère le remappage des IDs pour préserver les relations.
+ */
+export async function importUserData(jsonData: unknown) {
+  const user = await getEnsuredUser();
+  
+  // Validation des données
+  const validatedData = ImportSchema.parse(jsonData);
+  
+  let importedCount = 0;
 
-    if (!Array.isArray(players)) {
-        throw new Error("Format de données invalide : 'players' doit être un tableau.");
-    }
+  await prisma.$transaction(async (tx: any) => {
+    for (const leagueData of validatedData.leagues) {
+      // 1. Création de la ligue
+      const newLeague = await tx.league.create({
+        data: {
+          name: `${leagueData.name} (Importé)`,
+          description: leagueData.description,
+          settings: leagueData.settings || {},
+          managerId: user.id,
+        },
+      });
 
-    const results = {
-        created: 0,
-        updated: 0,
-        errors: 0
-    };
+      const playerIdMap: Record<string, string> = {};
+      const courtIdMap: Record<string, string> = {};
 
-    for (const player of players) {
-        try {
-            // Validation minimale
-            if (!player.firstName || !player.lastName) {
-                results.errors++;
-                continue;
-            }
+      // 2. Création des joueurs
+      for (const player of leagueData.players) {
+        const newPlayer = await tx.player.create({
+          data: {
+            firstName: player.firstName,
+            lastName: player.lastName,
+            email: player.email,
+            phone: player.phone,
+            skillLevel: player.skillLevel,
+            isActive: player.isActive,
+            leagueId: newLeague.id,
+          },
+        });
+        playerIdMap[player.id] = newPlayer.id;
+      }
 
-            // On cherche si le joueur existe déjà par email ou nom/prénom
-            const existingPlayer = await prisma.player.findFirst({
-                where: {
-                    leagueId,
-                    OR: [
-                        { email: player.email || undefined },
-                        { AND: [{ firstName: player.firstName }, { lastName: player.lastName }] }
-                    ]
-                }
-            });
+      // 3. Création des terrains
+      for (const court of leagueData.courts) {
+        const newCourt = await tx.court.create({
+          data: {
+            name: court.name,
+            note: court.note,
+            playerCapacity: court.playerCapacity,
+            leagueId: newLeague.id,
+          },
+        });
+        courtIdMap[court.id] = newCourt.id;
+      }
 
-            if (existingPlayer) {
-                await prisma.player.update({
-                    where: { id: existingPlayer.id },
-                    data: {
-                        firstName: player.firstName,
-                        lastName: player.lastName,
-                        email: player.email || existingPlayer.email,
-                        phone: player.phone || existingPlayer.phone,
-                        skillLevel: player.level || player.skillLevel || existingPlayer.skillLevel,
-                    }
-                });
-                results.updated++;
-            } else {
-                await prisma.player.create({
-                    data: {
-                        leagueId,
-                        firstName: player.firstName,
-                        lastName: player.lastName,
-                        email: player.email || null,
-                        phone: player.phone || null,
-                        skillLevel: player.level || player.skillLevel || 3.0,
-                    }
-                });
-                results.created++;
-            }
-        } catch (error) {
-            console.error("Erreur lors de l'import d'un joueur:", error);
-            results.errors++;
+      // 4. Création des sessions et leurs dépendances
+      for (const session of leagueData.sessions) {
+        const newSession = await tx.session.create({
+          data: {
+            date: new Date(session.date),
+            status: session.status,
+            location: session.location,
+            maxPlayers: session.maxPlayers,
+            duration: session.duration,
+            description: session.description,
+            settings: session.settings || {},
+            leagueId: newLeague.id,
+          },
+        });
+
+        // 4a. Présences
+        if (session.attendances.length > 0) {
+          await tx.attendance.createMany({
+            data: session.attendances
+              .filter(a => playerIdMap[a.playerId]) // Sécurité
+              .map(a => ({
+                sessionId: newSession.id,
+                playerId: playerIdMap[a.playerId],
+                isPresent: a.isPresent,
+              })),
+          });
         }
-    }
 
-    revalidatePath(`/leagues/${leagueId}/players`);
-    revalidatePath(`/leagues/${leagueId}/settings`);
-    
-    return { success: true, results };
+        // 4b. Matchs
+        for (const match of session.matches) {
+          // Mise à jour des playerIds dans l'objet data du match
+          let updatedData = match.data;
+          if (updatedData && typeof updatedData === 'object') {
+            const data = { ...updatedData };
+            if (Array.isArray(data.team1)) {
+              data.team1 = data.team1.map((pId: string) => playerIdMap[pId] || pId);
+            }
+            if (Array.isArray(data.team2)) {
+              data.team2 = data.team2.map((pId: string) => playerIdMap[pId] || pId);
+            }
+            updatedData = data;
+          }
+
+          await tx.match.create({
+            data: {
+              sessionId: newSession.id,
+              courtId: match.courtId ? courtIdMap[match.courtId] : (Object.values(courtIdMap)[0] || ""), // Fallback si pas de courtId ou remappage
+              startTime: match.startTime ? new Date(match.startTime) : null,
+              duration: match.duration,
+              data: updatedData,
+            },
+          });
+        }
+      }
+      importedCount++;
+    }
+  }, {
+    timeout: 30000, // Augmenter le timeout pour les gros imports
+  });
+
+  revalidatePath("/leagues");
+  revalidatePath("/settings");
+
+  return { success: true, count: importedCount };
 }
