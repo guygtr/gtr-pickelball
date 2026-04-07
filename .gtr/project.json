@@ -1,13 +1,14 @@
 {
-  "name": "GTR-Pickelball",
-  "clientId": "guygtr",
-  "version": "1.0.0",
-  "priority": "P1",
-  "owner": "GTR-Team",
-  "role": "Modern, mobile-first pickleball league management application.",
-  "urls": {
-    "production": "https://pickelball.gtremblay.com",
-    "staging": ""
-  },
-  "stack": ["Next.js 15", "Prisma", "Supabase", "TailwindCSS", "shadcn/ui"]
+    "name":  "GTR-Pickelball",
+    "role":  "Description of the project\u0027s purpose",
+    "urls":  {
+                 "production":  "https://example.gtremblay.com",
+                 "staging":  ""
+             },
+    "stack":  [
+                  "Next.js",
+                  "Prisma",
+                  "Supabase",
+                  "TailwindCSS"
+              ]
 }
