@@ -5,6 +5,13 @@ import { getEnsuredUser } from "@/lib/auth-utils";
 import { isUserAdmin } from "@/lib/user-utils";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const ManagerAccountSchema = z.object({
+  email: z.string().email("Format d'email invalide"),
+  password: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères"),
+  name: z.string().min(2, "Le nom doit faire au moins 2 caractères"),
+});
 
 /**
  * Vérifie si l'utilisateur actuel est admin.
@@ -62,6 +69,8 @@ export async function getManagers() {
 export async function createManagerAccount(email: string, password: string, name: string) {
   await ensureAdmin();
 
+  const validated = ManagerAccountSchema.parse({ email, password, name });
+
   try {
     const adminClient = createAdminClient();
     
@@ -77,12 +86,12 @@ export async function createManagerAccount(email: string, password: string, name
 
     // 2. Création de l'entrée dans Prisma
     await prisma.manager.upsert({
-      where: { email },
-      update: { name, role: 'manager' },
+      where: { email: validated.email },
+      update: { name: validated.name, role: 'manager' },
       create: {
         id: data.user.id,
-        email,
-        name,
+        email: validated.email,
+        name: validated.name,
         role: 'manager'
       }
     });

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X, UserPlus, Mail, Phone, BarChart3 } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { createPlayer } from "@/actions/players";
+import { createPlayer } from "@/actions/player";
 import { useRouter } from "next/navigation";
 
 export function AddPlayerModal({ 

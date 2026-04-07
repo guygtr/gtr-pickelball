@@ -72,37 +72,41 @@ export default async function LeagueDashboard({
     : "0.0";
 
   const stats = [
-    { label: "Joueurs", value: league._count.players, icon: Users, color: "text-blue-400" },
-    { label: "Sessions", value: league._count.sessions, icon: Calendar, color: "text-emerald-400" },
-    { label: "Matchs Joués", value: matchCount, icon: Trophy, color: "text-amber-400" },
-    { label: "Niveau Moyen", value: avgLevel, icon: TrendingUp, color: "text-purple-400" },
+    { label: "JOUEURS", value: league._count.players, icon: Users, color: "text-pickle-blue", glow: "glow-blue" },
+    { label: "SESSIONS", value: league._count.sessions, icon: Calendar, color: "text-pickle-green", glow: "glow-accent" },
+    { label: "MATCHS JOUÉS", value: matchCount, icon: Trophy, color: "text-pickle-orange", glow: "" },
+    { label: "NIVEAU MOYEN", value: avgLevel, icon: TrendingUp, color: "text-pickle-pink", glow: "" },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
       {stats.map((stat) => (
-        <GlassCard key={stat.label} className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-400 text-sm font-medium">{stat.label}</p>
-              <h3 className="text-3xl font-bold text-white mt-1">{stat.value}</h3>
-            </div>
-            <div className={`p-3 rounded-xl bg-white/5 ${stat.color}`}>
-              <stat.icon className="w-6 h-6" />
+        <GlassCard key={stat.label} className={`p-8 relative overflow-hidden group`}>
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase">{stat.label}</span>
+            <div className="flex items-end justify-between">
+              <h3 className="text-4xl font-black text-white tracking-tighter leading-none">{stat.value}</h3>
+              <stat.icon className={`w-6 h-6 ${stat.color} opacity-40 group-hover:opacity-100 transition-opacity`} />
             </div>
           </div>
+          <div className={`absolute -bottom-4 -right-4 w-12 h-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.color === 'text-pickle-blue' ? 'bg-pickle-blue' : stat.color === 'text-pickle-green' ? 'bg-pickle-green' : 'bg-white'}`} />
         </GlassCard>
       ))}
 
       {/* Liste des Joueurs */}
-      <GlassCard className="md:col-span-2 p-6">
-        <h3 className="text-xl font-semibold text-white mb-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-emerald-400" />
-            Liste des Joueurs
+      <GlassCard className="md:col-span-2 p-8 animate-fade-in-up [animation-delay:100ms]">
+        <div className="flex items-center justify-between mb-8">
+          <div className="space-y-1">
+            <h3 className="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
+              <Users className="w-6 h-6 text-pickle-green" />
+              JOUEURS
+            </h3>
+            <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">EFFECTIF DE LA LIGUE</p>
           </div>
-          <span className="text-xs text-slate-500 font-normal">{league.players.length} joueurs</span>
-        </h3>
+          <div className="px-4 py-2 rounded-xl glass border border-white/5 text-xs font-black text-white tracking-widest">
+            {league.players.length} TOTAL
+          </div>
+        </div>
         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           {league.players.length > 0 ? (
             league.players.map((player: { id: string, firstName: string, lastName: string, email: string | null, skillLevel: number }) => (

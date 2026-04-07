@@ -61,6 +61,7 @@ export function AddSessionModal({
         location,
         duration: parseInt(duration),
         maxPlayers,
+        iterations: 10000,
       });
 
       if (result.success) {

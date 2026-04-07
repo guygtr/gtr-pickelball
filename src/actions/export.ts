@@ -1,8 +1,8 @@
 "use server";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { prisma } from "@/lib/prisma";
 import { getEnsuredUser, ensureLeagueManager } from "@/lib/auth-utils";
+import { Prisma } from "@prisma/client";
 
 export async function exportLeagueData(leagueId: string) {
   await ensureLeagueManager(leagueId);
@@ -38,7 +38,7 @@ export async function exportLeagueData(leagueId: string) {
       settings: league.settings,
       createdAt: league.createdAt,
     },
-    players: league.players.map((p: any) => ({
+    players: league.players.map((p) => ({
       id: p.id,
       firstName: p.firstName,
       lastName: p.lastName,
@@ -47,7 +47,7 @@ export async function exportLeagueData(leagueId: string) {
       level: p.skillLevel,
       joinedAt: p.createdAt,
     })),
-    sessions: league.sessions.map((s: any) => ({
+    sessions: league.sessions.map((s) => ({
       id: s.id,
       date: s.date,
       status: s.status,
@@ -55,16 +55,16 @@ export async function exportLeagueData(leagueId: string) {
       maxPlayers: s.maxPlayers,
       duration: s.duration,
       description: s.description,
-      settings: s.settings,
-      matches: s.matches.map((m: any) => ({
+      settings: s.settings as Prisma.JsonObject,
+      matches: s.matches.map((m) => ({
         id: m.id,
-        court: (m.court as any)?.name || "N/A",
+        court: (m.court as { name: string } | null)?.name || "N/A", // court est inclus via findUnique
         startTime: m.startTime,
         duration: m.duration,
-        data: m.data,
+        data: m.data as Prisma.JsonValue,
       }))
     })),
-    courts: league.courts.map((c: any) => ({
+    courts: league.courts.map((c) => ({
       id: c.id,
       name: c.name,
       note: c.note,
@@ -103,13 +103,13 @@ export async function exportUserData() {
       id: user.id,
       email: user.email,
     },
-    leagues: managedLeagues.map((l: any) => ({
+    leagues: managedLeagues.map((l) => ({
       id: l.id,
       name: l.name,
       description: l.description,
-      settings: l.settings,
+      settings: l.settings as Prisma.JsonObject,
       createdAt: l.createdAt,
-      players: l.players.map((p: any) => ({
+      players: l.players.map((p) => ({
         id: p.id,
         firstName: p.firstName,
         lastName: p.lastName,
@@ -119,13 +119,13 @@ export async function exportUserData() {
         isActive: p.isActive,
         createdAt: p.createdAt,
       })),
-      courts: l.courts.map((c: any) => ({
+      courts: l.courts.map((c) => ({
         id: c.id,
         name: c.name,
         note: c.note,
         playerCapacity: c.playerCapacity,
       })),
-      sessions: l.sessions.map((s: any) => ({
+      sessions: l.sessions.map((s) => ({
         id: s.id,
         date: s.date,
         status: s.status,
@@ -133,17 +133,17 @@ export async function exportUserData() {
         maxPlayers: s.maxPlayers,
         duration: s.duration,
         description: s.description,
-        settings: s.settings,
-        attendances: s.attendances.map((a: any) => ({
+        settings: s.settings as Prisma.JsonObject,
+        attendances: s.attendances.map((a) => ({
           playerId: a.playerId,
           isPresent: a.isPresent,
         })),
-        matches: s.matches.map((m: any) => ({
+        matches: s.matches.map((m) => ({
           id: m.id,
           courtId: m.courtId,
           startTime: m.startTime,
           duration: m.duration,
-          data: m.data,
+          data: m.data as Prisma.JsonValue,
         }))
       }))
     })),

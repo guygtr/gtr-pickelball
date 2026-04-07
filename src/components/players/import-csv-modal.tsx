@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X, Upload, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { importPlayers } from "@/actions/players";
+import { importPlayers } from "@/actions/player";
 import { useRouter } from "next/navigation";
 import Papa from "papaparse";
 

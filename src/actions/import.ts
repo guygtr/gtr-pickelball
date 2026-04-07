@@ -12,7 +12,7 @@ const ImportSchema = z.object({
   leagues: z.array(z.object({
     name: z.string(),
     description: z.string().nullable().optional(),
-    settings: z.any().nullable().optional(),
+    settings: z.record(z.string(), z.unknown()).nullable().optional(),
     players: z.array(z.object({
       id: z.string(),
       firstName: z.string(),
@@ -36,7 +36,7 @@ const ImportSchema = z.object({
       maxPlayers: z.number(),
       duration: z.number().nullable().optional(),
       description: z.string().nullable().optional(),
-      settings: z.any().nullable().optional(),
+      settings: z.record(z.string(), z.unknown()).nullable().optional(),
       attendances: z.array(z.object({
         playerId: z.string(),
         isPresent: z.boolean(),
@@ -46,7 +46,7 @@ const ImportSchema = z.object({
         courtId: z.string().nullable().optional(),
         startTime: z.string().nullable().optional(),
         duration: z.number().nullable().optional(),
-        data: z.any().nullable().optional(),
+        data: z.record(z.string(), z.unknown()).nullable().optional(),
       })).optional().default([]),
     })).optional().default([]),
   }))

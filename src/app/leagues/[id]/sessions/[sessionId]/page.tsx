@@ -54,8 +54,9 @@ export default async function SessionDetailsPage({
         
         <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
           {(() => {
-            const statusLabel = getSessionStatus(session).label;
-            const statusColor = getSessionStatus(session).color;
+            const sessionWithMeta = session as unknown as import("@/lib/session-utils").SessionWithMeta;
+            const statusLabel = getSessionStatus(sessionWithMeta).label;
+            const statusColor = getSessionStatus(sessionWithMeta).color;
             return (
               <div className={`px-4 py-2 rounded-xl text-sm font-black tracking-widest ${statusColor}`}>
                 {statusLabel.toUpperCase()}
@@ -70,27 +71,21 @@ export default async function SessionDetailsPage({
         leaguePlayers={session.league.players}
         initialAttendances={session.attendances}
         courtCount={session.league.courts.length}
-        statusLabel={getSessionStatus(session).label}
+        statusLabel={getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta).label}
         initialMatches={(session.matches as unknown as Array<{ 
           id: string; 
           courtId: string | null; 
           court: { name: string } | null; 
-          player1Id: string; 
-          player2Id: string; 
-          player3Id: string; 
-          player4Id: string; 
-          score1: number; 
-          score2: number; 
-          data: unknown;
-        }>).map((m) => ({
-          id: m.id,
-          courtId: m.courtId,
-          court: m.court,
-          data: (m.data as { team1: string[]; team2: string[] }) || {
-            team1: [m.player1Id, m.player2Id],
-            team2: [m.player3Id, m.player4Id]
-          }
-        }))}
+          data: import("@prisma/client").Prisma.JsonValue;
+        }>).map((m) => {
+          const matchData = (m.data as { team1: string[]; team2: string[]; winner?: number }) || { team1: [], team2: [] };
+          return {
+            id: m.id,
+            courtId: m.courtId,
+            court: m.court,
+            data: matchData
+          };
+        })}
       />
     </div>
   );

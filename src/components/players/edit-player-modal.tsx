@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, UserCheck, Mail, Phone, BarChart3 } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { updatePlayer } from "@/actions/players";
+import { updatePlayer } from "@/actions/player";
 import { useRouter } from "next/navigation";
 
 interface Player {
@@ -55,8 +55,7 @@ export function EditPlayerModal({
     e.preventDefault();
     setLoading(true);
     try {
-      await updatePlayer({
-        id: player!.id,
+      await updatePlayer(player!.id, {
         leagueId,
         ...formData,
       });

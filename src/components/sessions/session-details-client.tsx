@@ -61,7 +61,7 @@ export function SessionDetailsClient({
 
   async function handleToggleAttendance(playerId: string, currentStatus: boolean) {
     try {
-      await toggleAttendance(session.id, playerId, !currentStatus);
+      await toggleAttendance({ sessionId: session.id, playerId, isPresent: !currentStatus });
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -82,7 +82,7 @@ export function SessionDetailsClient({
 
   async function handleToggleRoundStatus(roundIdx: number, isClosed: boolean) {
     try {
-      await toggleRoundStatus(session.id, roundIdx, isClosed);
+      await toggleRoundStatus({ sessionId: session.id, roundIdx, isClosed });
       router.refresh();
     } catch (error) {
       console.error(error);

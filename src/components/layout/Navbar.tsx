@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Menu, X, ShieldCheck, User, LogIn, UserPlus } from "lucide-react";
+import { NeonButton } from "@/components/ui/gtr/neon-button";
 
 interface NavbarProps {
   userEmail?: string;
@@ -51,24 +52,26 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
             <div className="hidden sm:flex items-center gap-4">
               {userEmail ? (
                 <div className="flex items-center gap-4">
-                  <span className="text-sm opacity-60 hidden lg:block">{userEmail}</span>
+                  <span className="text-xs font-bold opacity-40 hidden lg:block tracking-widest uppercase">{userEmail}</span>
                   <Link href="/settings">
-                    <button className="glass glass-hover px-4 py-2 rounded-xl text-sm font-semibold text-accent">
-                      Mon Compte
-                    </button>
+                    <NeonButton variant="blue" className="px-5 py-2.5 text-[10px] tracking-[0.2em]">
+                      <User size={14} className="mr-2" />
+                      MON COMPTE
+                    </NeonButton>
                   </Link>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <Link href="/auth/login">
-                    <button className="px-4 py-2 text-sm font-semibold hover:opacity-80 transition-opacity">
+                    <button className="px-4 py-2 text-xs font-black hover:text-accent transition-colors uppercase tracking-widest">
                       Connexion
                     </button>
                   </Link>
                   <Link href="/auth/register">
-                    <button className="bg-accent text-accent-foreground px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-accent/40 transition-all active:scale-95">
-                      S&apos;inscrire
-                    </button>
+                    <NeonButton variant="green" className="px-6 py-2.5 text-[10px] tracking-[0.2em]">
+                      <UserPlus size={14} className="mr-2" />
+                      S&apos;INSCRIRE
+                    </NeonButton>
                   </Link>
                 </div>
               )}

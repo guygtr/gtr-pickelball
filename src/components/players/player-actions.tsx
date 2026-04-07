@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trash2, Pencil } from "lucide-react";
-import { deletePlayer } from "@/actions/players";
+import { deletePlayer } from "@/actions/player";
 import { EditPlayerModal } from "./edit-player-modal";
 
 interface Player {

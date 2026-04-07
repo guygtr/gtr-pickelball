@@ -1,6 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { GlassCard } from "@/components/ui/gtr/glass-card";
+import { NeonButton } from "@/components/ui/gtr/neon-button";
+import { Trophy, Plus, Users, ArrowRight, Lock, Target } from "lucide-react";
 
 interface LeagueSettings {
   maxPlayers?: number;
@@ -20,16 +23,18 @@ export default async function LeaguesPage() {
   if (!user) {
     return (
       <main className="min-h-screen pt-24 px-4 flex items-center justify-center">
-        <div className="glass-card p-8 rounded-3xl text-center max-w-md">
-          <h2 className="text-2xl font-bold text-white mb-4">Accès Restreint</h2>
-          <p className="text-slate-400 mb-6">Veuillez vous connecter pour gérer vos ligues.</p>
-          <Link 
-            href="/auth/login" 
-            className="inline-block bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-8 rounded-xl transition-all"
-          >
-            Se connecter
+        <GlassCard className="p-12 text-center max-w-md animate-fade-in-up">
+          <div className="w-16 h-16 bg-pickle-pink/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-pickle-pink" />
+          </div>
+          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">Accès Restreint</h2>
+          <p className="text-slate-500 mb-8 font-medium">Veuillez vous connecter pour administrer vos ligues et accéder au dashboard.</p>
+          <Link href="/auth/login">
+            <NeonButton variant="blue" className="w-full py-4 tracking-[0.2em]">
+              SE CONNECTER
+            </NeonButton>
           </Link>
-        </div>
+        </GlassCard>
       </main>
     );
   }
@@ -40,62 +45,72 @@ export default async function LeaguesPage() {
   });
 
   return (
-    <main className="min-h-screen pt-24 pb-12 px-4 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/20">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-white bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              Mes Ligues
+    <main className="min-h-screen pt-24 pb-20 px-4">
+      <div className="max-w-7xl mx-auto space-y-12 animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-12">
+          <div className="space-y-2">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white uppercase">
+              MES <span className="text-gradient">LIGUES</span>
             </h1>
-            <p className="text-slate-400">Gérez vos organisations et vos tournois.</p>
+            <p className="text-slate-500 font-medium max-w-md">
+              Gérez vos organisations, terrains et tournois avec une précision chirurgicale.
+            </p>
           </div>
-          <Link
-            href="/leagues/create"
-            className="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-2xl border border-white/10 backdrop-blur-md transition-all active:scale-95"
-          >
-            <span className="mr-2 text-xl">+</span> Nouvelle Ligue
+          <Link href="/leagues/create">
+            <NeonButton variant="green" className="px-8 py-4 tracking-[0.2em]">
+              <Plus className="w-5 h-5 mr-2" />
+              NOUVELLE LIGUE
+            </NeonButton>
           </Link>
         </div>
 
         {leagues.length === 0 ? (
-          <div className="glass-card p-12 rounded-3xl text-center border border-white/5">
-            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">🎾</span>
+          <GlassCard className="p-20 text-center border-dashed border-white/10 group">
+            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5 group-hover:scale-110 transition-transform duration-500">
+              <Trophy className="w-10 h-10 text-slate-700" />
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Aucune ligue trouvée</h3>
-            <p className="text-slate-400 mb-8 max-w-sm mx-auto">
-              Vous n&apos;avez pas encore créé de ligue. Commencez dès maintenant pour organiser vos sessions.
+            <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Aucune ligue détectée</h3>
+            <p className="text-slate-500 mb-10 max-w-sm mx-auto font-medium">
+              Vous n&apos;avez pas encore orchestré de ligue. Commencez l&apos;aventure dès maintenant.
             </p>
-            <Link
-              href="/leagues/create"
-              className="inline-block bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-10 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all"
-            >
-              Créer ma première ligue
+            <Link href="/leagues/create">
+              <NeonButton variant="blue" className="px-10 py-5 tracking-[0.2em]">
+                CRÉER MA PREMIÈRE LIGUE
+              </NeonButton>
             </Link>
-          </div>
+          </GlassCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {(leagues as LeagueUI[]).map((league) => (
-              <Link key={league.id} href={`/leagues/${league.id}`}>
-                <div className="glass-card p-6 rounded-3xl border border-white/10 hover:border-emerald-500/30 transition-all group cursor-pointer h-full flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <span className="text-2xl">🏆</span>
+              <Link key={league.id} href={`/leagues/${league.id}`} className="group">
+                <GlassCard className="p-8 h-full flex flex-col hover:border-accent/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accent/5">
+                  <div className="flex justify-between items-start mb-8">
+                    <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Target className="w-6 h-6 text-accent" />
                     </div>
-                    <span className="text-xs font-medium px-3 py-1 bg-white/5 rounded-full text-slate-400 border border-white/5">
-                      {(league.settings as LeagueSettings)?.maxPlayers || 0} Joueurs
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] font-black text-slate-500 tracking-widest uppercase">
+                        Capacité
+                      </span>
+                      <span className="text-lg font-black text-white">
+                        {(league.settings as LeagueSettings)?.maxPlayers || 0} <span className="text-xs text-slate-600">JOUEURS</span>
+                      </span>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">
+                  
+                  <h3 className="text-2xl font-black text-white mb-3 group-hover:text-accent transition-colors tracking-tighter uppercase leading-tight">
                     {league.name}
                   </h3>
-                  <p className="text-slate-400 text-sm line-clamp-2 mb-6 flex-grow">
-                    {league.description || "Aucune description fournie."}
+                  
+                  <p className="text-slate-500 text-sm font-medium line-clamp-3 mb-8 flex-grow leading-relaxed">
+                    {league.description || "Aucune description fournie pour cette organisation premium."}
                   </p>
-                  <div className="pt-4 border-t border-white/5 flex items-center text-emerald-400 text-sm font-semibold">
-                    Voir les détails <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                  
+                  <div className="pt-6 border-t border-white/5 flex items-center justify-between group-hover:text-white transition-colors">
+                    <span className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase">Voir détails</span>
+                    <ArrowRight className="w-5 h-5 text-accent translate-x-0 group-hover:translate-x-2 transition-transform" />
                   </div>
-                </div>
+                </GlassCard>
               </Link>
             ))}
           </div>

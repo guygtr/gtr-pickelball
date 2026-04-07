@@ -8,7 +8,7 @@ import { ensureLeagueManager } from "@/lib/auth-utils";
 /**
  * Action pour ajouter un joueur manuellement.
  */
-export async function addPlayer(data: PlayerInput) {
+export async function createPlayer(data: PlayerInput) {
   try {
     const validated = playerSchema.parse(data);
     await ensureLeagueManager(validated.leagueId);
@@ -85,5 +85,32 @@ export async function deletePlayer(playerId: string, leagueId: string) {
   } catch (error) {
     console.error("Error deleting player:", error);
     return { success: false, error: "Impossible de supprimer le joueur" };
+  }
+}
+
+/**
+ * Met à jour un joueur existant.
+ */
+export async function updatePlayer(playerId: string, data: PlayerInput) {
+  try {
+    const validated = playerSchema.parse(data);
+    await ensureLeagueManager(validated.leagueId);
+    
+    await prisma.player.update({
+      where: { id: playerId, leagueId: validated.leagueId },
+      data: {
+        firstName: validated.firstName,
+        lastName: validated.lastName,
+        email: validated.email || null,
+        phone: validated.phone || null,
+        skillLevel: validated.skillLevel,
+      },
+    });
+
+    revalidatePath(`/leagues/${validated.leagueId}/players`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating player:", error);
+    return { success: false, error: "Impossible de mettre à jour le joueur" };
   }
 }

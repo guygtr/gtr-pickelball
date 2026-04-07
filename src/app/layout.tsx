@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
   subsets: ["latin"],
+  variable: "--font-outfit",
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "GTR-Pickelball — La ligue moderne",
-  description: "Gestion de ligues de pickleball simplifiée. Mobile-first, rapide et intelligente.",
+  title: "GTR-Pickelball — La Plateforme de Ligue Ultime",
+  description: "Gérez vos ligues de pickleball avec élégance. Fair-play intelligent, organisation mobile-first et interface Next-Gen.",
+  keywords: ["Pickleball", "Ligue", "Tournoi", "Fairplay", "GTR Team"],
 };
 
 import { createClient } from "@/utils/supabase/server";
@@ -33,7 +34,7 @@ export default async function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-accent selection:text-accent-foreground`}
+        className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-green selection:text-pickle-dark`}
       >
         <Navbar userEmail={user?.email} isAdmin={isAdmin} />
         <main className="min-h-screen pt-24">

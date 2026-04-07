@@ -146,8 +146,6 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
           </div>
         </div>
 
-        {children}
-
         <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-white/5">
           <NeonButton
             type="submit"
@@ -164,6 +162,8 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
           </NeonButton>
         </div>
       </form>
+
+      {children}
     </div>
   );
 }

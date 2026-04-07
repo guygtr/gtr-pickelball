@@ -7,7 +7,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 
-import { getSessionStatus, MatchDataSchema } from "@/lib/session-utils";
+import { getSessionStatus } from "@/lib/session-utils";
+import { Prisma } from "@prisma/client";
 
 interface Session {
   id: string;
@@ -19,7 +20,7 @@ interface Session {
   _count?: {
     matches: number;
   };
-  matches?: { data: MatchDataSchema | null }[];
+  matches?: { data: Prisma.JsonValue | null }[];
 }
 
 /**
@@ -66,7 +67,7 @@ export function SessionsViewToggle({
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sessions.map((session) => {
-            const status = getSessionStatus(session);
+            const status = getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta);
             return (
               <Link key={session.id} href={`/leagues/${leagueId}/sessions/${session.id}`}>
                 <GlassCard className="p-6 hover:border-pickle-blue/50 transition-all duration-300 group">
@@ -121,7 +122,7 @@ export function SessionsViewToggle({
               </thead>
               <tbody className="divide-y divide-white/5">
                 {sessions.map((session) => {
-                  const status = getSessionStatus(session);
+                  const status = getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta);
                   return (
                     <tr key={session.id} className="group hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
