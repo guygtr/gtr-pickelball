@@ -172,3 +172,54 @@ export async function importUserData(jsonData: unknown) {
 
   return { success: true, count: importedCount };
 }
+
+/**
+ * Importe des joueurs dans une ligue existante.
+ * Utilisé par ImportExportCard.
+ */
+export async function importLeaguePlayers(leagueId: string, players: any[]) {
+  await getEnsuredUser();
+  
+  let created = 0;
+  let updated = 0;
+
+  for (const player of players) {
+    // Recherche par email ou nom pour éviter les doublons
+    const existing = await prisma.player.findFirst({
+      where: {
+        leagueId,
+        firstName: player.firstName,
+        lastName: player.lastName,
+      }
+    });
+
+    if (existing) {
+      await prisma.player.update({
+        where: { id: existing.id },
+        data: {
+          email: player.email || existing.email,
+          phone: player.phone || existing.phone,
+          skillLevel: player.skillLevel ?? existing.skillLevel,
+          isActive: player.isActive ?? existing.isActive,
+        }
+      });
+      updated++;
+    } else {
+      await prisma.player.create({
+        data: {
+          firstName: player.firstName,
+          lastName: player.lastName,
+          email: player.email,
+          phone: player.phone,
+          skillLevel: player.skillLevel ?? 3.0,
+          isActive: player.isActive ?? true,
+          leagueId,
+        }
+      });
+      created++;
+    }
+  }
+
+  revalidatePath(`/leagues/${leagueId}`);
+  return { success: true, results: { created, updated } };
+}
