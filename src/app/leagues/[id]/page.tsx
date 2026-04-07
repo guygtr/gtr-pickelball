@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
+import { MatchDataSchema } from "@/lib/session-utils";
 
 export default async function LeagueDashboard({
   params,
@@ -60,8 +61,8 @@ export default async function LeagueDashboard({
     }
   });
 
-  const matchCount = matches.filter((m: any) => {
-    const d = m.data as any;
+  const matchCount = matches.filter((m) => {
+    const d = m.data as MatchDataSchema | null;
     return d && (d.winner !== undefined && d.winner !== null);
   }).length;
 

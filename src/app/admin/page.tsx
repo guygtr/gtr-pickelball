@@ -26,7 +26,7 @@ export default async function AdminPage() {
             Gestion des Utilisateurs
           </h1>
           <p className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-black mt-2">
-            Standard GTR-Team 2026 • Contrôle d'accès sécurisé
+            Standard GTR-Team 2026 • Contrôle d&apos;accès sécurisé
           </p>
         </div>
       </div>

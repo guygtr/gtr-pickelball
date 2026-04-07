@@ -36,9 +36,10 @@ export const ImportDataButton = () => {
           if (result.success) {
             alert(`Importation réussie : ${result.count} ligue(s) importée(s) !`);
           }
-        } catch (error: any) {
-          console.error("Erreur lors de l'importation:", error);
-          alert(`Erreur d'importation : ${error.message || "Format de fichier invalide."}`);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : "Données invalides";
+          console.error("Erreur lors de l'importation:", errorMessage);
+          alert(`Erreur d'importation : ${errorMessage}`);
         } finally {
           setIsLoading(false);
         }

@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GTR-Pickelball 🥒🎾
 
-## Getting Started
+La plateforme moderne de gestion de ligues de Pickleball par la **GTR-Team**. 🛸
 
-First, run the development server:
+## Architecture GTR-2026 👽
+
+Le projet suit une **Architecture 3-couches** stricte pour garantir l'isolation de la logique métier et la sécurité des données.
+
+1. **Couche UI (React/Next.js)** : Composants dynamiques et responsives conçus pour la performance mobile.
+   - Localisation : `src/app`, `src/components`.
+2. **Couche Actions / Validation (Zod)** : Server Actions Next.js avec validation systématique des entrées via schémas Zod.
+   - Localisation : `src/actions`, `src/lib/validations`.
+3. **Couche Domaine (Business Logic)** : Cœur algorithmique isolé (ex: Matchmaking Monte-Carlo).
+   - Localisation : `src/lib/domain`.
+4. **Couche Données (Prisma/Supabase)** : Persistance PostgreSQL avec Prisma ORM.
+   - Localisation : `prisma/schema.prisma`.
+
+## Standards Techniques
+
+- **Langue** : Français exclusif pour les commentaires, la documentation technique et les messages d'erreur utilisateurs.
+- **Typage** : TypeScript strict. Interdiction formelle du type `any`.
+- **Validation** : Zod obligatoire pour toutes les interfaces d'écriture en base de données.
+- **Matchmaking** : Algorithme Monte-Carlo paramétrable via le champ `iterations` configure en base de données pour chaque session.
+
+## Développement Local
 
 ```bash
+# Installation des dépendances
+npm install
+
+# Synchronisation de la base de données
+npx prisma db push
+
+# Lancement du serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Déploiement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Le projet est optimisé pour un déploiement sur **Vercel** avec synchronisation automatique via le workflow GTR-Team.

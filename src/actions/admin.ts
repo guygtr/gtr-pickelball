@@ -17,9 +17,15 @@ async function ensureAdmin() {
   return user;
 }
 
+export interface ManagerAuthData {
+  lastSignIn: string | null;
+  authId: string | null;
+}
+
 /**
  * Récupère tous les gestionnaires.
  * Combine les données de Prisma avec les données de Supabase Auth si possible.
+ * @returns {Promise<Array<Object>>} Liste des gestionnaires enrichie.
  */
 export async function getManagers() {
   await ensureAdmin();
@@ -35,7 +41,7 @@ export async function getManagers() {
     if (error) throw error;
 
     // Fusionner les données pour afficher par exemple last_sign_in_at
-    return managers.map((m: any) => {
+    return managers.map((m) => {
       const authUser = users.find(u => u.email === m.email);
       return {
         ...m,
@@ -43,8 +49,9 @@ export async function getManagers() {
         authId: authUser?.id || null,
       };
     });
-  } catch (err) {
-    console.error("Erreur lors de la récupération des infos Auth:", err);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Erreur inconnue lors de la récupération des infos Auth";
+    console.error("Erreur lors de la récupération des infos Auth:", errorMessage);
     return managers;
   }
 }
@@ -82,9 +89,10 @@ export async function createManagerAccount(email: string, password: string, name
 
     revalidatePath("/admin");
     return { success: true, user: data.user };
-  } catch (err: any) {
-    console.error("Erreur de création de compte:", err);
-    return { success: false, error: err.message || "Erreur lors de la création du compte." };
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Erreur lors de la création du compte gestionnaire";
+    console.error("Erreur de création de compte:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -112,8 +120,9 @@ export async function deleteManager(id: string, email: string) {
 
     revalidatePath("/admin");
     return { success: true };
-  } catch (err: any) {
-    console.error("Erreur suppression gestionnaire:", err);
-    return { success: false, error: err.message || "Erreur lors de la suppression." };
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Erreur lors de la suppression du gestionnaire";
+    console.error("Erreur suppression gestionnaire:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 }

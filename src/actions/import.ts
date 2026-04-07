@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getEnsuredUser } from "@/lib/auth-utils";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 // Schéma de validation pour l'importation
@@ -63,14 +64,14 @@ export async function importUserData(jsonData: unknown) {
   
   let importedCount = 0;
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx) => {
     for (const leagueData of validatedData.leagues) {
       // 1. Création de la ligue
       const newLeague = await tx.league.create({
         data: {
           name: `${leagueData.name} (Importé)`,
           description: leagueData.description,
-          settings: leagueData.settings || {},
+          settings: (leagueData.settings as Prisma.InputJsonValue) || {},
           managerId: user.id,
         },
       });
@@ -117,7 +118,7 @@ export async function importUserData(jsonData: unknown) {
             maxPlayers: session.maxPlayers,
             duration: session.duration,
             description: session.description,
-            settings: session.settings || {},
+            settings: (session.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
             leagueId: newLeague.id,
           },
         });
@@ -126,8 +127,8 @@ export async function importUserData(jsonData: unknown) {
         if (session.attendances.length > 0) {
           await tx.attendance.createMany({
             data: session.attendances
-              .filter(a => playerIdMap[a.playerId]) // Sécurité
-              .map(a => ({
+              .filter((a: { playerId: string }) => playerIdMap[a.playerId]) // Sécurité
+              .map((a: { playerId: string, isPresent: boolean }) => ({
                 sessionId: newSession.id,
                 playerId: playerIdMap[a.playerId],
                 isPresent: a.isPresent,
@@ -156,7 +157,7 @@ export async function importUserData(jsonData: unknown) {
               courtId: match.courtId ? courtIdMap[match.courtId] : (Object.values(courtIdMap)[0] || ""), // Fallback si pas de courtId ou remappage
               startTime: match.startTime ? new Date(match.startTime) : null,
               duration: match.duration,
-              data: updatedData,
+              data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
             },
           });
         }
@@ -177,7 +178,17 @@ export async function importUserData(jsonData: unknown) {
  * Importe des joueurs dans une ligue existante.
  * Utilisé par ImportExportCard.
  */
-export async function importLeaguePlayers(leagueId: string, players: any[]) {
+export async function importLeaguePlayers(
+  leagueId: string, 
+  players: Array<{
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    phone?: string | null;
+    skillLevel?: number;
+    isActive?: boolean;
+  }>
+) {
   await getEnsuredUser();
   
   let created = 0;

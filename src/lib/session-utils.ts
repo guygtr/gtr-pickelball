@@ -1,14 +1,22 @@
-import { isBefore } from "date-fns";
+
+export interface MatchDataSchema {
+  winner?: number | null;
+  status?: string;
+  [key: string]: unknown;
+}
 
 export type SessionWithMeta = {
   date: Date;
   status: string;
-  matches?: { data: any }[];
+  matches?: { data: MatchDataSchema | null }[];
   _count?: {
     matches: number;
   };
 };
 
+/**
+ * Détermine le statut d'une session en fonction de l'avancement des matchs.
+ */
 export function getSessionStatus(session: SessionWithMeta) {
   const matches = session.matches || [];
   const totalMatches = matches.length || (session._count?.matches || 0);
@@ -23,7 +31,7 @@ export function getSessionStatus(session: SessionWithMeta) {
 
   // Calculer le nombre de matchs ayant un résultat (winner défini dans data)
   const finishedMatches = matches.filter(m => {
-    const data = m.data as any;
+    const data = m.data as MatchDataSchema | null;
     return data && (data.winner !== undefined && data.winner !== null);
   }).length;
 

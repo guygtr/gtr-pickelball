@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { UserPlus, Trash2, Mail, Shield, User, Search, Loader2, Database, AlertCircle, ShieldCheck } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
-import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { createManagerAccount, deleteManager } from "@/actions/admin";
 
 interface Manager {
@@ -16,7 +15,6 @@ interface Manager {
 
 export function UserManagementClient({ initialManagers }: { initialManagers: Manager[] }) {
   const [managers, setManagers] = useState(initialManagers);
-  const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -58,7 +56,6 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
           ...prev
         ]);
         setFormData({ email: "", name: "", password: "" });
-        setIsAdding(false);
       } else {
         alert(res.error || "Erreur lors de la création du compte.");
       }

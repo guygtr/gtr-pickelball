@@ -111,6 +111,7 @@ model Session {
   maxPlayers  Int      @default(20) // Capacité maximale
   duration    Int?     // Durée en minutes
   description String?  // Notes optionnelles
+  iterations  Int      @default(10000) // Précision algorithme Monte Carlo
   settings    Json?    // Paramètres optionnels (ex: closedRounds)
   
   leagueId    String

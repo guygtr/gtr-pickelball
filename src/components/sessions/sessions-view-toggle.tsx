@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 
-import { getSessionStatus } from "@/lib/session-utils";
+import { getSessionStatus, MatchDataSchema } from "@/lib/session-utils";
 
 interface Session {
   id: string;
@@ -19,8 +19,14 @@ interface Session {
   _count?: {
     matches: number;
   };
-  matches?: { data: any }[];
+  matches?: { data: MatchDataSchema | null }[];
 }
+
+/**
+ * Composant de bascule de vue (Grille/Liste) pour les sessions d'une ligue.
+ * @param {Session[]} sessions Liste des sessions à afficher.
+ * @param {string} leagueId ID de la ligue parente.
+ */
 export function SessionsViewToggle({ 
   sessions, 
   leagueId 
