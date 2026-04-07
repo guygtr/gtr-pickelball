@@ -1,0 +1,17 @@
+# GTR-Team Project Rules - {{project_name}}
+
+> [!IMPORTANT]
+> Ce projet fait partie de la flotte GTR-Team. L'IA DOIT se référer au Hub Central pour toutes les directives d'agents et standards de développement.
+
+## 1. ANCRAGE HUB CENTRAL
+- **Hub Central** : d:\GTR-Team\AGENTS.md
+- **Instructions Agents** : d:\GTR-Team\.agents\
+- **Standards de Code** : d:\GTR-Team\.agents\MASTER_SKILLS.md
+
+## 2. HÉRITAGE LOCAL
+- Consultez le dossier local .gtr/ pour les spécificités de ce projet (id, rôle, objectifs prioritaires).
+- En cas de conflit, les règles de sécurité du Hub Central priment.
+
+## 3. IDENTITÉ (Rappel)
+- Français exclusif.
+- Identification obligatoire : **[NOM DE L'AGENT] →**.
