@@ -42,13 +42,15 @@ export function SessionDetailsClient({
   leaguePlayers, 
   initialAttendances,
   initialMatches,
-  courtCount 
+  courtCount,
+  statusLabel
 }: { 
   session: Session; 
   leaguePlayers: Player[]; 
   initialAttendances: Attendance[];
   initialMatches: Match[];
   courtCount: number;
+  statusLabel: string;
 }) {
   const [loading, setLoading] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -155,11 +157,11 @@ export function SessionDetailsClient({
             <NeonButton 
               className="w-full py-5 text-[12px] tracking-[0.25em]" 
               variant="green"
-              disabled={presentCount < 2 || loading}
+              disabled={presentCount < 2 || loading || statusLabel === "Terminé"}
               onClick={handleGenerateMatches}
             >
               <Play className="w-5 h-5 flex-shrink-0" />
-              {loading ? "GÉNÉRATION..." : "GÉNÉRER LES PARTIES"}
+              {statusLabel === "Terminé" ? "SESSION TERMINÉE" : loading ? "GÉNÉRATION..." : "GÉNÉRER LES PARTIES"}
             </NeonButton>
             <p className="text-[9px] text-center text-slate-500 mt-4 uppercase font-bold tracking-[0.3em] opacity-40">
               GTR FAIR PLAY ENGINE v2.2

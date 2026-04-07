@@ -26,7 +26,7 @@ export default async function SessionDetailsPage({
       },
       attendances: true,
       matches: {
-        orderBy: { createdAt: 'asc' },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         include: {
           court: true
         }
@@ -54,10 +54,11 @@ export default async function SessionDetailsPage({
         
         <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
           {(() => {
-            const status = getSessionStatus(session);
+            const statusLabel = getSessionStatus(session).label;
+            const statusColor = getSessionStatus(session).color;
             return (
-              <div className={`px-4 py-2 rounded-xl text-sm font-black tracking-widest ${status.color}`}>
-                {status.label.toUpperCase()}
+              <div className={`px-4 py-2 rounded-xl text-sm font-black tracking-widest ${statusColor}`}>
+                {statusLabel.toUpperCase()}
               </div>
             );
           })()}
@@ -69,6 +70,7 @@ export default async function SessionDetailsPage({
         leaguePlayers={session.league.players}
         initialAttendances={session.attendances}
         courtCount={session.league.courts.length}
+        statusLabel={getSessionStatus(session).label}
         initialMatches={(session.matches as unknown as Array<{ 
           id: string; 
           courtId: string | null; 

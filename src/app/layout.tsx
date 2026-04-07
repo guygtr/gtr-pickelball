@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 import { createClient } from "@/utils/supabase/server";
+import { isUserAdmin } from "@/lib/user-utils";
 
 export default async function RootLayout({
   children,
@@ -27,13 +28,14 @@ export default async function RootLayout({
 }>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const isAdmin = isUserAdmin(user?.email);
 
   return (
     <html lang="fr" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-accent selection:text-accent-foreground`}
       >
-        <Navbar userEmail={user?.email} />
+        <Navbar userEmail={user?.email} isAdmin={isAdmin} />
         <main className="min-h-screen pt-24">
           {children}
         </main>

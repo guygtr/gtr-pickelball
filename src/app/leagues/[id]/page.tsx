@@ -48,14 +48,22 @@ export default async function LeagueDashboard({
     notFound();
   }
 
-  // 2. Compter le nombre total de matchs de la ligue
-  const matchCount = await prisma.match.count({
+  // 2. Compter le nombre de matchs joués (ayant un résultat)
+  const matches = await prisma.match.findMany({
     where: {
       session: {
         leagueId: league.id
       }
+    },
+    select: {
+      data: true
     }
   });
+
+  const matchCount = matches.filter((m: any) => {
+    const d = m.data as any;
+    return d && (d.winner !== undefined && d.winner !== null);
+  }).length;
 
   // 3. Préparer les statistiques
   const avgLevel = league.players.length > 0 

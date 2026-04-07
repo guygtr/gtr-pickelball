@@ -6,7 +6,7 @@ import { exportLeagueData } from "@/actions/export";
 import { importLeaguePlayers } from "@/actions/import";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 
-export function ImportExportCard({ leagueId }: { leagueId: string }) {
+export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, leagueName?: string }) {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
@@ -14,15 +14,20 @@ export function ImportExportCard({ leagueId }: { leagueId: string }) {
         setLoading(true);
         setStatus(null);
         try {
-            const data = await exportLeagueData(leagueId);
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `league-${leagueId}-export.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+    const data = await exportLeagueData(leagueId);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // Format: gtr-pickleball-<nom_de_la_ligue>-export-YYYY-MM-DD.json
+    const dateStr = new Date().toISOString().split('T')[0];
+    const safeLeagueName = (leagueName || leagueId).toLowerCase().replace(/[^a-z0-9]/g, '-');
+    a.download = `gtr-pickleball-${safeLeagueName}-export-${dateStr}.json`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
             URL.revokeObjectURL(url);
             setStatus({ type: 'success', message: "Exportation réussie !" });
         } catch (error) {

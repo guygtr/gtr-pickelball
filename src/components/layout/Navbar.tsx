@@ -3,16 +3,17 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { type LucideIcon, Menu, X, ShieldCheck } from "lucide-react";
 
 interface NavbarProps {
   userEmail?: string;
+  isAdmin?: boolean;
 }
 
 /**
  * Composant Navbar avec effet Glassmorphism et Menu Mobile.
  */
-export const Navbar = ({ userEmail }: NavbarProps) => {
+export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -37,6 +38,12 @@ export const Navbar = ({ userEmail }: NavbarProps) => {
           {/* Navigation Links (Desktop) */}
           <div className="hidden md:flex items-center gap-8 font-medium">
             <Link href="/leagues" className="hover:text-accent transition-colors">Mes Ligues</Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-pickle-orange hover:text-pickle-orange/80 transition-colors flex items-center gap-2">
+                <ShieldCheck size={18} />
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* User Actions & Mobile Toggle */}
@@ -104,6 +111,17 @@ export const Navbar = ({ userEmail }: NavbarProps) => {
             >
               Mes Ligues
             </Link>
+
+            {isAdmin && (
+              <Link 
+                href="/admin" 
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-lg text-pickle-orange"
+              >
+                <ShieldCheck size={20} />
+                Administration
+              </Link>
+            )}
             
             <div className="h-px bg-white/10 w-full" />
             

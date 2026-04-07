@@ -50,7 +50,7 @@ export default async function LeagueSettingsPage({ params }: { params: { id: str
           </section>
 
           {/* Section Import/Export */}
-          <ImportExportCard leagueId={league.id} />
+          <ImportExportCard leagueId={league.id} leagueName={league.name} />
         </div>
       </SettingsForm>
     </div>

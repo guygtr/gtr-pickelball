@@ -35,6 +35,22 @@ model League {
 }
 
 /**
+ * Modèle pour un Gestionnaire (Manager).
+ * Permet de lister et gérer les utilisateurs ayant accès à la plateforme.
+ */
+model Manager {
+  id        String   @id @default(cuid()) // Correspond à l'ID Supabase Auth
+  email     String   @unique
+  name      String?
+  role      String   @default("manager") // "admin" | "manager"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("pb_managers")
+  @@schema("pb")
+}
+
+/**
  * Modèle pour un Joueur au sein d'une ligue.
  */
 model Player {

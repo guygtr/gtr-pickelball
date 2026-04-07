@@ -1,0 +1,119 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { getEnsuredUser } from "@/lib/auth-utils";
+import { isUserAdmin } from "@/lib/user-utils";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { revalidatePath } from "next/cache";
+
+/**
+ * Vérifie si l'utilisateur actuel est admin.
+ */
+async function ensureAdmin() {
+  const user = await getEnsuredUser();
+  if (!isUserAdmin(user.email)) {
+    throw new Error("Action réservée aux administrateurs principal.");
+  }
+  return user;
+}
+
+/**
+ * Récupère tous les gestionnaires.
+ * Combine les données de Prisma avec les données de Supabase Auth si possible.
+ */
+export async function getManagers() {
+  await ensureAdmin();
+  
+  const managers = await prisma.manager.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+
+  try {
+    const adminClient = createAdminClient();
+    const { data: { users }, error } = await adminClient.auth.admin.listUsers();
+    
+    if (error) throw error;
+
+    // Fusionner les données pour afficher par exemple last_sign_in_at
+    return managers.map((m: any) => {
+      const authUser = users.find(u => u.email === m.email);
+      return {
+        ...m,
+        lastSignIn: authUser?.last_sign_in_at || null,
+        authId: authUser?.id || null,
+      };
+    });
+  } catch (err) {
+    console.error("Erreur lors de la récupération des infos Auth:", err);
+    return managers;
+  }
+}
+
+/**
+ * Crée un nouveau compte gestionnaire (Supabase Auth + Prisma).
+ */
+export async function createManagerAccount(email: string, password: string, name: string) {
+  await ensureAdmin();
+
+  try {
+    const adminClient = createAdminClient();
+    
+    // 1. Création du compte dans Supabase Auth
+    const { data, error } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name, role: 'manager' }
+    });
+
+    if (error) throw error;
+
+    // 2. Création de l'entrée dans Prisma
+    await prisma.manager.upsert({
+      where: { email },
+      update: { name, role: 'manager' },
+      create: {
+        id: data.user.id,
+        email,
+        name,
+        role: 'manager'
+      }
+    });
+
+    revalidatePath("/admin");
+    return { success: true, user: data.user };
+  } catch (err: any) {
+    console.error("Erreur de création de compte:", err);
+    return { success: false, error: err.message || "Erreur lors de la création du compte." };
+  }
+}
+
+/**
+ * Supprime un gestionnaire (Prisma + Supabase Auth).
+ */
+export async function deleteManager(id: string, email: string) {
+  await ensureAdmin();
+  
+  try {
+    const adminClient = createAdminClient();
+    
+    // On essaie de supprimer dans Auth d'abord (plus critique)
+    // On cherche l'utilisateur par email si l'id Prisma ne correspond pas à l'id Auth
+    const { data: { users } } = await adminClient.auth.admin.listUsers();
+    const authUser = users.find(u => u.email === email);
+    
+    if (authUser) {
+      const { error } = await adminClient.auth.admin.deleteUser(authUser.id);
+      if (error) console.warn("Erreur suppression Auth (peut-être déjà supprimé):", error.message);
+    }
+
+    // Suppression Prisma
+    await prisma.manager.delete({ where: { email } });
+
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Erreur suppression gestionnaire:", err);
+    return { success: false, error: err.message || "Erreur lors de la suppression." };
+  }
+}
