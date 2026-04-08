@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getEnsuredUser } from "@/lib/auth-utils";
 import { ExportDataButton } from "@/components/settings/export-data-button";
 import { ImportDataButton } from "@/components/settings/import-data-button";
+import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { User, Shield, Database } from "lucide-react";
 
 export default async function SettingsPage() {
@@ -63,17 +64,22 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        {/* Security Section (Placeholders for now) */}
-        <section className="glass p-6 rounded-3xl border border-white/10 opacity-60">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 rounded-2xl bg-red-500/20 text-red-400 ring-1 red-500/30">
+        {/* Security Section */}
+        <section className="glass p-8 rounded-3xl border border-white/10 relative overflow-hidden group">
+          {/* Background Glow */}
+          <div className="absolute -top-24 -left-24 w-48 h-48 bg-red-500/5 rounded-full blur-3xl group-hover:bg-red-500/10 transition-colors duration-700" />
+          
+          <div className="flex items-center gap-4 mb-8">
+            <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 ring-1 ring-red-500/30">
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Sécurité</h2>
-              <p className="text-sm text-slate-400">Mot de passe et authentification (Bientôt)</p>
+              <h2 className="text-lg font-bold text-white tracking-tight">Sécurité</h2>
+              <p className="text-sm text-slate-500 font-medium">Mot de passe & Authentification</p>
             </div>
           </div>
+
+          <ChangePasswordForm />
         </section>
       </div>
 
