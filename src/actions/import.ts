@@ -234,3 +234,190 @@ export async function importLeaguePlayers(
   revalidatePath(`/leagues/${leagueId}`);
   return { success: true, results: { created, updated } };
 }
+
+/**
+ * Synchronise l'intégralité des données d'une ligue existante à partir d'un export.
+ * Gère le remappage des IDs pour restaurer les relations complexes (sessions, matchs, présences).
+ */
+export async function syncLeagueData(leagueId: string, jsonData: any) {
+  const user = await getEnsuredUser();
+  
+  // Validation sommaire de la structure - on s'attend au format exportLeagueData
+  if (!jsonData.players || !jsonData.sessions) {
+    return { success: false, error: "Format de données invalide pour une synchronisation de ligue." };
+  }
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // 1. Synchronisation des Joueurs
+      const playerIdMap: Record<string, string> = {};
+      for (const p of jsonData.players) {
+        const existing = await tx.player.findFirst({
+          where: {
+            leagueId,
+            firstName: p.firstName,
+            lastName: p.lastName,
+          }
+        });
+
+        let targetPlayer;
+        if (existing) {
+          targetPlayer = await tx.player.update({
+            where: { id: existing.id },
+            data: {
+              email: p.email || existing.email,
+              phone: p.phone || existing.phone,
+              skillLevel: p.level || p.skillLevel || existing.skillLevel,
+              isActive: p.isActive ?? existing.isActive,
+            }
+          });
+        } else {
+          targetPlayer = await tx.player.create({
+            data: {
+              firstName: p.firstName,
+              lastName: p.lastName,
+              email: p.email,
+              phone: p.phone,
+              skillLevel: p.level || p.skillLevel || 3.0,
+              isActive: p.isActive ?? true,
+              leagueId,
+            }
+          });
+        }
+        playerIdMap[p.id] = targetPlayer.id;
+      }
+
+      // 2. Synchronisation des Terrains
+      const courtIdMap: Record<string, string> = {};
+      const actualCourts = await tx.court.findMany({ where: { leagueId } });
+      
+      if (jsonData.courts) {
+        for (const c of jsonData.courts) {
+          const existing = actualCourts.find(ac => ac.name === c.name);
+          let targetCourt;
+          if (existing) {
+            targetCourt = await tx.court.update({
+              where: { id: existing.id },
+              data: {
+                note: c.note || existing.note,
+                playerCapacity: c.playerCapacity || c.capacity || existing.playerCapacity,
+              }
+            });
+          } else {
+            targetCourt = await tx.court.create({
+              data: {
+                name: c.name,
+                note: c.note,
+                playerCapacity: c.playerCapacity || c.capacity || 4,
+                leagueId,
+              }
+            });
+          }
+          courtIdMap[c.id] = targetCourt.id;
+        }
+      }
+
+      // 3. Synchronisation des Sessions
+      let sessionsRestored = 0;
+      let matchesRestored = 0;
+
+      for (const s of jsonData.sessions) {
+        const sessionDate = new Date(s.date);
+        
+        // On cherche une session à la même date/heure (plus ou moins quelques secondes)
+        const existingSession = await tx.session.findFirst({
+          where: {
+            leagueId,
+            date: {
+              equals: sessionDate
+            }
+          }
+        });
+
+        let targetSessionId: string;
+        if (existingSession) {
+          // Si la session existe, on ne la recrée pas pour éviter les doublons de matchs
+          // Mais on pourrait vouloir mettre à jour ses métadonnées
+          targetSessionId = existingSession.id;
+        } else {
+          const newSession = await tx.session.create({
+            data: {
+              date: sessionDate,
+              status: s.status,
+              location: s.location,
+              maxPlayers: s.maxPlayers,
+              duration: s.duration,
+              description: s.description,
+              settings: (s.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
+              leagueId,
+            }
+          });
+          targetSessionId = newSession.id;
+          sessionsRestored++;
+
+          // 4. Dépendances de la Session (uniquement si session nouvellement créée)
+          
+          // 4a. Présences
+          if (s.attendances && s.attendances.length > 0) {
+            await tx.attendance.createMany({
+              data: s.attendances
+                .filter((a: any) => playerIdMap[a.playerId])
+                .map((a: any) => ({
+                  sessionId: targetSessionId,
+                  playerId: playerIdMap[a.playerId],
+                  isPresent: a.isPresent,
+                })),
+              skipDuplicates: true
+            });
+          }
+
+          // 4b. Matchs
+          if (s.matches && s.matches.length > 0) {
+            for (const m of s.matches) {
+              // Remappage des joueurs dans le JSON data
+              let updatedData = m.data;
+              if (updatedData && typeof updatedData === 'object') {
+                const data = { ...updatedData };
+                if (Array.isArray(data.team1)) {
+                  data.team1 = data.team1.map((pId: string) => playerIdMap[pId] || pId);
+                }
+                if (Array.isArray(data.team2)) {
+                  data.team2 = data.team2.map((pId: string) => playerIdMap[pId] || pId);
+                }
+                updatedData = data;
+              }
+
+              await tx.match.create({
+                data: {
+                  sessionId: targetSessionId,
+                  courtId: courtIdMap[m.courtId] || (actualCourts[0]?.id || ""),
+                  startTime: m.startTime ? new Date(m.startTime) : null,
+                  duration: m.duration,
+                  data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
+                }
+              });
+              matchesRestored++;
+            }
+          }
+        }
+      }
+
+      revalidatePath(`/leagues/${leagueId}`);
+      revalidatePath(`/leagues/${leagueId}/sessions`);
+      
+      return { 
+        success: true, 
+        results: { 
+          sessions: sessionsRestored, 
+          matches: matchesRestored,
+          players: Object.keys(playerIdMap).length 
+        } 
+      };
+    }, {
+      timeout: 30000
+    });
+  } catch (error: any) {
+    console.error("Sync error:", error);
+    return { success: false, error: error.message || "Erreur lors de la synchronisation des données" };
+  }
+}

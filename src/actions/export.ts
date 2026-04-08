@@ -13,6 +13,7 @@ export async function exportLeagueData(leagueId: string) {
       players: true,
       sessions: {
         include: {
+          attendances: true,
           matches: {
             include: {
               court: true,
@@ -30,6 +31,7 @@ export async function exportLeagueData(leagueId: string) {
 
   // Nettoyage des données pour l'exportation
   const exportData = {
+    exportVersion: "1.0",
     exportDate: new Date().toISOString(),
     league: {
       id: league.id,
@@ -45,6 +47,7 @@ export async function exportLeagueData(leagueId: string) {
       email: p.email,
       phone: p.phone,
       level: p.skillLevel,
+      isActive: p.isActive,
       joinedAt: p.createdAt,
     })),
     sessions: league.sessions.map((s) => ({
@@ -56,9 +59,14 @@ export async function exportLeagueData(leagueId: string) {
       duration: s.duration,
       description: s.description,
       settings: s.settings as Prisma.JsonObject,
+      attendances: s.attendances.map((a) => ({
+        playerId: a.playerId,
+        isPresent: a.isPresent,
+      })),
       matches: s.matches.map((m) => ({
         id: m.id,
-        court: (m.court as { name: string } | null)?.name || "N/A", // court est inclus via findUnique
+        courtId: m.courtId,
+        courtName: (m.court as { name: string } | null)?.name || "N/A",
         startTime: m.startTime,
         duration: m.duration,
         data: m.data as Prisma.JsonValue,
@@ -68,7 +76,7 @@ export async function exportLeagueData(leagueId: string) {
       id: c.id,
       name: c.name,
       note: c.note,
-      capacity: c.playerCapacity,
+      playerCapacity: c.playerCapacity,
     })),
   };
 

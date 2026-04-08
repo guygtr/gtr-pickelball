@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download, Upload, FileJson, Check, AlertCircle, Loader2 } from "lucide-react";
 import { exportLeagueData } from "@/actions/export";
-import { importLeaguePlayers } from "@/actions/import";
+import { importLeaguePlayers, syncLeagueData } from "@/actions/import";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 
 export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, leagueName?: string }) {
@@ -48,19 +48,34 @@ export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, l
         reader.onload = async (event) => {
             try {
                 const json = JSON.parse(event.target?.result as string);
-                // Le format attendu peut être l'export complet ou juste une liste de joueurs
-                const players = json.players || (Array.isArray(json) ? json : null);
                 
-                if (!players) {
-                    throw new Error("Format d'importation non reconnu. Le JSON doit contenir une clé 'players' ou être un tableau de joueurs.");
-                }
+                // Si c'est un export complet (comporte une clé 'sessions' ou 'league')
+                if (json.sessions || json.league) {
+                    const result = await syncLeagueData(leagueId, json);
+                    if (result.success && 'results' in result) {
+                        const { players, sessions, matches } = result.results;
+                        setStatus({ 
+                            type: 'success', 
+                            message: `Synchronisation réussie : ${players} joueurs, ${sessions} sessions et ${matches} matchs restaurés.` 
+                        });
+                    } else {
+                        throw new Error(result.success === false ? result.error : "Erreur inconnue");
+                    }
+                } else {
+                    // Ancien format ou liste simple de joueurs
+                    const players = json.players || (Array.isArray(json) ? json : null);
+                    
+                    if (!players) {
+                        throw new Error("Format d'importation non reconnu. Le JSON doit contenir une clé 'players' ou 'sessions'.");
+                    }
 
-                const result = await importLeaguePlayers(leagueId, players);
-                if (result.success) {
-                    setStatus({ 
-                        type: 'success', 
-                        message: `Importation réussie : ${result.results.created} créés, ${result.results.updated} mis à jour.` 
-                    });
+                    const result = await importLeaguePlayers(leagueId, players);
+                    if (result.success) {
+                        setStatus({ 
+                            type: 'success', 
+                            message: `Importation réussie : ${result.results.created} créés, ${result.results.updated} mis à jour.` 
+                        });
+                    }
                 }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'importation.";
