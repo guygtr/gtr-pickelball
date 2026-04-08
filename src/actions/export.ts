@@ -149,6 +149,7 @@ export async function exportUserData() {
         matches: s.matches.map((m) => ({
           id: m.id,
           courtId: m.courtId,
+          courtName: (l.courts.find(c => c.id === m.courtId)?.name) || "N/A",
           startTime: m.startTime,
           duration: m.duration,
           data: m.data as Prisma.JsonValue,

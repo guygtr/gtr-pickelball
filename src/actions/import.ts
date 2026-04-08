@@ -71,7 +71,7 @@ export async function importUserData(jsonData: unknown) {
         data: {
           name: `${leagueData.name} (Importé)`,
           description: leagueData.description,
-          settings: (leagueData.settings as Prisma.InputJsonValue) || {},
+          settings: (leagueData.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
           managerId: user.id,
         },
       });
@@ -124,48 +124,51 @@ export async function importUserData(jsonData: unknown) {
         });
 
         // 4a. Présences
-        if (session.attendances.length > 0) {
+        if (session.attendances && session.attendances.length > 0) {
           await tx.attendance.createMany({
             data: session.attendances
-              .filter((a: { playerId: string }) => playerIdMap[a.playerId]) // Sécurité
-              .map((a: { playerId: string, isPresent: boolean }) => ({
+              .filter((a: any) => playerIdMap[a.playerId])
+              .map((a: any) => ({
                 sessionId: newSession.id,
                 playerId: playerIdMap[a.playerId],
                 isPresent: a.isPresent,
               })),
+            skipDuplicates: true
           });
         }
 
         // 4b. Matchs
-        for (const match of session.matches) {
-          // Mise à jour des playerIds dans l'objet data du match
-          let updatedData = match.data;
-          if (updatedData && typeof updatedData === 'object') {
-            const data = { ...updatedData };
-            if (Array.isArray(data.team1)) {
-              data.team1 = data.team1.map((pId: string) => playerIdMap[pId] || pId);
+        if (session.matches && session.matches.length > 0) {
+          for (const match of session.matches) {
+            // Mise à jour des playerIds dans l'objet data du match
+            let updatedData = match.data;
+            if (updatedData && typeof updatedData === 'object') {
+              const data = { ...updatedData };
+              if (Array.isArray(data.team1)) {
+                data.team1 = data.team1.map((pId: string) => playerIdMap[pId] || pId);
+              }
+              if (Array.isArray(data.team2)) {
+                data.team2 = data.team2.map((pId: string) => playerIdMap[pId] || pId);
+              }
+              updatedData = data;
             }
-            if (Array.isArray(data.team2)) {
-              data.team2 = data.team2.map((pId: string) => playerIdMap[pId] || pId);
-            }
-            updatedData = data;
-          }
 
-          await tx.match.create({
-            data: {
-              sessionId: newSession.id,
-              courtId: match.courtId ? courtIdMap[match.courtId] : (Object.values(courtIdMap)[0] || ""), // Fallback si pas de courtId ou remappage
-              startTime: match.startTime ? new Date(match.startTime) : null,
-              duration: match.duration,
-              data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
-            },
-          });
+            await tx.match.create({
+              data: {
+                sessionId: newSession.id,
+                courtId: match.courtId ? (courtIdMap[match.courtId] || Object.values(courtIdMap)[0] || "") : (Object.values(courtIdMap)[0] || ""),
+                startTime: match.startTime ? new Date(match.startTime) : null,
+                duration: match.duration,
+                data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
+              },
+            });
+          }
         }
       }
       importedCount++;
     }
   }, {
-    timeout: 30000, // Augmenter le timeout pour les gros imports
+    timeout: 60000, // Augmenter encore le timeout pour les gros imports globaux
   });
 
   revalidatePath("/leagues");

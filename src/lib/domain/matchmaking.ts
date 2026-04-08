@@ -50,10 +50,10 @@ function calculateMatchCost(
   
   let currentCost = 0;
 
-  // Configuration des poids
-  const PARTNER_WEIGHT = isSocialMode ? 10000 : 1000;
-  const OPPOSITION_WEIGHT = isSocialMode ? 100 : 1;
-  const MATCHUP_WEIGHT = 5000;
+  // Configuration des poids - BEAUCOUP plus sévère en mode Social
+  const PARTNER_WEIGHT = isSocialMode ? 50000 : 1000; 
+  const OPPOSITION_WEIGHT = isSocialMode ? 500 : 1;
+  const MATCHUP_WEIGHT = isSocialMode ? 20000 : 5000;
 
   if (isDoubles) {
     // Coût Partenariats - On veut éviter de jouer avec le même partenaire
@@ -70,15 +70,15 @@ function calculateMatchCost(
     const matchupKey = getMatchupKey(team1, team2);
     const mCount = stats.matchupCount.get(matchupKey) || 0;
     
-    // PÉNALITÉ STRICTE DE RÉPÉTITION IMMÉDIATE (Poids 1,000,000)
-    const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 1000000 : 0;
+    // PÉNALITÉ STRICTE DE RÉPÉTITION IMMÉDIATE (Poids 2,000,000)
+    const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
     currentCost += (p1 + p2) * PARTNER_WEIGHT + (o1 + o2 + o3 + o4) * OPPOSITION_WEIGHT + (mCount * MATCHUP_WEIGHT) + immediatePenalty;
   } else {
     // Mode Simple : Opposition uniquement
     const o = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[0])) || 0;
     const matchupKey = getMatchupKey(team1, team2);
-    const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 1000000 : 0;
+    const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
     currentCost += o * OPPOSITION_WEIGHT + immediatePenalty;
   }
@@ -94,11 +94,14 @@ export function generateOptimalRound(
   courts: Court[],
   stats: MatchmakingStats,
   iterations: number
-): MatchDesign[] {
+): { matches: MatchDesign[], cost: number } {
   let bestMatches: MatchDesign[] = [];
   let minRoundCost = Infinity;
 
-  for (let i = 0; i < iterations; i++) {
+  // Pour les petits rounds (ex: 8 joueurs), on peut faire plus d'itérations
+  const actualIterations = playersInRound.length <= 12 ? Math.max(iterations, 5000) : iterations;
+
+  for (let i = 0; i < actualIterations; i++) {
     const shuffled = [...playersInRound].sort(() => Math.random() - 0.5);
     let currentRoundCost = 0;
     const roundMatches: MatchDesign[] = [];
@@ -128,7 +131,20 @@ export function generateOptimalRound(
     }
   }
 
-  return bestMatches;
+  return { matches: bestMatches, cost: minRoundCost };
+}
+
+/**
+ * Helper pour cloner les stats de matchmaking afin de simuler des sessions.
+ */
+function cloneMatchmakingStats(stats: MatchmakingStats): MatchmakingStats {
+  return {
+    playCount: new Map(stats.playCount),
+    partnershipCount: new Map(stats.partnershipCount),
+    oppositionCount: new Map(stats.oppositionCount),
+    matchupCount: new Map(stats.matchupCount),
+    lastMatchups: new Set(stats.lastMatchups),
+  };
 }
 
 /**
@@ -137,64 +153,76 @@ export function generateOptimalRound(
 export function generateFullSessionMatches(
   presentPlayers: Player[],
   courts: Court[],
-  stats: MatchmakingStats,
+  initialStats: MatchmakingStats,
   sessionDuration: number,
   matchDuration: number = 15,
   iterations?: number
 ): MatchDesign[] {
-  const allMatches: MatchDesign[] = [];
   const roundsCount = Math.max(1, Math.floor(sessionDuration / matchDuration));
+  const isPerfectGroup = [4, 8, 12].includes(presentPlayers.length) && (presentPlayers.length / 4 === courts.length);
   
-  // Ajustement des itérations selon la complexité
-  const effectiveIterations = iterations || (presentPlayers.length > 4 ? 20000 : 10000);
+  // En mode Social (4, 8, 12), on simule plusieurs SESSIONS ENTIÈRES pour éviter de se coincer
+  const sessionTrials = isPerfectGroup ? 100 : 1;
+  let bestSessionMatches: MatchDesign[] = [];
+  let minSessionCost = Infinity;
 
-  for (let round = 0; round < roundsCount; round++) {
-    // 1. Sélectionner les joueurs (ceux qui ont le moins joué)
-    const sortedCandidates = [...presentPlayers].sort((a, b) => 
-      (stats.playCount.get(a.id) || 0) - (stats.playCount.get(b.id) || 0) || Math.random() - 0.5
-    );
+  // Réduire les itérations par round lors d'une simulation globale pour rester rapide
+  const roundIterations = isPerfectGroup ? 1000 : (iterations || (presentPlayers.length > 4 ? 20000 : 10000));
 
-    const totalPlaces = courts.length * 4;
-    const playersInRound = sortedCandidates.slice(0, Math.min(sortedCandidates.length, totalPlaces));
-    
-    if (playersInRound.length < 2) break;
+  for (let trial = 0; trial < sessionTrials; trial++) {
+    const currentSessionMatches: MatchDesign[] = [];
+    const stats = cloneMatchmakingStats(initialStats);
+    let currentSessionCost = 0;
 
-    // 2. Générer le round optimal
-    const roundMatches = generateOptimalRound(playersInRound, courts, stats, effectiveIterations);
-    
-    // 3. Préparer les Matchups de la ronde précédente pour la prochaine itération
-    stats.lastMatchups.clear();
+    for (let round = 0; round < roundsCount; round++) {
+      // 1. Sélectionner les joueurs (équité de temps de jeu)
+      const sortedCandidates = [...presentPlayers].sort((a, b) => 
+        (stats.playCount.get(a.id) || 0) - (stats.playCount.get(b.id) || 0) || Math.random() - 0.5
+      );
 
-    // 4. Appliquer le meilleur round et mettre à jour les stats pour le round suivant
-    roundMatches.forEach(m => {
-      allMatches.push(m);
+      const totalPlaces = courts.length * 4;
+      const playersInRound = sortedCandidates.slice(0, Math.min(sortedCandidates.length, totalPlaces));
       
-      const mKey = getMatchupKey(m.team1, m.team2);
-      stats.matchupCount.set(mKey, (stats.matchupCount.get(mKey) || 0) + 1);
-      stats.lastMatchups.add(mKey);
+      if (playersInRound.length < 2) break;
 
-      // Mise à jour PlayCount
-      [...m.team1, ...m.team2].forEach(id => {
-        stats.playCount.set(id, (stats.playCount.get(id) || 0) + 1);
-      });
+      // 2. Générer le round optimal
+      const { matches: roundMatches, cost: roundCost } = generateOptimalRound(playersInRound, courts, stats, roundIterations);
+      currentSessionCost += roundCost;
+      
+      // 3. Préparer les Matchups de la ronde précédente
+      stats.lastMatchups.clear();
 
-      // Mise à jour Partenariats
-      if (m.team1.length === 2) {
-        const k1 = getPartnershipKey(m.team1[0], m.team1[1]);
-        const k2 = getPartnershipKey(m.team2[0], m.team2[1]);
-        stats.partnershipCount.set(k1, (stats.partnershipCount.get(k1) || 0) + 1);
-        stats.partnershipCount.set(k2, (stats.partnershipCount.get(k2) || 0) + 1);
-      }
+      // 4. Appliquer les matchs et mettre à jour les stats temporaires de la simulation
+      roundMatches.forEach(m => {
+        currentSessionMatches.push(m);
+        const mKey = getMatchupKey(m.team1, m.team2);
+        stats.matchupCount.set(mKey, (stats.matchupCount.get(mKey) || 0) + 1);
+        stats.lastMatchups.add(mKey);
 
-      // Mise à jour Oppositions
-      m.team1.forEach(p1Id => {
-        m.team2.forEach(p2Id => {
-          const key = getPartnershipKey(p1Id, p2Id);
-          stats.oppositionCount.set(key, (stats.oppositionCount.get(key) || 0) + 1);
+        [...m.team1, ...m.team2].forEach(id => {
+          stats.playCount.set(id, (stats.playCount.get(id) || 0) + 1);
         });
+
+        if (m.team1.length === 2) {
+          stats.partnershipCount.set(getPartnershipKey(m.team1[0], m.team1[1]), (stats.partnershipCount.get(getPartnershipKey(m.team1[0], m.team1[1])) || 0) + 1);
+          stats.partnershipCount.set(getPartnershipKey(m.team2[0], m.team2[1]), (stats.partnershipCount.get(getPartnershipKey(m.team2[0], m.team2[1])) || 0) + 1);
+          
+          m.team1.forEach(p1Id => {
+            m.team2.forEach(p2Id => {
+              const key = getPartnershipKey(p1Id, p2Id);
+              stats.oppositionCount.set(key, (stats.oppositionCount.get(key) || 0) + 1);
+            });
+          });
+        }
       });
-    });
+    }
+
+    if (currentSessionCost < minSessionCost) {
+      minSessionCost = currentSessionCost;
+      bestSessionMatches = currentSessionMatches;
+      if (minSessionCost === 0) break; // Session parfaite trouvée !
+    }
   }
 
-  return allMatches;
+  return bestSessionMatches;
 }
