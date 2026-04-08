@@ -12,12 +12,17 @@ export interface MatchDesign {
   type: "SINGLES" | "DOUBLES";
 }
 
+export type MatchmakingMode = "RANDOM" | "COMPETITIVE";
+
 export interface MatchmakingStats {
   playCount: Map<string, number>;
   partnershipCount: Map<string, number>;
   oppositionCount: Map<string, number>;
   matchupCount: Map<string, number>;
-  lastMatchups: Set<string>; // Matchups in the immediate previous round
+  quartetCount: Map<string, number>; // Groups of 4 playing together
+  lastMatchups: Set<string>; 
+  playerSkills: Map<string, number>;
+  mode: MatchmakingMode;
 }
 
 /**
@@ -30,6 +35,13 @@ export function getMatchupKey(team1: string[], team2: string[]) {
 }
 
 /**
+ * Génère une clé unique pour un groupe de 4 joueurs (quartet).
+ */
+export function getQuartetKey(playerIds: string[]) {
+  return [...playerIds].sort().join(',');
+}
+
+/**
  * Génère une clé unique triée pour deux joueurs (utilisé pour partenariats et oppositions).
  */
 export function getPartnershipKey(id1: string, id2: string) {
@@ -37,7 +49,7 @@ export function getPartnershipKey(id1: string, id2: string) {
 }
 
 /**
- * Calcul du coût d'une configuration de match basée sur l'équité historique.
+ * Calcul du coût d'une configuration de match basée sur l'équité historique et le niveau.
  */
 function calculateMatchCost(
   team1: string[],
@@ -46,41 +58,78 @@ function calculateMatchCost(
 ): number {
   const isDoubles = team1.length === 2 && team2.length === 2;
   const totalPlayers = stats.playCount.size;
-  const isSocialMode = totalPlayers <= 12; // Mode optimisé pour petits groupes (ex: 8 joueurs)
+  const isRandomMode = stats.mode === "RANDOM" || totalPlayers <= 12; 
   
   let currentCost = 0;
 
-  // Configuration des poids - BEAUCOUP plus sévère en mode Social
-  const PARTNER_WEIGHT = isSocialMode ? 50000 : 1000; 
-  const OPPOSITION_WEIGHT = isSocialMode ? 500 : 1;
-  const MATCHUP_WEIGHT = isSocialMode ? 20000 : 5000;
+  // Configuration des poids de rotation
+  const PARTNER_WEIGHT = isRandomMode ? 50000 : 1000; 
+  const OPPOSITION_WEIGHT = isRandomMode ? 500 : 1;
+  const MATCHUP_WEIGHT = isRandomMode ? 20000 : 5000;
+  const QUARTET_WEIGHT = isRandomMode ? 100000 : 2000; // Forte pénalité pour éviter que les 4 mêmes restent ensemble
+
+  // Configuration des poids de niveau (Skill)
+  // En mode COMPÉTITION, l'équilibre des niveaux devient crucial
+  const SKILL_BALANCE_WEIGHT = stats.mode === "COMPETITIVE" ? 15000 : 0;
+  const SKILL_SPREAD_WEIGHT = stats.mode === "COMPETITIVE" ? 5000 : 0;
 
   if (isDoubles) {
-    // Coût Partenariats - On veut éviter de jouer avec le même partenaire
+    // 1. ROTATION
     const p1 = stats.partnershipCount.get(getPartnershipKey(team1[0], team1[1])) || 0;
     const p2 = stats.partnershipCount.get(getPartnershipKey(team2[0], team2[1])) || 0;
     
-    // Coût Oppositions - On veut varier les adversaires
     const o1 = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[0])) || 0;
     const o2 = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[1])) || 0;
     const o3 = stats.oppositionCount.get(getPartnershipKey(team1[1], team2[0])) || 0;
     const o4 = stats.oppositionCount.get(getPartnershipKey(team1[1], team2[1])) || 0;
     
-    // Coût Matchup Global - On veut éviter les mêmes configurations d'équipes
     const matchupKey = getMatchupKey(team1, team2);
     const mCount = stats.matchupCount.get(matchupKey) || 0;
     
-    // PÉNALITÉ STRICTE DE RÉPÉTITION IMMÉDIATE (Poids 2,000,000)
+    const quartetKey = getQuartetKey([...team1, ...team2]);
+    const qCount = stats.quartetCount.get(quartetKey) || 0;
+
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
-    currentCost += (p1 + p2) * PARTNER_WEIGHT + (o1 + o2 + o3 + o4) * OPPOSITION_WEIGHT + (mCount * MATCHUP_WEIGHT) + immediatePenalty;
+    currentCost += (p1 + p2) * PARTNER_WEIGHT + 
+                   (o1 + o2 + o3 + o4) * OPPOSITION_WEIGHT + 
+                   (mCount * MATCHUP_WEIGHT) + 
+                   (qCount * QUARTET_WEIGHT) +
+                   immediatePenalty;
+
+    // 2. SKILL (Équité de niveau)
+    if (stats.mode === "COMPETITIVE") {
+      const s1 = stats.playerSkills.get(team1[0]) || 3.0;
+      const s2 = stats.playerSkills.get(team1[1]) || 3.0;
+      const s3 = stats.playerSkills.get(team2[0]) || 3.0;
+      const s4 = stats.playerSkills.get(team2[1]) || 3.0;
+
+      const team1Avg = (s1 + s2) / 2;
+      const team2Avg = (s3 + s4) / 2;
+      
+      // Écart entre les deux équipes (Fair Play)
+      const balanceGap = Math.abs(team1Avg - team2Avg);
+      
+      // Écart au sein de la même équipe (Vouloir jouer avec des gens de son niveau)
+      const spreadGap1 = Math.abs(s1 - s2);
+      const spreadGap2 = Math.abs(s3 - s4);
+
+      currentCost += (balanceGap * SKILL_BALANCE_WEIGHT) + (spreadGap1 + spreadGap2) * SKILL_SPREAD_WEIGHT;
+    }
+
   } else {
-    // Mode Simple : Opposition uniquement
+    // Mode Simple
     const o = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[0])) || 0;
     const matchupKey = getMatchupKey(team1, team2);
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
     currentCost += o * OPPOSITION_WEIGHT + immediatePenalty;
+
+    if (stats.mode === "COMPETITIVE") {
+      const s1 = stats.playerSkills.get(team1[0]) || 3.0;
+      const s2 = stats.playerSkills.get(team2[0]) || 3.0;
+      currentCost += Math.abs(s1 - s2) * SKILL_BALANCE_WEIGHT;
+    }
   }
 
   return currentCost;
@@ -143,7 +192,10 @@ function cloneMatchmakingStats(stats: MatchmakingStats): MatchmakingStats {
     partnershipCount: new Map(stats.partnershipCount),
     oppositionCount: new Map(stats.oppositionCount),
     matchupCount: new Map(stats.matchupCount),
+    quartetCount: new Map(stats.quartetCount),
     lastMatchups: new Set(stats.lastMatchups),
+    playerSkills: new Map(stats.playerSkills),
+    mode: stats.mode
   };
 }
 
@@ -162,7 +214,8 @@ export function generateFullSessionMatches(
   const isPerfectGroup = [4, 8, 12].includes(presentPlayers.length) && (presentPlayers.length / 4 === courts.length);
   
   // En mode Social (4, 8, 12), on simule plusieurs SESSIONS ENTIÈRES pour éviter de se coincer
-  const sessionTrials = isPerfectGroup ? 100 : 1;
+  // On réduit sessionTrials si on est en mode COMPÉTITION car le skill limite les options parfaites
+  const sessionTrials = (isPerfectGroup && initialStats.mode === "RANDOM") ? 100 : 10;
   let bestSessionMatches: MatchDesign[] = [];
   let minSessionCost = Infinity;
 
@@ -198,6 +251,9 @@ export function generateFullSessionMatches(
         const mKey = getMatchupKey(m.team1, m.team2);
         stats.matchupCount.set(mKey, (stats.matchupCount.get(mKey) || 0) + 1);
         stats.lastMatchups.add(mKey);
+
+        const qKey = getQuartetKey([...m.team1, ...m.team2]);
+        stats.quartetCount.set(qKey, (stats.quartetCount.get(qKey) || 0) + 1);
 
         [...m.team1, ...m.team2].forEach(id => {
           stats.playCount.set(id, (stats.playCount.get(id) || 0) + 1);

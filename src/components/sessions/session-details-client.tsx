@@ -54,6 +54,7 @@ export function SessionDetailsClient({
   statusLabel: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">("RANDOM");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 
@@ -79,9 +80,10 @@ export function SessionDetailsClient({
 
   async function handleGenerateMatches() {
     setLoading(true);
-    const loadingToast = toast.loading("Calcul des matchs optimaux (GTR Fair Play Engine)...");
+    const modeLabel = generationMode === "RANDOM" ? "Aléatoire" : "Compétition";
+    const loadingToast = toast.loading(`Calcul des matchs (${modeLabel})...`);
     try {
-      const result = await generateMatches(session.id);
+      const result = await generateMatches(session.id, generationMode);
       if (result.success) {
         toast.success("Matchs générés avec succès !", { id: loadingToast });
         router.refresh();
@@ -191,9 +193,38 @@ export function SessionDetailsClient({
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/5">
+            {/* Mode Selector */}
+            <div className="mb-6 space-y-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 opacity-60">
+                Mode de Matchmaking
+              </label>
+              <div className="grid grid-cols-2 gap-2 bg-black/20 p-1 rounded-2xl border border-white/5">
+                <button 
+                  onClick={() => setGenerationMode("RANDOM")}
+                  className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
+                    generationMode === "RANDOM" 
+                      ? "bg-pickle-blue/20 text-pickle-blue shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
+                      : "text-slate-600 hover:text-slate-400"
+                  }`}
+                >
+                  ALÉATOIRE
+                </button>
+                <button 
+                  onClick={() => setGenerationMode("COMPETITIVE")}
+                  className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
+                    generationMode === "COMPETITIVE" 
+                      ? "bg-pickle-orange/20 text-pickle-orange shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
+                      : "text-slate-600 hover:text-slate-400"
+                  }`}
+                >
+                  COMPÉTITION
+                </button>
+              </div>
+            </div>
+
             <NeonButton 
               className="w-full py-5 text-[12px] tracking-[0.25em]" 
-              variant="green"
+              variant={generationMode === "COMPETITIVE" ? "orange" : "green"}
               disabled={presentCount < 2 || loading || statusLabel === "Terminé"}
               onClick={handleGenerateMatches}
             >
@@ -201,7 +232,7 @@ export function SessionDetailsClient({
               {statusLabel === "Terminé" ? "SESSION TERMINÉE" : loading ? "GÉNÉRATION..." : "GÉNÉRER LES PARTIES"}
             </NeonButton>
             <p className="text-[9px] text-center text-slate-500 mt-4 uppercase font-bold tracking-[0.3em] opacity-40">
-              GTR FAIR PLAY ENGINE v2.2
+              GTR FAIR PLAY ENGINE v2.5
             </p>
           </div>
         </GlassCard>

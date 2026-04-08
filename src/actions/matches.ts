@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Attendance, Player, Prisma } from "@prisma/client";
 import { ensureSessionManager, ensureMatchManager, ensureLeagueManager } from "@/lib/auth-utils";
-import { generateFullSessionMatches, getPartnershipKey, getMatchupKey, MatchmakingStats, MatchDesign } from "@/lib/domain/matchmaking";
+import { generateFullSessionMatches, getPartnershipKey, getMatchupKey, getQuartetKey, MatchmakingStats, MatchDesign, MatchmakingMode } from "@/lib/domain/matchmaking";
 
 import { 
   matchIdSchema, 
@@ -34,8 +34,9 @@ interface MatchData {
 /**
  * Génère les matchs pour une session donnée en utilisant l'algorithme Monte-Carlo du domaine.
  * @param {string} rawSessionId Identifiant de la session.
+ * @param {MatchmakingMode} mode Mode de génération (RANDOM ou COMPETITIVE).
  */
-export async function generateMatches(rawSessionId: string) {
+export async function generateMatches(rawSessionId: string, mode: MatchmakingMode = "RANDOM") {
   try {
     const sessionId = sessionIdSchema.parse(rawSessionId);
     await ensureSessionManager(sessionId);
@@ -82,7 +83,10 @@ export async function generateMatches(rawSessionId: string) {
       partnershipCount: new Map<string, number>(),
       oppositionCount: new Map<string, number>(),
       matchupCount: new Map<string, number>(),
-      lastMatchups: new Set<string>()
+      quartetCount: new Map<string, number>(),
+      lastMatchups: new Set<string>(),
+      playerSkills: new Map<string, number>(presentPlayers.map(p => [p.id, p.skillLevel])),
+      mode
     };
 
     // Hydratation des stats via les matchs passés de la session
@@ -90,7 +94,11 @@ export async function generateMatches(rawSessionId: string) {
       const d = m.data as unknown as MatchData;
       if (!d) return;
 
-      [...d.team1, ...d.team2].forEach(id => {
+      const quartetIds = [...d.team1, ...d.team2];
+      const qKey = getQuartetKey(quartetIds);
+      matchmakingStats.quartetCount.set(qKey, (matchmakingStats.quartetCount.get(qKey) || 0) + 1);
+
+      quartetIds.forEach(id => {
         if (matchmakingStats.playCount.has(id)) {
           matchmakingStats.playCount.set(id, (matchmakingStats.playCount.get(id) || 0) + 1);
         }
