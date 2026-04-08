@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { Toaster } from "react-hot-toast";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -36,6 +37,14 @@ export default async function RootLayout({
       <body
         className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-green selection:text-pickle-dark`}
       >
+        <Toaster position="bottom-right" toastOptions={{
+          style: {
+            background: '#0f172a',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+          }
+        }} />
         <Navbar userEmail={user?.email} isAdmin={isAdmin} />
         <main className="min-h-screen pt-24">
           {children}
