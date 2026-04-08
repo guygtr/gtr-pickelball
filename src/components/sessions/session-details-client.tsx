@@ -55,7 +55,7 @@ export function SessionDetailsClient({
   statusLabel: string;
 }) {
   const [loading, setLoading] = useState(false);
-  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">("RANDOM");
+  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">("COMPETITIVE");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 

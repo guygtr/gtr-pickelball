@@ -13,12 +13,14 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 - **Validation Zod** : Schémas Zod implémentés pour toutes les Server Actions.
 - **Correction de Bug** : Résolution d'une `Hydration Error` critique dans `settings-form.tsx` causée par des formulaires imbriqués.
 
-## 📅 2026-04-08 — Hotfix v3.3.2 (Standardisation Bar-Manager) 🛡️🛸⚓🚀
-
-### 🛠️ Architecture & UX
-- **Standard Bar-Manager** : Refonte du flux de création de ligue pour éliminer les erreurs 500 opaques. Passage à un pattern **Action Response + Client Redirect**.
-- **Performance Feedback** : Intégration de `react-hot-toast` pour une confirmation instantanée et élégante des actions serveur.
-- **Robustesse Onboarding** : Synchronisation JIT via `ensurePrismaManager()` validée pour les nouveaux utilisateurs.
+## 📅 2026-04-08 — Evolution v3.3.4 (Final UX Refinement) 🛡️🛸⚓🚀
+ 
+### 🛠️ Gestion des Joueurs & UX
+- **Type de Joueur** : Implémentation de la distinction **Permanent / Remplaçant** avec persistance Prisma et filtrage visuel.
+- **Tri Bidirectionnel** : Système de tri basculant (ASC/DESC) sur les colonnes Nom, Niveau et Type avec indicateurs visuels (`↑`/`↓`).
+- **Expérience Recherche** : Intégration d'une barre de recherche **Debounced** ultra-rapide côté serveur.
+- **Navigation & Auth** : Intégration du bouton **Déconnexion** dans la Navbar (Desktop/Mobile) et optimisation du routage `Link`.
+- **Correction Critique** : Résolution du bug de soumission du formulaire d'ajout manuel de joueur (missing `type="submit"`).
 
 ---
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️

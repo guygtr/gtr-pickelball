@@ -12,17 +12,18 @@ export default async function PlayersPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ sort?: string; q?: string }>;
+  searchParams: Promise<{ sort?: string; q?: string; dir?: "asc" | "desc" }>;
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const sort = resolvedSearchParams.sort || "name";
   const query = resolvedSearchParams.q || "";
+  const dir = resolvedSearchParams.dir || (sort === "level" ? "desc" : "asc");
 
   // Logic pour le tri stable (toujours inclure le nom en secondaire)
-  let orderBy: any = [{ lastName: "asc" }, { firstName: "asc" }];
-  if (sort === "level") orderBy = [{ skillLevel: "desc" }, { lastName: "asc" }];
-  if (sort === "type") orderBy = [{ type: "asc" }, { lastName: "asc" }];
+  let orderBy: any = [{ lastName: dir }, { firstName: dir }];
+  if (sort === "level") orderBy = [{ skillLevel: dir }, { lastName: "asc" }];
+  if (sort === "type") orderBy = [{ type: dir }, { lastName: "asc" }];
 
   const players = await prisma.player.findMany({
     where: { 
@@ -33,13 +34,22 @@ export default async function PlayersPage({
         { email: { contains: query, mode: 'insensitive' } },
       ] : undefined
     },
-    orderBy: sort === "name" ? [{ lastName: "asc" }, { firstName: "asc" }] : orderBy,
+    orderBy,
   });
 
   const getSortLink = (newSort: string) => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
+    
+    let newDir: "asc" | "desc" = "asc";
+    if (newSort === sort) {
+      newDir = dir === "asc" ? "desc" : "asc";
+    } else if (newSort === "level") {
+      newDir = "desc";
+    }
+    
     params.set("sort", newSort);
+    params.set("dir", newDir);
     return `?${params.toString()}`;
   };
 
@@ -79,7 +89,7 @@ export default async function PlayersPage({
                     href={getSortLink("name")} 
                     className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'name' ? 'text-pickle-green' : ''}`}
                   >
-                    Joueur {sort === 'name' && "↓"}
+                    Joueur {sort === 'name' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
                 </th>
                 <th className="px-6 py-4">
@@ -87,7 +97,7 @@ export default async function PlayersPage({
                     href={getSortLink("type")} 
                     className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'type' ? 'text-pickle-green' : ''}`}
                   >
-                    Type {sort === 'type' && "↓"}
+                    Type {sort === 'type' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
                 </th>
                 <th className="px-6 py-4">
@@ -95,7 +105,7 @@ export default async function PlayersPage({
                     href={getSortLink("level")} 
                     className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'level' ? 'text-pickle-green' : ''}`}
                   >
-                    Niveau {sort === 'level' && "↓"}
+                    Niveau {sort === 'level' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
                 </th>
                 <th className="px-6 py-4 text-slate-500/50">Contact</th>

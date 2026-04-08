@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, ShieldCheck, User, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, ShieldCheck, User, LogIn, UserPlus, LogOut } from "lucide-react";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
+import { signOut } from "@/actions/auth";
 
 interface NavbarProps {
   userEmail?: string;
@@ -16,6 +17,10 @@ interface NavbarProps {
  */
 export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <>
@@ -51,14 +56,26 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
           <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden sm:flex items-center gap-4">
               {userEmail ? (
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-bold opacity-40 hidden lg:block tracking-widest uppercase">{userEmail}</span>
+                <div className="flex items-center gap-3">
+                  <div className="hidden lg:flex flex-col items-end leading-none mr-2">
+                    <span className="text-[9px] font-black opacity-30 tracking-[0.2em] uppercase">Connecté</span>
+                    <span className="text-[10px] font-bold opacity-60 truncate max-w-[120px]">{userEmail}</span>
+                  </div>
+                  
                   <Link href="/settings">
                     <NeonButton variant="blue" className="px-5 py-2.5 text-[10px] tracking-[0.2em]">
                       <User size={14} className="mr-2" />
                       MON COMPTE
                     </NeonButton>
                   </Link>
+
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2.5 rounded-xl border border-white/10 hover:bg-red-500/10 hover:border-red-500/30 text-slate-400 hover:text-red-500 transition-all flex items-center gap-2 group"
+                    title="Déconnexion"
+                  >
+                    <LogOut size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
@@ -130,11 +147,24 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
             
             <div className="flex flex-col gap-3">
               {userEmail ? (
-                <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
-                  <button className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold border border-white/10">
-                    Mon Compte
+                <>
+                  <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold border border-white/10 flex items-center justify-center gap-3">
+                      <User size={18} />
+                      Mon Compte
+                    </button>
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full bg-red-500/10 text-red-500 py-4 rounded-xl font-bold border border-red-500/20 flex items-center justify-center gap-3"
+                  >
+                    <LogOut size={18} />
+                    Déconnexion
                   </button>
-                </Link>
+                </>
               ) : (
                 <>
                   <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
