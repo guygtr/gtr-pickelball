@@ -20,7 +20,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
   return (
     <>
       <nav className="fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
-        <div className="glass px-4 md:px-6 py-3 md:py-4 rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="bg-slate-950 border border-white/10 px-4 md:px-6 py-3 md:py-4 rounded-2xl flex items-center justify-between shadow-2xl">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-2 md:gap-3 group">
             <div className="relative w-8 h-8 md:w-10 md:h-10 overflow-hidden rounded-lg border border-white/20 transform transition-transform group-hover:scale-105">
