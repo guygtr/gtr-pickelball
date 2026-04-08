@@ -40,7 +40,17 @@ export default async function LeaguesPage() {
     }
 
   const leagues = await prisma.league.findMany({
-    where: { managerId: user.id },
+    where: {
+        OR: [
+            { managerId: user.id },
+            { coManagers: { some: { managerId: user.id } } }
+        ]
+    },
+    include: {
+        coManagers: {
+            select: { managerId: true }
+        }
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -81,38 +91,49 @@ export default async function LeaguesPage() {
           </GlassCard>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {(leagues as LeagueUI[]).map((league) => (
-              <Link key={league.id} href={`/leagues/${league.id}`} className="group">
-                <GlassCard className="p-8 h-full flex flex-col hover:border-accent/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accent/5">
-                  <div className="flex justify-between items-start mb-8">
-                    <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Target className="w-6 h-6 text-accent" />
+            {leagues.map((league) => {
+              const isOwner = league.managerId === user.id;
+              
+              return (
+                <Link key={league.id} href={`/leagues/${league.id}`} className="group">
+                  <GlassCard className="p-8 h-full flex flex-col hover:border-accent/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accent/5 relative overflow-hidden">
+                    {/* Badge de Statut */}
+                    <div className={`absolute top-0 right-0 px-4 py-1 text-[9px] font-black tracking-[0.2em] uppercase rounded-bl-xl border-l border-b ${
+                        isOwner ? "bg-pickle-green/10 text-pickle-green border-pickle-green/20" : "bg-pickle-blue/10 text-pickle-blue border-pickle-blue/20"
+                    }`}>
+                        {isOwner ? "PROPRIÉTAIRE" : "CO-GESTION"}
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[10px] font-black text-slate-500 tracking-widest uppercase">
-                        Capacité
-                      </span>
-                      <span className="text-lg font-black text-white">
-                        {(league.settings as LeagueSettings)?.maxPlayers || 0} <span className="text-xs text-slate-600">JOUEURS</span>
-                      </span>
+
+                    <div className="flex justify-between items-start mb-8">
+                      <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Target className="w-6 h-6 text-accent" />
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-[10px] font-black text-slate-500 tracking-widest uppercase">
+                          Capacité
+                        </span>
+                        <span className="text-lg font-black text-white">
+                          {(league.settings as any)?.maxPlayers || 0} <span className="text-xs text-slate-600">JOUEURS</span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <h3 className="text-2xl font-black text-white mb-3 group-hover:text-accent transition-colors tracking-tighter uppercase leading-tight">
-                    {league.name}
-                  </h3>
-                  
-                  <p className="text-slate-500 text-sm font-medium line-clamp-3 mb-8 flex-grow leading-relaxed">
-                    {league.description || "Aucune description fournie pour cette organisation premium."}
-                  </p>
-                  
-                  <div className="pt-6 border-t border-white/5 flex items-center justify-between group-hover:text-white transition-colors">
-                    <span className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase">Voir détails</span>
-                    <ArrowRight className="w-5 h-5 text-accent translate-x-0 group-hover:translate-x-2 transition-transform" />
-                  </div>
-                </GlassCard>
-              </Link>
-            ))}
+                    
+                    <h3 className="text-2xl font-black text-white mb-3 group-hover:text-accent transition-colors tracking-tighter uppercase leading-tight">
+                      {league.name}
+                    </h3>
+                    
+                    <p className="text-slate-500 text-sm font-medium line-clamp-3 mb-8 flex-grow leading-relaxed">
+                      {league.description || "Aucune description fournie pour cette organisation premium."}
+                    </p>
+                    
+                    <div className="pt-6 border-t border-white/5 flex items-center justify-between group-hover:text-white transition-colors">
+                      <span className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase">Voir détails</span>
+                      <ArrowRight className="w-5 h-5 text-accent translate-x-0 group-hover:translate-x-2 transition-transform" />
+                    </div>
+                  </GlassCard>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

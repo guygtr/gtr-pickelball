@@ -23,15 +23,24 @@ export async function ensureLeagueManager(leagueId: string) {
 
   const league = await prisma.league.findUnique({
     where: { id: leagueId },
-    select: { managerId: true }
+    select: { 
+      managerId: true,
+      coManagers: {
+        where: { managerId: user.id },
+        select: { managerId: true }
+      }
+    }
   });
 
   if (!league) {
     throw new Error("Ligue non trouvée.");
   }
 
-  if (league.managerId !== user.id) {
-    throw new Error("Action non autorisée : Vous n'êtes pas le gestionnaire de cette ligue.");
+  const isOwner = league.managerId === user.id;
+  const isCoManager = league.coManagers.length > 0;
+
+  if (!isOwner && !isCoManager) {
+    throw new Error("Action non autorisée : Vous n'avez pas l'accès gestionnaire pour cette ligue.");
   }
 
   return user;

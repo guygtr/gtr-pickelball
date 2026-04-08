@@ -28,9 +28,29 @@ model League {
   players     Player[]
   courts      Court[]
   sessions    Session[]
+  coManagers  CoManager[]
 
   @@index([managerId])
   @@map("pb_leagues")
+  @@schema("pb")
+}
+
+/**
+ * Modèle pour une table de jointure Co-Gestionnaires.
+ * Permet de partager une ligue entre plusieurs gestionnaires.
+ */
+model CoManager {
+  id          String   @id @default(cuid())
+  leagueId    String
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  managerId   String
+  manager     Manager  @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  assignedAt  DateTime @default(now())
+
+  @@unique([leagueId, managerId])
+  @@index([leagueId])
+  @@index([managerId])
+  @@map("pb_co_managers")
   @@schema("pb")
 }
 
@@ -45,6 +65,8 @@ model Manager {
   role      String   @default("manager") // "admin" | "manager"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  coManagedLeagues CoManager[]
 
   @@map("pb_managers")
   @@schema("pb")
