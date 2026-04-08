@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { leagueSchema } from "@/lib/validations/league";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getEnsuredUser, ensureLeagueManager } from "@/lib/auth-utils";
+import { ensurePrismaManager, ensureLeagueManager } from "@/lib/auth-utils";
 
 export async function createLeague(formData: FormData) {
-  const user = await getEnsuredUser();
+  const user = await ensurePrismaManager();
 
   const rawData = {
     name: formData.get("name"),

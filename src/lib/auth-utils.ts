@@ -64,3 +64,33 @@ export async function ensureMatchManager(matchId: string) {
     
     return await ensureLeagueManager(match.session.league.id);
 }
+
+/**
+ * Vérifie si le profil Manager existe dans Prisma et le crée si nécessaire.
+ * Retourne l'utilisateur Supabase.
+ */
+export async function ensurePrismaManager() {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+        throw new Error("Action non autorisée : Vous devez être connecté.");
+    }
+
+    // Synchronisation Just-in-Time : S'assurer que l'utilisateur existe dans pb_managers
+    await prisma.manager.upsert({
+        where: { id: user.id },
+        update: {
+            email: user.email!,
+            name: user.user_metadata?.full_name || user.email?.split("@")[0],
+        },
+        create: {
+            id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.full_name || user.email?.split("@")[0],
+            role: "manager",
+        },
+    });
+
+    return user;
+}

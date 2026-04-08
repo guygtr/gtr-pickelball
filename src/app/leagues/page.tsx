@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { ensurePrismaManager } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
@@ -17,27 +17,27 @@ interface LeagueUI {
 }
 
 export default async function LeaguesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return (
-      <main className="min-h-screen pt-24 px-4 flex items-center justify-center">
-        <GlassCard className="p-12 text-center max-w-md animate-fade-in-up">
-          <div className="w-16 h-16 bg-pickle-pink/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-8 h-8 text-pickle-pink" />
-          </div>
-          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">Accès Restreint</h2>
-          <p className="text-slate-500 mb-8 font-medium">Veuillez vous connecter pour administrer vos ligues et accéder au dashboard.</p>
-          <Link href="/auth/login">
-            <NeonButton variant="blue" className="w-full py-4 tracking-[0.2em]">
-              SE CONNECTER
-            </NeonButton>
-          </Link>
-        </GlassCard>
-      </main>
-    );
-  }
+    let user;
+    try {
+        user = await ensurePrismaManager();
+    } catch (e) {
+        return (
+            <main className="min-h-screen pt-24 px-4 flex items-center justify-center">
+                <GlassCard className="p-12 text-center max-w-md animate-fade-in-up">
+                    <div className="w-16 h-16 bg-pickle-pink/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Lock className="w-8 h-8 text-pickle-pink" />
+                    </div>
+                    <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">Accès Restreint</h2>
+                    <p className="text-slate-500 mb-8 font-medium">Veuillez vous connecter pour administrer vos ligues et accéder au dashboard.</p>
+                    <Link href="/auth/login">
+                        <NeonButton variant="blue" className="w-full py-4 tracking-[0.2em]">
+                            SE CONNECTER
+                        </NeonButton>
+                    </Link>
+                </GlassCard>
+            </main>
+        );
+    }
 
   const leagues = await prisma.league.findMany({
     where: { managerId: user.id },
