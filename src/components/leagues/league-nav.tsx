@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Calendar, Settings, LayoutDashboard, ChevronLeft } from "lucide-react";
+import { Users, Calendar, Settings, LayoutDashboard, ChevronLeft, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LeagueNavProps {
@@ -14,6 +14,7 @@ export function LeagueNav({ leagueId }: LeagueNavProps) {
 
   const navItems = [
     { name: "Vue d'ensemble", href: `/leagues/${leagueId}`, icon: LayoutDashboard },
+    { name: "Hall of Fame", href: `/leagues/${leagueId}/hall-of-fame`, icon: Trophy },
     { name: "Joueurs", href: `/leagues/${leagueId}/players`, icon: Users },
     { name: "Sessions", href: `/leagues/${leagueId}/sessions`, icon: Calendar },
     { name: "Paramètres", href: `/leagues/${leagueId}/settings`, icon: Settings },

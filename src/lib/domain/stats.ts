@@ -40,8 +40,8 @@ export function calculateLeagueRankings(
       if (!statsMap.has(id)) return;
       const s = statsMap.get(id)!;
       s.matchesPlayed++;
-      if (winner === 0) s.wins++;
-      else s.losses++;
+      if (winner === 1) s.wins++;
+      else if (winner === 2) s.losses++;
     });
 
     // Équipe 2
@@ -49,8 +49,8 @@ export function calculateLeagueRankings(
       if (!statsMap.has(id)) return;
       const s = statsMap.get(id)!;
       s.matchesPlayed++;
-      if (winner === 1) s.wins++;
-      else s.losses++;
+      if (winner === 2) s.wins++;
+      else if (winner === 1) s.losses++;
     });
   });
 
