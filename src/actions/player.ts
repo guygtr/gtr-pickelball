@@ -20,6 +20,7 @@ export async function createPlayer(data: PlayerInput) {
         email: validated.email || null,
         phone: validated.phone || null,
         skillLevel: validated.skillLevel,
+        type: validated.type,
         leagueId: validated.leagueId,
       },
     });
@@ -46,6 +47,7 @@ export async function importPlayers(leagueId: string, players: Record<string, un
       email: p.email ? String(p.email) : "",
       phone: p.phone ? String(p.phone) : "",
       skillLevel: p.skillLevel ? parseFloat(String(p.skillLevel)) : 2.0,
+      type: (p.type === "remplacant" || p.type === "permanent") ? p.type : "permanent",
     }));
 
     // Validation Zod de l'ensemble
@@ -104,6 +106,7 @@ export async function updatePlayer(playerId: string, data: PlayerInput) {
         email: validated.email || null,
         phone: validated.phone || null,
         skillLevel: validated.skillLevel,
+        type: validated.type,
       },
     });
 

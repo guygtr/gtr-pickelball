@@ -60,6 +60,7 @@ model Player {
   email       String?  // Courriel (optionnel)
   phone       String?  // Téléphone (optionnel)
   skillLevel  Float    @default(2.0) // Niveau actuel (ex: 2.0, 3.5, 4.0)
+  type        String   @default("permanent") // "permanent" | "remplacant"
   isActive    Boolean  @default(true)
   
   leagueId    String

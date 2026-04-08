@@ -12,6 +12,7 @@ export const playerSchema = z.object({
   skillLevel: z.number().refine(val => SKILL_LEVELS.includes(val), {
     message: "Le niveau de compétence doit être l'une des valeurs prédéfinies."
   }).default(DEFAULT_SKILL_LEVEL),
+  type: z.enum(["permanent", "remplacant"]).default("permanent"),
   leagueId: z.string().cuid(),
 });
 
@@ -25,6 +26,7 @@ export const playerImportSchema = z.array(
     email: z.string().email().optional().or(z.literal("")),
     phone: z.string().optional().or(z.literal("")),
     skillLevel: z.number().optional().default(DEFAULT_SKILL_LEVEL),
+    type: z.enum(["permanent", "remplacant"]).optional().default("permanent"),
   })
 );
 

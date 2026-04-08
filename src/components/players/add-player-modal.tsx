@@ -23,6 +23,7 @@ export function AddPlayerModal({
     email: "",
     phone: "",
     skillLevel: DEFAULT_SKILL_LEVEL,
+    type: "permanent" as "permanent" | "remplacant",
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -33,19 +34,23 @@ export function AddPlayerModal({
     e.preventDefault();
     setLoading(true);
     try {
-      await createPlayer({
+      const result = await createPlayer({
         ...formData,
         leagueId,
       });
-      router.refresh();
-      onClose();
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        skillLevel: 3.0,
-      });
+      
+      if (result.success) {
+        router.refresh();
+        onClose();
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          skillLevel: DEFAULT_SKILL_LEVEL,
+          type: "permanent",
+        });
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -90,6 +95,37 @@ export function AddPlayerModal({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Type de Joueur</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as "permanent" | "remplacant" })}
+                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-green/50 outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="permanent">Permanent</option>
+                <option value="remplacant">Remplaçant</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300 flex justify-between">
+                Skill Level
+                <span className="text-pickle-green font-bold">{formData.skillLevel.toFixed(1)}</span>
+              </label>
+              <select
+                value={formData.skillLevel}
+                onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
+                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-green/50 outline-none transition-all appearance-none cursor-pointer"
+              >
+                {SKILL_LEVELS.map(level => (
+                  <option key={level} value={level}>
+                    {level.toFixed(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">Email</label>
             <div className="relative">
@@ -116,32 +152,6 @@ export function AddPlayerModal({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300 flex justify-between">
-              Niveau (Skill Level)
-              <span className="text-pickle-green font-bold">{formData.skillLevel.toFixed(1)}</span>
-            </label>
-            <div className="relative flex items-center gap-4">
-              <BarChart3 className="w-4 h-4 text-slate-500" />
-              <div className="relative flex-1">
-                <select
-                  value={formData.skillLevel}
-                  onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-pickle-green/50 outline-none transition-all appearance-none cursor-pointer"
-                >
-                  {SKILL_LEVELS.map(level => (
-                    <option key={level} value={level}>
-                      Niveau {level.toFixed(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                  <BarChart3 className="w-3 h-3 opacity-30" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="pt-4 flex gap-3">
             <button
               type="button"
@@ -153,7 +163,7 @@ export function AddPlayerModal({
             <NeonButton 
               className="flex-1" 
               variant="green"
-              onClick={() => {}} // Form handles submit
+              type="submit"
             >
               {loading ? "Création..." : "Ajouter"}
             </NeonButton>

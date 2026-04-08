@@ -15,6 +15,7 @@ interface Player {
   email?: string | null;
   phone?: string | null;
   skillLevel: number;
+  type: "permanent" | "remplacant";
 }
 
 export function EditPlayerModal({ 
@@ -34,6 +35,7 @@ export function EditPlayerModal({
     email: "",
     phone: "",
     skillLevel: DEFAULT_SKILL_LEVEL,
+    type: "permanent" as "permanent" | "remplacant",
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -46,6 +48,7 @@ export function EditPlayerModal({
         email: player.email || "",
         phone: player.phone || "",
         skillLevel: player.skillLevel || DEFAULT_SKILL_LEVEL,
+        type: (player.type as "permanent" | "remplacant") || "permanent",
       });
     }
   }, [player]);
@@ -132,29 +135,34 @@ export function EditPlayerModal({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300 flex justify-between">
-              Niveau (Skill Level)
-              <span className="text-pickle-blue font-bold">{formData.skillLevel.toFixed(1)}</span>
-            </label>
-            <div className="relative flex items-center gap-4">
-              <BarChart3 className="w-4 h-4 text-slate-500" />
-              <div className="relative flex-1">
-                <select
-                  value={formData.skillLevel}
-                  onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer"
-                >
-                  {SKILL_LEVELS.map(level => (
-                    <option key={level} value={level}>
-                      Niveau {level.toFixed(1)}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                  <BarChart3 className="w-3 h-3 opacity-30" />
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Type de Joueur</label>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as "permanent" | "remplacant" })}
+                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer"
+              >
+                <option value="permanent">Permanent</option>
+                <option value="remplacant">Remplaçant</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300 flex justify-between">
+                Skill Level
+                <span className="text-pickle-blue font-bold">{formData.skillLevel.toFixed(1)}</span>
+              </label>
+              <select
+                value={formData.skillLevel}
+                onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
+                className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer"
+              >
+                {SKILL_LEVELS.map(level => (
+                  <option key={level} value={level}>
+                    {level.toFixed(1)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

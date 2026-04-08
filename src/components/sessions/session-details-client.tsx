@@ -14,6 +14,7 @@ interface Player {
   firstName: string;
   lastName: string;
   skillLevel: number;
+  type: "permanent" | "remplacant";
 }
 
 interface Attendance {
@@ -166,30 +167,73 @@ export function SessionDetailsClient({
           </div>
 
           <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-            {leaguePlayers.map((player) => {
-              const isPresent = attendancesMap.get(player.id) ?? false;
+            {(() => {
+              const permanents = leaguePlayers
+                .filter(p => p.type === 'permanent')
+                .sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
+              
+              const replacements = leaguePlayers
+                .filter(p => p.type === 'remplacant')
+                .sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
+
+              const renderPlayer = (player: Player) => {
+                const isPresent = attendancesMap.get(player.id) ?? false;
+                return (
+                  <button
+                    key={player.id}
+                    onClick={() => handleToggleAttendance(player.id, isPresent)}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      isPresent 
+                        ? 'bg-pickle-green/10 border-pickle-green/30 text-white' 
+                        : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="flex flex-col items-start text-left">
+                      <span className="font-bold flex items-center gap-2">
+                        {player.firstName} {player.lastName}
+                        <span className={`w-1.5 h-1.5 rounded-full ${player.type === 'permanent' ? 'bg-pickle-blue' : 'bg-pickle-orange'}`} />
+                      </span>
+                      <span className="text-[9px] opacity-60 uppercase tracking-widest leading-none mt-1">
+                        LEVEL {player.skillLevel.toFixed(1)} • {player.type}
+                      </span>
+                    </div>
+                    {isPresent ? (
+                      <CheckCircle2 className="w-5 h-5 text-pickle-green" />
+                    ) : (
+                      <Circle className="w-5 h-5 opacity-10" />
+                    )}
+                  </button>
+                );
+              };
+
               return (
-                <button
-                  key={player.id}
-                  onClick={() => handleToggleAttendance(player.id, isPresent)}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                    isPresent 
-                      ? 'bg-pickle-green/10 border-pickle-green/30 text-white' 
-                      : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-bold">{player.firstName} {player.lastName}</span>
-                    <span className="text-xs opacity-60">Niveau: {player.skillLevel.toFixed(1)}</span>
-                  </div>
-                  {isPresent ? (
-                    <CheckCircle2 className="w-5 h-5 text-pickle-green" />
-                  ) : (
-                    <Circle className="w-5 h-5 opacity-20" />
+                <div className="space-y-6">
+                  {permanents.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] font-black text-pickle-blue uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
+                        <div className="w-1 h-3 bg-pickle-blue rounded-full" />
+                        Permanents
+                      </h4>
+                      <div className="space-y-1.5">
+                        {permanents.map(renderPlayer)}
+                      </div>
+                    </div>
                   )}
-                </button>
+                  
+                  {replacements.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] font-black text-pickle-orange uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
+                        <div className="w-1 h-3 bg-pickle-orange rounded-full" />
+                        Remplaçants
+                      </h4>
+                      <div className="space-y-1.5">
+                        {replacements.map(renderPlayer)}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
-            })}
+            })()}
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/5">
