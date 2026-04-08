@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { MatchDataSchema } from "@/lib/session-utils";
+import { calculateLeagueRankings } from "@/lib/domain/stats";
+import { Leaderboard } from "@/components/leagues/leaderboard";
 
 export default async function LeagueDashboard({
   params,
@@ -78,6 +80,8 @@ export default async function LeagueDashboard({
     { label: "NIVEAU MOYEN", value: avgLevel, icon: TrendingUp, color: "text-pickle-pink", glow: "" },
   ];
 
+  const rankings = calculateLeagueRankings(league.players as any, matches);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
       {stats.map((stat) => (
@@ -92,6 +96,20 @@ export default async function LeagueDashboard({
           <div className={`absolute -bottom-4 -right-4 w-12 h-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.color === 'text-pickle-blue' ? 'bg-pickle-blue' : stat.color === 'text-pickle-green' ? 'bg-pickle-green' : 'bg-white'}`} />
         </GlassCard>
       ))}
+
+      {/* Hall of Fame - Podium & Classement */}
+      <div className="md:col-span-2 lg:col-span-4 mt-6 animate-fade-in-up [animation-delay:200ms]">
+        <div className="flex items-center gap-3 mb-6">
+          <Trophy className="w-8 h-8 text-pickle-orange" />
+          <div>
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
+              Hall of <span className="text-pickle-orange">Fame</span>
+            </h2>
+            <p className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase mt-1">Élite de la ligue</p>
+          </div>
+        </div>
+        <Leaderboard rankings={rankings} />
+      </div>
 
       {/* Liste des Joueurs */}
       <GlassCard className="md:col-span-2 p-8 animate-fade-in-up [animation-delay:100ms]">
