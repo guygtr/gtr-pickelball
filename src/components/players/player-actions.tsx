@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trash2, Pencil } from "lucide-react";
 import { deletePlayer } from "@/actions/player";
 import { EditPlayerModal } from "./edit-player-modal";
+import toast from "react-hot-toast";
 
 interface Player {
   id: string;
@@ -27,11 +28,17 @@ export function PlayerActions({ leagueId, player }: PlayerActionsProps) {
     if (!confirm(`Voulez-vous vraiment supprimer ${player.firstName} ${player.lastName} de cette ligue ?`)) return;
     
     setIsDeleting(true);
+    const loadingToast = toast.loading("Suppression du joueur...");
     try {
-      await deletePlayer(leagueId, player.id);
+      const result = await deletePlayer(player.id, leagueId);
+      if (result.success) {
+        toast.success("Joueur supprimé avec succès.", { id: loadingToast });
+      } else {
+        toast.error(result.error || "Erreur lors de la suppression.", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de la suppression du joueur.");
+      toast.error("Erreur technique lors de la suppression.", { id: loadingToast });
     } finally {
       setIsDeleting(false);
     }

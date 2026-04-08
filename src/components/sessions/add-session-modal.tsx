@@ -10,11 +10,13 @@ import { useRouter } from "next/navigation";
 export function AddSessionModal({ 
   isOpen, 
   onClose, 
-  leagueId 
+  leagueId,
+  leagueSettings
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   leagueId: string;
+  leagueSettings?: Record<string, any>;
 }) {
   // Helper to get initials states rounded to 15m
   const getInitialValues = () => {
@@ -24,11 +26,18 @@ export function AddSessionModal({
     const tzOffset = now.getTimezoneOffset() * 60000;
     const datePart = new Date(now.getTime() - tzOffset).toISOString().slice(0, 10);
     
-    // Time parts
-    const hourPart = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes();
-    const roundedMinutes = (Math.ceil(minutes / 15) * 15) % 60;
-    const minutePart = roundedMinutes.toString().padStart(2, '0');
+    // Default values from settings OR now
+    const defaultTime = (leagueSettings?.defaultStartTime as string) || null;
+    let hourPart = now.getHours().toString().padStart(2, '0');
+    let minutePart = "00";
+
+    if (defaultTime && defaultTime.includes(':')) {
+      [hourPart, minutePart] = defaultTime.split(':');
+    } else {
+      const minutes = now.getMinutes();
+      const roundedMinutes = (Math.ceil(minutes / 15) * 15) % 60;
+      minutePart = roundedMinutes.toString().padStart(2, '0');
+    }
     
     return { datePart, hourPart, minutePart };
   };
@@ -37,9 +46,9 @@ export function AddSessionModal({
   const [datePart, setDatePart] = useState(initial.datePart);
   const [hourPart, setHourPart] = useState(initial.hourPart);
   const [minutePart, setMinutePart] = useState(initial.minutePart);
-  const [location, setLocation] = useState("");
-  const [duration, setDuration] = useState("120"); // 2h default
-  const [maxPlayers] = useState(20);
+  const [location, setLocation] = useState((leagueSettings?.defaultLocation as string) || "");
+  const [duration, setDuration] = useState((leagueSettings?.defaultDuration as string || "120").toString());
+  const [maxPlayers] = useState((leagueSettings?.maxPlayers as number) || 20);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();

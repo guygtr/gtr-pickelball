@@ -7,6 +7,7 @@ import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matches";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
+import toast from "react-hot-toast";
 
 interface Player {
   id: string;
@@ -60,53 +61,89 @@ export function SessionDetailsClient({
   const closedRounds = (session.settings as { closedRounds?: number[] })?.closedRounds || [];
 
   async function handleToggleAttendance(playerId: string, currentStatus: boolean) {
+    const action = currentStatus ? "Suppression de la présence..." : "Marquage de la présence...";
+    const loadingToast = toast.loading(action);
     try {
-      await toggleAttendance({ sessionId: session.id, playerId, isPresent: !currentStatus });
-      router.refresh();
+      const result = await toggleAttendance({ sessionId: session.id, playerId, isPresent: !currentStatus });
+      if (result.success) {
+        toast.success(currentStatus ? "Joueur absent" : "Joueur présent", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur lors de la mise à jour", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Erreur technique de présence", { id: loadingToast });
     }
   }
 
   async function handleGenerateMatches() {
     setLoading(true);
+    const loadingToast = toast.loading("Calcul des matchs optimaux (GTR Fair Play Engine)...");
     try {
-      await generateMatches(session.id);
-      router.refresh();
+      const result = await generateMatches(session.id);
+      if (result.success) {
+        toast.success("Matchs générés avec succès !", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Échec de la génération", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Erreur technique lors de la génération", { id: loadingToast });
     } finally {
       setLoading(false);
     }
   }
 
   async function handleToggleRoundStatus(roundIdx: number, isClosed: boolean) {
+    const loadingToast = toast.loading(isClosed ? "Verrouillage de la ronde..." : "Déverrouillage...");
     try {
-      await toggleRoundStatus({ sessionId: session.id, roundIdx, isClosed });
-      router.refresh();
+      const result = await toggleRoundStatus({ sessionId: session.id, roundIdx, isClosed });
+      if (result.success) {
+        toast.success(isClosed ? "Ronde verrouillée" : "Ronde déverrouillée", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur de verrouillage", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Erreur technique de verrouillage", { id: loadingToast });
     }
   }
 
   async function handleDeleteMatch(matchId: string) {
     if (!confirm("Supprimer ce match ?")) return;
+    const loadingToast = toast.loading("Suppression du match...");
     try {
-      await deleteMatch(matchId);
-      router.refresh();
+      const result = await deleteMatch(matchId);
+      if (result.success) {
+        toast.success("Match supprimé", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur lors de la suppression", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Erreur technique de suppression", { id: loadingToast });
     }
   }
 
   async function handleDeleteAllMatches() {
     if (!confirm("⚠️ ATTENTION : Voulez-vous supprimer TOUS les matchs de cette session ? Cette action est irréversible.")) return;
     setLoading(true);
+    const loadingToast = toast.loading("Nettoyage complet de la session...");
     try {
-      await deleteAllMatches(session.id);
-      router.refresh();
+      const result = await deleteAllMatches(session.id);
+      if (result.success) {
+        toast.success("Tous les matchs ont été supprimés", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur lors du nettoyage", { id: loadingToast });
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Erreur technique de nettoyage", { id: loadingToast });
     } finally {
       setLoading(false);
     }

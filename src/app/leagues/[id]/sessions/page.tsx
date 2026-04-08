@@ -9,6 +9,12 @@ export default async function SessionsPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
+  
+  const league = await prisma.league.findUnique({
+    where: { id: resolvedParams.id },
+    select: { settings: true }
+  });
+
   const sessions = await prisma.session.findMany({
     where: { leagueId: resolvedParams.id },
     include: {
@@ -29,7 +35,10 @@ export default async function SessionsPage({
           <Calendar className="w-6 h-6 text-pickle-blue" />
           Sessions de Jeu
         </h2>
-        <SessionListClient leagueId={resolvedParams.id} />
+        <SessionListClient 
+          leagueId={resolvedParams.id} 
+          leagueSettings={league?.settings as Record<string, any>}
+        />
       </div>
 
       <SessionsViewToggle sessions={sessions} leagueId={resolvedParams.id} />

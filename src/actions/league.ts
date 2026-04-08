@@ -54,38 +54,44 @@ export async function createLeague(formData: FormData) {
 }
 
 export async function updateLeague(leagueId: string, formData: FormData) {
-  const user = await ensureLeagueManager(leagueId);
+  try {
+    const user = await ensureLeagueManager(leagueId);
 
-  const rawData = {
-    name: formData.get("name"),
-    description: formData.get("description"),
-    maxPlayers: formData.get("maxPlayers"),
-    levelMin: formData.get("levelMin"),
-    levelMax: formData.get("levelMax"),
-    courtCount: 1, // Non utilisé ici mais requis par le schéma
-    defaultStartTime: formData.get("defaultStartTime"),
-    defaultDuration: formData.get("defaultDuration"),
-    defaultLocation: formData.get("defaultLocation"),
-  };
+    const rawData = {
+      name: formData.get("name"),
+      description: formData.get("description"),
+      maxPlayers: formData.get("maxPlayers"),
+      levelMin: formData.get("levelMin"),
+      levelMax: formData.get("levelMax"),
+      courtCount: 1, // Non utilisé ici mais requis par le schéma
+      defaultStartTime: formData.get("defaultStartTime"),
+      defaultDuration: formData.get("defaultDuration"),
+      defaultLocation: formData.get("defaultLocation"),
+    };
 
-  const validatedData = leagueSchema.partial().parse(rawData);
+    const validatedData = leagueSchema.partial().parse(rawData);
 
-  await prisma.league.update({
-    where: { id: leagueId, managerId: user.id },
-    data: {
-      name: validatedData.name,
-      description: validatedData.description,
-      settings: {
-        maxPlayers: validatedData.maxPlayers,
-        levelMin: validatedData.levelMin,
-        levelMax: validatedData.levelMax,
-        defaultStartTime: validatedData.defaultStartTime,
-        defaultDuration: validatedData.defaultDuration,
-        defaultLocation: validatedData.defaultLocation,
+    await prisma.league.update({
+      where: { id: leagueId, managerId: user.id },
+      data: {
+        name: validatedData.name,
+        description: validatedData.description,
+        settings: {
+          maxPlayers: validatedData.maxPlayers,
+          levelMin: validatedData.levelMin,
+          levelMax: validatedData.levelMax,
+          defaultStartTime: validatedData.defaultStartTime,
+          defaultDuration: validatedData.defaultDuration,
+          defaultLocation: validatedData.defaultLocation,
+        }
       }
-    }
-  });
+    });
 
-  revalidatePath(`/leagues/${leagueId}/settings`);
-  revalidatePath(`/leagues/${leagueId}`);
+    revalidatePath(`/leagues/${leagueId}/settings`);
+    revalidatePath(`/leagues/${leagueId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating league:", error);
+    return { success: false, error: "Erreur lors de la mise à jour" };
+  }
 }

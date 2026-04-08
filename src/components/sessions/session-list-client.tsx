@@ -5,7 +5,13 @@ import { Plus } from "lucide-react";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { AddSessionModal } from "./add-session-modal";
 
-export function SessionListClient({ leagueId }: { leagueId: string }) {
+export function SessionListClient({ 
+  leagueId, 
+  leagueSettings 
+}: { 
+  leagueId: string;
+  leagueSettings?: Record<string, any>;
+}) {
   const [showAddModal, setShowAddModal] = useState(false);
 
   return (
@@ -22,6 +28,7 @@ export function SessionListClient({ leagueId }: { leagueId: string }) {
       <AddSessionModal 
         isOpen={showAddModal}
         leagueId={leagueId} 
+        leagueSettings={leagueSettings}
         onClose={() => setShowAddModal(false)} 
       />
     </>

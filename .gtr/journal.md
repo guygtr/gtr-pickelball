@@ -13,8 +13,12 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 - **Validation Zod** : Schémas Zod implémentés pour toutes les Server Actions.
 - **Correction de Bug** : Résolution d'une `Hydration Error` critique dans `settings-form.tsx` causée par des formulaires imbriqués.
 
-### 🚀 Déploiement
-- **Workflow /release-master** : Déploiement réussi de la version v3.3 stable sur Vercel.
+## 📅 2026-04-08 — Hotfix v3.3.2 (Standardisation Bar-Manager) 🛡️🛸⚓🚀
+
+### 🛠️ Architecture & UX
+- **Standard Bar-Manager** : Refonte du flux de création de ligue pour éliminer les erreurs 500 opaques. Passage à un pattern **Action Response + Client Redirect**.
+- **Performance Feedback** : Intégration de `react-hot-toast` pour une confirmation instantanée et élégante des actions serveur.
+- **Robustesse Onboarding** : Synchronisation JIT via `ensurePrismaManager()` validée pour les nouveaux utilisateurs.
 
 ---
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️

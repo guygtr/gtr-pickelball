@@ -24,8 +24,11 @@ export default function CreateLeaguePage() {
         return;
       }
 
-      toast.success("Ligue crée avec succès ! Bienvenue au club.", { id: loadingToast });
-      router.push("/leagues");
+      toast.success("Ligue créée ! Veuillez maintenant configurer vos terrains et horaires par défaut.", { 
+        id: loadingToast,
+        duration: 6000 
+      });
+      router.push(`/leagues/${result.id}/settings`);
       router.refresh();
     } catch (e: any) {
       toast.error("Erreur technique lors de la création.", { id: loadingToast });
