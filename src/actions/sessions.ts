@@ -46,3 +46,31 @@ export async function getSessions(leagueId: string) {
     orderBy: { date: "desc" },
   });
 }
+
+/**
+ * Supprime une session spécifique.
+ * @param {string} sessionId ID de la session.
+ */
+export async function deleteSession(sessionId: string) {
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { leagueId: true }
+    });
+
+    if (!session) return { success: false, error: "Session non trouvée" };
+
+    await ensureLeagueManager(session.leagueId);
+
+    await prisma.session.delete({
+      where: { id: sessionId }
+    });
+
+    revalidatePath(`/leagues/${session.leagueId}/sessions`);
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue lors de la suppression";
+    console.error("Error deleting session:", errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}

@@ -9,6 +9,7 @@ import Link from "next/link";
 
 import { getSessionStatus } from "@/lib/session-utils";
 import { Prisma } from "@prisma/client";
+import { SessionActions } from "./session-actions";
 
 interface Session {
   id: string;
@@ -98,9 +99,12 @@ export function SessionsViewToggle({
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between group-hover:text-white transition-colors">
-                    <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Voir détails</span>
-                    <ChevronRight className="w-4 h-4" />
+                  <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between group-hover:text-white transition-colors relative">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">Voir détails</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                    <SessionActions sessionId={session.id} date={session.date} />
                   </div>
                 </GlassCard>
               </Link>
@@ -163,11 +167,14 @@ export function SessionsViewToggle({
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link href={`/leagues/${leagueId}/sessions/${session.id}`}>
-                          <button className="p-2 text-slate-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all">
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <SessionActions sessionId={session.id} date={session.date} />
+                          <Link href={`/leagues/${leagueId}/sessions/${session.id}`}>
+                            <button className="p-2 text-slate-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all">
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
