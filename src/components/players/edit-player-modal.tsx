@@ -6,6 +6,7 @@ import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { updatePlayer } from "@/actions/player";
 import { useRouter } from "next/navigation";
+import { SKILL_LEVELS, DEFAULT_SKILL_LEVEL } from "@/lib/constants";
 
 interface Player {
   id: string;
@@ -32,7 +33,7 @@ export function EditPlayerModal({
     lastName: "",
     email: "",
     phone: "",
-    skillLevel: 3.0,
+    skillLevel: DEFAULT_SKILL_LEVEL,
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -44,7 +45,7 @@ export function EditPlayerModal({
         lastName: player.lastName || "",
         email: player.email || "",
         phone: player.phone || "",
-        skillLevel: player.skillLevel || 3.0,
+        skillLevel: player.skillLevel || DEFAULT_SKILL_LEVEL,
       });
     }
   }, [player]);
@@ -138,15 +139,22 @@ export function EditPlayerModal({
             </label>
             <div className="relative flex items-center gap-4">
               <BarChart3 className="w-4 h-4 text-slate-500" />
-              <input
-                type="range"
-                min="1"
-                max="6"
-                step="0.5"
-                value={formData.skillLevel}
-                onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
-                className="flex-1 accent-pickle-blue"
-              />
+              <div className="relative flex-1">
+                <select
+                  value={formData.skillLevel}
+                  onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 px-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer"
+                >
+                  {SKILL_LEVELS.map(level => (
+                    <option key={level} value={level}>
+                      Niveau {level.toFixed(1)}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <BarChart3 className="w-3 h-3 opacity-30" />
+                </div>
+              </div>
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SKILL_LEVELS, DEFAULT_SKILL_LEVEL } from "../constants";
 
 /**
  * Schéma de validation pour un joueur individuel.
@@ -8,7 +9,9 @@ export const playerSchema = z.object({
   lastName: z.string().min(2, "Le nom est trop court"),
   email: z.string().email("Email invalide").optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal("")),
-  skillLevel: z.number().min(1).max(6).default(2.0),
+  skillLevel: z.number().refine(val => SKILL_LEVELS.includes(val), {
+    message: "Le niveau de compétence doit être l'une des valeurs prédéfinies."
+  }).default(DEFAULT_SKILL_LEVEL),
   leagueId: z.string().cuid(),
 });
 
@@ -21,7 +24,7 @@ export const playerImportSchema = z.array(
     lastName: z.string().min(1),
     email: z.string().email().optional().or(z.literal("")),
     phone: z.string().optional().or(z.literal("")),
-    skillLevel: z.number().optional().default(2.0),
+    skillLevel: z.number().optional().default(DEFAULT_SKILL_LEVEL),
   })
 );
 

@@ -5,6 +5,7 @@ import { getEnsuredUser } from "@/lib/auth-utils";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { getNearestSkillLevel } from "@/lib/constants";
 
 // Schéma de validation pour l'importation
 const ImportSchema = z.object({
@@ -213,7 +214,7 @@ export async function importLeaguePlayers(
         data: {
           email: player.email || existing.email,
           phone: player.phone || existing.phone,
-          skillLevel: player.skillLevel ?? existing.skillLevel,
+          skillLevel: player.skillLevel !== undefined ? getNearestSkillLevel(player.skillLevel) : existing.skillLevel,
           isActive: player.isActive ?? existing.isActive,
         }
       });
@@ -225,7 +226,7 @@ export async function importLeaguePlayers(
           lastName: player.lastName,
           email: player.email,
           phone: player.phone,
-          skillLevel: player.skillLevel ?? 3.0,
+          skillLevel: player.skillLevel !== undefined ? getNearestSkillLevel(player.skillLevel) : 3.0,
           isActive: player.isActive ?? true,
           leagueId,
         }
@@ -270,7 +271,7 @@ export async function syncLeagueData(leagueId: string, jsonData: any) {
             data: {
               email: p.email || existing.email,
               phone: p.phone || existing.phone,
-              skillLevel: p.level || p.skillLevel || existing.skillLevel,
+              skillLevel: getNearestSkillLevel(p.level || p.skillLevel || existing.skillLevel),
               isActive: p.isActive ?? existing.isActive,
             }
           });
@@ -281,7 +282,7 @@ export async function syncLeagueData(leagueId: string, jsonData: any) {
               lastName: p.lastName,
               email: p.email,
               phone: p.phone,
-              skillLevel: p.level || p.skillLevel || 3.0,
+              skillLevel: getNearestSkillLevel(p.level || p.skillLevel || 3.0),
               isActive: p.isActive ?? true,
               leagueId,
             }
