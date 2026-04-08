@@ -22,5 +22,5 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 - **Navigation & Auth** : Intégration du bouton **Déconnexion** dans la Navbar (Desktop/Mobile) et optimisation du routage `Link`.
 - **Correction Critique** : Résolution du bug de soumission du formulaire d'ajout manuel de joueur (missing `type="submit"`).
 
----
+- **Security Gate Certified** : Audit complet (`/security-audit`) et durcissement des actions serveur (Scoping SQL & Strong Auth Verification).
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️

@@ -79,7 +79,7 @@ export async function deletePlayer(playerId: string, leagueId: string) {
     await ensureLeagueManager(leagueId);
     
     await prisma.player.delete({
-      where: { id: playerId },
+      where: { id: playerId, leagueId: leagueId },
     });
 
     revalidatePath(`/leagues/${leagueId}/players`);

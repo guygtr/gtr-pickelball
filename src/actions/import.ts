@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getEnsuredUser } from "@/lib/auth-utils";
+import { getEnsuredUser, ensureLeagueManager, ensurePrismaManager } from "@/lib/auth-utils";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -58,7 +58,7 @@ const ImportSchema = z.object({
  * Gère le remappage des IDs pour préserver les relations.
  */
 export async function importUserData(jsonData: unknown) {
-  const user = await getEnsuredUser();
+  const user = await ensurePrismaManager();
   
   // Validation des données
   const validatedData = ImportSchema.parse(jsonData);
@@ -193,7 +193,7 @@ export async function importLeaguePlayers(
     isActive?: boolean;
   }>
 ) {
-  await getEnsuredUser();
+  await ensureLeagueManager(leagueId);
   
   let created = 0;
   let updated = 0;
@@ -244,7 +244,7 @@ export async function importLeaguePlayers(
  * Gère le remappage des IDs pour restaurer les relations complexes (sessions, matchs, présences).
  */
 export async function syncLeagueData(leagueId: string, jsonData: any) {
-  const user = await getEnsuredUser();
+  await ensureLeagueManager(leagueId);
   
   // Validation sommaire de la structure - on s'attend au format exportLeagueData
   if (!jsonData.players || !jsonData.sessions) {
