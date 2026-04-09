@@ -330,9 +330,9 @@ export async function smartImportIntoLeague(
 
           if (existing) {
             playerIdMap[p.id] = existing.id;
-            if (options.players) playersSkipped++;
-          } else if (options.players) {
-            // Création uniquement si l'option est activée
+            playersSkipped++;
+          } else if (options.players || options.sessions) {
+            // Création activée explicitement ou implicitement via les sessions
             const player = await tx.player.create({
               data: {
                 firstName: p.firstName,
