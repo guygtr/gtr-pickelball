@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { updateLeague } from "@/actions/league";
 import { useRouter } from "next/navigation";
-import { Save, CheckCircle2 } from "lucide-react";
+import { Save, CheckCircle2, Trash2 } from "lucide-react";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
+import toast from "react-hot-toast";
+import { deleteLeague } from "@/actions/league";
 
 interface SettingsFormProps {
   league: {
@@ -20,10 +22,11 @@ interface SettingsFormProps {
     defaultDuration?: number;
     defaultLocation?: string;
   };
+  isOwner: boolean;
   children?: React.ReactNode;
 }
 
-export function SettingsForm({ league, settings, children }: SettingsFormProps) {
+export function SettingsForm({ league, settings, isOwner, children }: SettingsFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -40,6 +43,32 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
     } catch (error) {
       console.error("Erreur lors de la sauvegarde :", error);
       alert("Une erreur est survenue lors de la sauvegarde.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmMsg = isOwner 
+      ? `ATTENTION : Êtes-vous certain de vouloir SUPPRIMER DÉFINITIVEMENT la ligue "${league.name}" ? Toutes les données (joueurs, matchs, historiques) seront perdues.`
+      : `Voulez-vous vraiment quitter la co-gestion de la ligue "${league.name}" ?`;
+    
+    if (!confirm(confirmMsg)) return;
+
+    setIsSaving(true);
+    try {
+      const res = await deleteLeague(league.id);
+      
+      if (res.success) {
+        toast.success(isOwner ? "Ligue supprimée de la flotte." : "La ligue a été retirée de votre accès.");
+        router.push("/leagues");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Une erreur est survenue.");
+      }
+    } catch (error) {
+      console.error("Erreur deletLeague:", error);
+      toast.error("Erreur critique lors de la suppression.");
     } finally {
       setIsSaving(false);
     }
@@ -164,6 +193,34 @@ export function SettingsForm({ league, settings, children }: SettingsFormProps) 
       </form>
 
       {children}
+
+      {/* Zone de Danger */}
+      <div className="mt-20 pt-8 border-t border-pickle-pink/20">
+        <h4 className="text-pickle-pink font-black text-xs tracking-[0.3em] uppercase mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 bg-pickle-pink rounded-full animate-pulse" />
+            Zone de Danger
+        </h4>
+        <div className="bg-pickle-pink/5 border border-pickle-pink/10 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h5 className="text-white font-bold text-lg mb-1">
+                    {isOwner ? "Supprimer définitivement la ligue" : "Quitter la co-gestion"}
+                </h5>
+                <p className="text-slate-500 text-sm font-medium max-w-md">
+                    {isOwner 
+                        ? "Cette action est irréversible. Toutes les données, joueurs et historiques seront effacés de la flotte GTR." 
+                        : "Vous n'aurez plus accès à l'administration de cette ligue. Le propriétaire pourra vous ré-inviter si nécessaire."}
+                </p>
+            </div>
+            <button
+                onClick={handleDelete}
+                disabled={isSaving}
+                className="w-full md:w-auto px-8 py-4 bg-pickle-pink/10 hover:bg-pickle-pink/20 border border-pickle-pink/30 text-pickle-pink text-xs font-black tracking-widest rounded-xl transition-all uppercase whitespace-nowrap flex items-center justify-center gap-2"
+            >
+                <Trash2 className="w-4 h-4" />
+                {isOwner ? "Supprimer la ligue" : "Quitter la ligue"}
+            </button>
+        </div>
+      </div>
     </div>
   );
 }

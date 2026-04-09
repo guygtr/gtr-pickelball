@@ -95,3 +95,52 @@ export async function updateLeague(leagueId: string, formData: FormData) {
     return { success: false, error: "Erreur lors de la mise à jour" };
   }
 }
+
+/**
+ * Supprime une ligue ou retire l'accès selon le rôle.
+ */
+export async function deleteLeague(leagueId: string) {
+    try {
+        const user = await ensurePrismaManager();
+        
+        const league = await prisma.league.findUnique({
+            where: { id: leagueId },
+            select: { 
+                managerId: true,
+                coManagers: {
+                    where: { managerId: user.id },
+                    select: { id: true }
+                }
+            }
+        });
+
+        if (!league) throw new Error("Ligue non trouvée.");
+
+        const isOwner = league.managerId === user.id;
+        const isCoManager = league.coManagers.length > 0;
+
+        if (isOwner) {
+            // Suppression totale pour le propriétaire
+            await prisma.league.delete({
+                where: { id: leagueId }
+            });
+            revalidatePath("/leagues");
+            return { success: true, action: "DELETED" };
+        } else if (isCoManager) {
+            // Retrait du lien pour le co-gestionnaire
+            await prisma.coManager.deleteMany({
+                where: {
+                    leagueId: leagueId,
+                    managerId: user.id
+                }
+            });
+            revalidatePath("/leagues");
+            return { success: true, action: "LEFT" };
+        } else {
+            throw new Error("Action non autorisée.");
+        }
+    } catch (error: any) {
+        console.error("Erreur deleteLeague:", error);
+        return { success: false, error: error.message || "Une erreur est survenue lors de la suppression." };
+    }
+}

@@ -24,3 +24,18 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 
 - **Security Gate Certified** : Audit complet (`/security-audit`) et durcissement des actions serveur (Scoping SQL & Strong Auth Verification).
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️
+
+## 📅 2026-04-08 — Evolution v3.3.5 (Co-Gestion & Security) 🏟️🤝🛸⚓🚀
+ 
+### 🤝 Collaboration & Partage
+- **Système de Co-Gestion** : Implémentation d'une table `CoManager` permettant le partage de ligues entre gestionnaires.
+- **Accès Sécurisé** : Mise à jour des gardes de sécurité pour validation multi-gestionnaires.
+- **Badges UI** : Distinguer visuellement les ligues possédées (**PROPRIÉTAIRE**) des ligues partagées (**CO-GESTION**) sur le Dashboard.
+- **Interface de Partage** : Section dédiée dans les réglages pour inviter/retirer des co-gestionnaires par email.
+
+### 🚀 Release Master v3.3.5 [STABLE]
+- **Audit GTR 2026** : Validation complète du build de production et synchronisation globale des secrets via `GTR-Sync`.
+- **Déploiement** : Fusion atomique sur `master` et mise en ligne sur Vercel.
+- **Notification** : Alerte de flotte envoyée avec succès sur Discord.
+
+**Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️🤝

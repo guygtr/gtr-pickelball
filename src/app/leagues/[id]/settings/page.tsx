@@ -44,7 +44,7 @@ export default async function LeagueSettingsPage({ params }: { params: { id: str
         <p className="text-slate-500 font-medium">Configurez votre ligue et gérez votre équipe.</p>
       </div>
 
-      <SettingsForm league={league} settings={settings}>
+      <SettingsForm league={league} settings={settings} isOwner={isOwner}>
         <div className="space-y-12 mt-8">
           {/* Section Co-Gestion */}
           <CoManagementSection 
