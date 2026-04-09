@@ -175,7 +175,7 @@ export function EditPlayerModal({
               Annuler
             </button>
             <NeonButton 
-              className="flex-1 text-pickle-dark" 
+              className="flex-1" 
               variant="blue"
               type="submit"
             >
