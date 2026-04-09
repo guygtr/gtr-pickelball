@@ -25,7 +25,7 @@ export function getSessionStatus(session: SessionWithMeta) {
   if (totalMatches === 0) {
     return {
       label: "À venir",
-      color: "bg-pickle-green/10 text-pickle-green",
+      color: "bg-pickle-primary/10 text-pickle-primary",
     };
   }
 
@@ -47,13 +47,13 @@ export function getSessionStatus(session: SessionWithMeta) {
   if (finishedMatches > 0) {
     return {
       label: "En cours",
-      color: "bg-pickle-blue/10 text-pickle-blue font-bold shadow-[0_0_15px_rgba(59,130,246,0.1)]",
+      color: "bg-pickle-secondary/10 text-pickle-secondary font-bold shadow-[0_0_15px_rgba(59,130,246,0.1)]",
     };
   }
 
   // 3. À venir : Par défaut (aucun match terminé)
   return {
     label: "À venir",
-    color: "bg-pickle-green/10 text-pickle-green",
+    color: "bg-pickle-primary/10 text-pickle-primary",
   };
 }

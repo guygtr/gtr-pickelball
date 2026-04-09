@@ -46,7 +46,7 @@ export function SessionsViewToggle({
             onClick={() => setView("grid")}
             className={`p-2 rounded-lg transition-all ${
               view === "grid" 
-                ? "bg-pickle-blue text-pickle-dark shadow-lg shadow-pickle-blue/20" 
+                ? "bg-pickle-secondary text-pickle-dark shadow-lg shadow-pickle-secondary/20" 
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -56,7 +56,7 @@ export function SessionsViewToggle({
             onClick={() => setView("list")}
             className={`p-2 rounded-lg transition-all ${
               view === "list" 
-                ? "bg-pickle-blue text-pickle-dark shadow-lg shadow-pickle-blue/20" 
+                ? "bg-pickle-secondary text-pickle-dark shadow-lg shadow-pickle-secondary/20" 
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -71,9 +71,9 @@ export function SessionsViewToggle({
             const status = getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta);
             return (
               <Link key={session.id} href={`/leagues/${leagueId}/sessions/${session.id}`}>
-                <GlassCard className="p-6 hover:border-pickle-blue/50 transition-all duration-300 group">
+                <GlassCard className="p-6 hover:border-pickle-secondary/50 transition-all duration-300 group">
                   <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 rounded-xl bg-pickle-blue/10 border border-pickle-blue/20 text-pickle-blue group-hover:bg-pickle-blue group-hover:text-pickle-dark transition-colors duration-300">
+                    <div className="p-3 rounded-xl bg-pickle-secondary/10 border border-pickle-secondary/20 text-pickle-secondary group-hover:bg-pickle-secondary group-hover:text-pickle-dark transition-colors duration-300">
                       <Calendar className="w-6 h-6" />
                     </div>
                     <div className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${status.color}`}>
@@ -84,7 +84,7 @@ export function SessionsViewToggle({
                   <h3 className="text-lg font-bold text-white capitalize">
                     {format(new Date(session.date), "EEEE d MMMM", { locale: fr })}
                   </h3>
-                  <p className="text-pickle-blue text-sm font-medium mt-1">
+                  <p className="text-pickle-secondary text-sm font-medium mt-1">
                     {format(new Date(session.date), "HH'h'mm")}
                   </p>
 
@@ -131,7 +131,7 @@ export function SessionsViewToggle({
                     <tr key={session.id} className="group hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-pickle-blue/10 border border-pickle-blue/20 flex flex-col items-center justify-center text-pickle-blue">
+                          <div className="w-10 h-10 rounded-lg bg-pickle-secondary/10 border border-pickle-secondary/20 flex flex-col items-center justify-center text-pickle-secondary">
                             <span className="text-[10px] font-bold uppercase leading-none">
                               {format(new Date(session.date), "MMM", { locale: fr })}
                             </span>
@@ -143,7 +143,7 @@ export function SessionsViewToggle({
                             <div className="text-white font-medium capitalize">
                               {format(new Date(session.date), "EEEE", { locale: fr })}
                             </div>
-                            <div className="text-pickle-blue text-xs">
+                            <div className="text-pickle-secondary text-xs">
                               {format(new Date(session.date), "HH:mm")}
                             </div>
                           </div>

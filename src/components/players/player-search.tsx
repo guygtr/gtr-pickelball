@@ -30,7 +30,7 @@ export function PlayerSearch() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Rechercher un joueur..." 
-        className="w-full bg-slate-900/50 border border-white/10 rounded-lg py-2 pl-10 pr-10 text-white text-sm focus:ring-2 focus:ring-pickle-green/50 outline-none transition-all"
+        className="w-full bg-slate-900/50 border border-white/10 rounded-lg py-2 pl-10 pr-10 text-white text-sm focus:ring-2 focus:ring-pickle-primary/50 outline-none transition-all"
       />
       {value && (
         <button 

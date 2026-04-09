@@ -51,26 +51,26 @@ export function Leaderboard({ rankings }: LeaderboardProps) {
             <div className="relative mb-6">
               {/* Crown Icon Above */}
               <div className="absolute -top-8 left-1/2 -translate-x-1/2 animate-bounce">
-                <Trophy className="w-8 h-8 text-pickle-orange fill-pickle-orange/20 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
+                <Trophy className="w-8 h-8 text-pickle-muted fill-pickle-muted/20 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
               </div>
               
-              <div className="w-28 h-28 rounded-full bg-pickle-orange/20 border-2 border-pickle-orange/50 flex items-center justify-center p-1.5 overflow-hidden ring-8 ring-pickle-orange/10 shadow-[0_0_50px_rgba(249,115,22,0.2)]">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-pickle-orange to-yellow-500 flex items-center justify-center text-white font-black text-3xl">
+              <div className="w-28 h-28 rounded-full bg-pickle-muted/20 border-2 border-pickle-muted/50 flex items-center justify-center p-1.5 overflow-hidden ring-8 ring-pickle-muted/10 shadow-[0_0_50px_rgba(249,115,22,0.2)]">
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-pickle-muted to-yellow-500 flex items-center justify-center text-white font-black text-3xl">
                   {top3[0].firstName[0]}{top3[0].lastName[0]}
                 </div>
               </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-pickle-orange border-2 border-slate-900 flex items-center justify-center shadow-xl">
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-pickle-muted border-2 border-slate-900 flex items-center justify-center shadow-xl">
                 <Star className="w-5 h-5 text-white fill-white" />
               </div>
             </div>
             <div className="text-center mb-4">
               <h4 className="text-lg font-black text-white uppercase tracking-tighter glow-text-white">{top3[0].name}</h4>
-              <p className="text-xs font-black text-pickle-orange tracking-widest uppercase">{top3[0].winRate.toFixed(0)}% WIN RATE</p>
+              <p className="text-xs font-black text-pickle-muted tracking-widest uppercase">{top3[0].winRate.toFixed(0)}% WIN RATE</p>
             </div>
-            <div className="w-full h-24 bg-pickle-orange/10 border-t border-x border-pickle-orange/20 rounded-t-3xl flex flex-col items-center justify-center relative overflow-hidden group">
-               <div className="absolute inset-0 bg-gradient-to-t from-pickle-orange/20 to-transparent opacity-50" />
-               <span className="text-4xl font-black text-pickle-orange/40 italic relative z-10">1</span>
-               <span className="text-[10px] font-black text-pickle-orange/60 uppercase tracking-widest relative z-10">{top3[0].wins} VICTOIRES</span>
+            <div className="w-full h-24 bg-pickle-muted/10 border-t border-x border-pickle-muted/20 rounded-t-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+               <div className="absolute inset-0 bg-gradient-to-t from-pickle-muted/20 to-transparent opacity-50" />
+               <span className="text-4xl font-black text-pickle-muted/40 italic relative z-10">1</span>
+               <span className="text-[10px] font-black text-pickle-muted/60 uppercase tracking-widest relative z-10">{top3[0].wins} VICTOIRES</span>
             </div>
           </div>
         )}
@@ -125,7 +125,7 @@ export function Leaderboard({ rankings }: LeaderboardProps) {
                 </div>
                 <div className="flex items-center gap-4 text-xs font-mono">
                    <span className="text-slate-500">{rank.matchesPlayed}</span>
-                   <span className="w-10 text-center font-bold text-pickle-green">{rank.wins}</span>
+                   <span className="w-10 text-center font-bold text-pickle-primary">{rank.wins}</span>
                    <span className="w-10 text-right font-black text-white">{rank.winRate.toFixed(0)}%</span>
                 </div>
               </div>

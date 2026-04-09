@@ -35,7 +35,7 @@ export default async function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body
-        className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-green selection:text-pickle-dark`}
+        className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-primary selection:text-pickle-dark`}
       >
         <Toaster position="bottom-right" toastOptions={{
           style: {

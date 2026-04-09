@@ -24,8 +24,8 @@ export default async function LeaguesPage() {
         return (
             <main className="min-h-screen pt-24 px-4 flex items-center justify-center">
                 <GlassCard className="p-12 text-center max-w-md animate-fade-in-up">
-                    <div className="w-16 h-16 bg-pickle-pink/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Lock className="w-8 h-8 text-pickle-pink" />
+                    <div className="w-16 h-16 bg-pickle-tertiary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Lock className="w-8 h-8 text-pickle-tertiary" />
                     </div>
                     <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">Accès Restreint</h2>
                     <p className="text-slate-500 mb-8 font-medium">Veuillez vous connecter pour administrer vos ligues et accéder au dashboard.</p>
@@ -99,7 +99,7 @@ export default async function LeaguesPage() {
                   <GlassCard className="p-8 h-full flex flex-col hover:border-accent/40 transition-all duration-500 hover:shadow-2xl hover:shadow-accent/5 relative overflow-hidden">
                     {/* Badge de Statut */}
                     <div className={`absolute top-0 right-0 px-4 py-1 text-[9px] font-black tracking-[0.2em] uppercase rounded-bl-xl border-l border-b ${
-                        isOwner ? "bg-pickle-green/10 text-pickle-green border-pickle-green/20" : "bg-pickle-blue/10 text-pickle-blue border-pickle-blue/20"
+                        isOwner ? "bg-pickle-primary/10 text-pickle-primary border-pickle-primary/20" : "bg-pickle-secondary/10 text-pickle-secondary border-pickle-secondary/20"
                     }`}>
                         {isOwner ? "PROPRIÉTAIRE" : "CO-GESTION"}
                     </div>

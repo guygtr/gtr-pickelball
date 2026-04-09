@@ -12,7 +12,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="text-center space-y-12 max-w-4xl relative animate-fade-in-up">
         {/* Glow background decoration */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pickle-blue/10 blur-[120px] rounded-full -z-10" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pickle-secondary/10 blur-[120px] rounded-full -z-10" />
         <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[100px] rounded-full -z-10" />
         
         <div className="space-y-6">
@@ -59,19 +59,19 @@ export default function Home() {
         <FeatureCard 
           title="Expérience Mobile" 
           description="Utilisez l'app directement sur le terrain, fluide et instantanée."
-          icon={<Smartphone className="w-6 h-6 text-pickle-blue" />}
+          icon={<Smartphone className="w-6 h-6 text-pickle-secondary" />}
         />
         <FeatureCard 
           title="Stats en Temps Réel" 
           description="Suivez vos performances et grimpez dans le classement global."
-          icon={<BarChart3 className="w-6 h-6 text-pickle-pink" />}
+          icon={<BarChart3 className="w-6 h-6 text-pickle-tertiary" />}
         />
       </div>
 
       {/* Stats Summary - WOW Factor */}
       <div className="mt-32 max-w-6xl w-full px-4 animate-fade-in-up [animation-delay:400ms]">
         <GlassCard className="p-12 md:p-20 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-pickle-blue/5 blur-[100px] rounded-full -z-10 group-hover:bg-pickle-blue/10 transition-all duration-700" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-pickle-secondary/5 blur-[100px] rounded-full -z-10 group-hover:bg-pickle-secondary/10 transition-all duration-700" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-center">
             <StatItem value="1,240" label="MATCHS GÉNÉRÉS" />
             <StatItem value="48" label="LIGUES ACTIVES" />

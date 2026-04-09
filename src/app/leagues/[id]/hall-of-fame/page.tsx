@@ -41,12 +41,12 @@ export default async function HallOfFamePage({
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-pickle-orange/10 border border-pickle-orange/20">
-          <Trophy className="w-8 h-8 text-pickle-orange" />
+        <div className="p-3 rounded-2xl bg-pickle-muted/10 border border-pickle-muted/20">
+          <Trophy className="w-8 h-8 text-pickle-muted" />
         </div>
         <div>
           <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-            Hall of <span className="text-pickle-orange">Fame</span>
+            Hall of <span className="text-pickle-muted">Fame</span>
           </h2>
           <p className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase mt-1">Élite de la ligue — Classement Officiel</p>
         </div>

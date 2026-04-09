@@ -81,14 +81,14 @@ export function ChangePasswordForm() {
             Nouveau Mot de Passe
           </label>
           <div className="relative group">
-            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-pickle-blue transition-colors" />
+            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-pickle-secondary transition-colors" />
             <input
               type="password"
               required
               value={formData.newPassword}
               onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
               placeholder="••••••••"
-              className="w-full bg-slate-900/60 border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/20 focus:border-pickle-blue/30 outline-none transition-all placeholder:text-slate-700"
+              className="w-full bg-slate-900/60 border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-white focus:ring-2 focus:ring-pickle-secondary/20 focus:border-pickle-secondary/30 outline-none transition-all placeholder:text-slate-700"
             />
           </div>
         </div>
@@ -101,7 +101,7 @@ export function ChangePasswordForm() {
           <div className="relative group">
             <CheckCircle2 className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
               formData.newPassword && formData.newPassword === formData.confirmPassword 
-                ? 'text-pickle-green' 
+                ? 'text-pickle-primary' 
                 : 'text-slate-500'
             }`} />
             <input
@@ -113,7 +113,7 @@ export function ChangePasswordForm() {
               className={`w-full bg-slate-900/60 border rounded-2xl py-3.5 pl-12 pr-4 text-white focus:ring-2 outline-none transition-all placeholder:text-slate-700 ${
                 formData.confirmPassword && formData.newPassword !== formData.confirmPassword
                   ? 'border-red-500/50 focus:ring-red-500/20'
-                  : 'border-white/5 focus:ring-pickle-green/20 focus:border-pickle-green/30'
+                  : 'border-white/5 focus:ring-pickle-primary/20 focus:border-pickle-primary/30'
               }`}
             />
           </div>

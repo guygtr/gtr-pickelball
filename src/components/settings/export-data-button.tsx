@@ -40,15 +40,15 @@ export const ExportDataButton = () => {
       className="glass glass-hover w-full flex items-center justify-between p-4 rounded-2xl transition-all group active:scale-[0.98] disabled:opacity-50"
     >
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-pickle-green/10 text-pickle-green group-hover:bg-pickle-green group-hover:text-white transition-colors shadow-lg shadow-pickle-green/20">
+        <div className="p-3 rounded-xl bg-pickle-primary/10 text-pickle-primary group-hover:bg-pickle-primary group-hover:text-white transition-colors shadow-lg shadow-pickle-primary/20">
           {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
         </div>
         <div className="text-left">
-          <p className="font-bold text-white group-hover:text-pickle-green transition-colors">Exporter l&apos;intégralité de mes ligues</p>
+          <p className="font-bold text-white group-hover:text-pickle-primary transition-colors">Exporter l&apos;intégralité de mes ligues</p>
           <p className="text-xs text-slate-400">Téléchargez toutes vos informations au format JSON</p>
         </div>
       </div>
-      <div className="text-xs font-bold text-pickle-green opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="text-xs font-bold text-pickle-primary opacity-0 group-hover:opacity-100 transition-opacity">
         PRÊT
       </div>
     </button>

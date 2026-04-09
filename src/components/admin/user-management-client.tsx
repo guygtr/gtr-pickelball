@@ -86,11 +86,11 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Add Manager Section (Standard Premium Bar-Manager) */}
       <section className="glass p-8 rounded-[2rem] border border-white/10 relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pickle-blue via-pickle-green to-transparent opacity-50" />
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pickle-secondary via-pickle-primary to-transparent opacity-50" />
         
         <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-pickle-blue/10 flex items-center justify-center text-pickle-blue">
+                <div className="w-12 h-12 rounded-2xl bg-pickle-secondary/10 flex items-center justify-center text-pickle-secondary">
                     <UserPlus size={24} />
                 </div>
                 <div>
@@ -116,7 +116,7 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="adresse@gtr-pickleball.com"
                   required
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-blue/50 transition-all placeholder:text-slate-700"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-secondary/50 transition-all placeholder:text-slate-700"
                 />
               </div>
             </div>
@@ -131,12 +131,12 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="••••••••••••"
                   required
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-12 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-blue/50 transition-all placeholder:text-slate-700 font-mono text-sm"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-12 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-secondary/50 transition-all placeholder:text-slate-700 font-mono text-sm"
                 />
                 <button 
                   type="button"
                   onClick={generatePassword}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-pickle-blue/60 hover:text-pickle-blue transition-all"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-pickle-secondary/60 hover:text-pickle-secondary transition-all"
                   title="Générer un mot de passe"
                 >
                   <Database size={18} />
@@ -153,7 +153,7 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Nom du gestionnaire"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-blue/50 transition-all placeholder:text-slate-700"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-secondary/50 transition-all placeholder:text-slate-700"
                 />
               </div>
             </div>
@@ -162,14 +162,14 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-pickle-blue to-pickle-green text-black font-extrabold px-8 py-4 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-tighter shadow-xl shadow-pickle-blue/10"
+            className="w-full bg-gradient-to-r from-pickle-secondary to-pickle-primary text-black font-extrabold px-8 py-4 rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-tighter shadow-xl shadow-pickle-secondary/10"
           >
             {loading ? <Loader2 size={20} className="animate-spin" /> : <ShieldCheck size={20} />}
             Activer le compte Gestionnaire
           </button>
         </form>
         
-        <div className="mt-6 flex items-start gap-3 text-pickle-green/60 p-4 bg-pickle-green/5 rounded-2xl border border-pickle-green/10">
+        <div className="mt-6 flex items-start gap-3 text-pickle-primary/60 p-4 bg-pickle-primary/5 rounded-2xl border border-pickle-primary/10">
           <AlertCircle size={18} className="mt-0.5 shrink-0" />
           <p className="text-[10px] uppercase tracking-wider font-bold leading-relaxed">
             IMPORTANT : Le gestionnaire peut se connecter immédiatement. Transmettez-lui le mot de passe manuellement.
@@ -186,7 +186,7 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
           placeholder="Rechercher un gestionnaire..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:border-pickle-blue transition-all"
+          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 focus:outline-none focus:border-pickle-secondary transition-all"
         />
       </div>
 
@@ -216,8 +216,8 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                 <div className="flex items-center justify-between">
                     <div className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest ${
                         m.role === 'admin' 
-                        ? 'bg-pickle-orange/10 border-pickle-orange/30 text-pickle-orange' 
-                        : 'bg-pickle-blue/10 border-pickle-blue/30 text-pickle-blue'
+                        ? 'bg-pickle-muted/10 border-pickle-muted/30 text-pickle-muted' 
+                        : 'bg-pickle-secondary/10 border-pickle-secondary/30 text-pickle-secondary'
                     }`}>
                         <Shield className="w-2.5 h-2.5" />
                         {m.role}

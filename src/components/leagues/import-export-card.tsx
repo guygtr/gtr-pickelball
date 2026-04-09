@@ -109,7 +109,7 @@ export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, l
                     <button
                         onClick={handleExport}
                         disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all font-bold text-pickle-green"
+                        className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all font-bold text-pickle-primary"
                     >
                         {loading && !importMode ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         Exporter
@@ -135,7 +135,7 @@ export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, l
                             disabled={loading}
                             className="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                         >
-                            {loading && importMode === 'PLAYERS' ? <Loader2 className="w-6 h-6 animate-spin text-pickle-blue" /> : <Users className="w-6 h-6 text-pickle-blue" />}
+                            {loading && importMode === 'PLAYERS' ? <Loader2 className="w-6 h-6 animate-spin text-pickle-secondary" /> : <Users className="w-6 h-6 text-pickle-secondary" />}
                             <div className="text-center">
                                 <div className="font-bold text-sm text-white">Joueurs Seuls</div>
                                 <div className="text-[10px] text-slate-500 uppercase mt-1">Fusion Sans Doublon</div>

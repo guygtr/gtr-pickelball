@@ -6,10 +6,10 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   
-  --color-pickle-green: #dcfc44;
-  --color-pickle-orange: #fb923c;
-  --color-pickle-pink: #f43f5e;
-  --color-pickle-blue: #22d3ee;
+  --color-pickle-primary: #f93604;
+  --color-pickle-muted: #962002;
+  --color-pickle-tertiary: #88c8f9;
+  --color-pickle-secondary: #0444cb;
   --color-pickle-dark: #1a1c1e;
   
   --radius-xl: 1rem;
@@ -19,14 +19,14 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --accent: #dcfc44;
+  --accent: #f93604;
   --accent-foreground: #1a1c1e;
 }
 
 .dark {
   --background: #0a0a0c;
   --foreground: #f8fafc;
-  --accent: #dcfc44;
+  --accent: #f93604;
   --accent-foreground: #1a1c1e;
 }
 
@@ -54,12 +54,12 @@ body {
 
 .glass-hover:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(220, 252, 68, 0.2);
+  border-color: rgba(249, 54, 4, 0.2);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .text-gradient {
-  background: linear-gradient(to right, var(--accent), #a3e635);
+  background: linear-gradient(to right, var(--accent), #fb923c);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

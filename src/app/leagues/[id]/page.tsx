@@ -72,10 +72,10 @@ export default async function LeagueDashboard({
     : "0.0";
 
   const stats = [
-    { label: "JOUEURS", value: league._count.players, icon: Users, color: "text-pickle-blue", glow: "glow-blue" },
-    { label: "SESSIONS", value: league._count.sessions, icon: Calendar, color: "text-pickle-green", glow: "glow-accent" },
-    { label: "MATCHS JOUÉS", value: matchCount, icon: Trophy, color: "text-pickle-orange", glow: "" },
-    { label: "NIVEAU MOYEN", value: avgLevel, icon: TrendingUp, color: "text-pickle-pink", glow: "" },
+    { label: "JOUEURS", value: league._count.players, icon: Users, color: "text-pickle-secondary", glow: "glow-blue" },
+    { label: "SESSIONS", value: league._count.sessions, icon: Calendar, color: "text-pickle-primary", glow: "glow-accent" },
+    { label: "MATCHS JOUÉS", value: matchCount, icon: Trophy, color: "text-pickle-muted", glow: "" },
+    { label: "NIVEAU MOYEN", value: avgLevel, icon: TrendingUp, color: "text-pickle-tertiary", glow: "" },
   ];
 
   return (
@@ -89,7 +89,7 @@ export default async function LeagueDashboard({
               <stat.icon className={`w-6 h-6 ${stat.color} opacity-40 group-hover:opacity-100 transition-opacity`} />
             </div>
           </div>
-          <div className={`absolute -bottom-4 -right-4 w-12 h-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.color === 'text-pickle-blue' ? 'bg-pickle-blue' : stat.color === 'text-pickle-green' ? 'bg-pickle-green' : 'bg-white'}`} />
+          <div className={`absolute -bottom-4 -right-4 w-12 h-12 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${stat.color === 'text-pickle-secondary' ? 'bg-pickle-secondary' : stat.color === 'text-pickle-primary' ? 'bg-pickle-primary' : 'bg-white'}`} />
         </GlassCard>
       ))}
 
@@ -98,7 +98,7 @@ export default async function LeagueDashboard({
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-1">
             <h3 className="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
-              <Users className="w-6 h-6 text-pickle-green" />
+              <Users className="w-6 h-6 text-pickle-primary" />
               JOUEURS
             </h3>
             <p className="text-[10px] font-bold text-slate-500 tracking-[0.2em] uppercase">EFFECTIF DE LA LIGUE</p>

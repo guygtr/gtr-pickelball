@@ -66,10 +66,10 @@ export function ResultModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <GlassCard className="w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border-pickle-orange/30">
+      <GlassCard className="w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border-pickle-muted/30">
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-pickle-orange" />
+            <Trophy className="w-5 h-5 text-pickle-muted" />
             Résultat du Match
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
@@ -79,7 +79,7 @@ export function ResultModal({
 
         <div className="p-8 space-y-8">
           <div className="text-center space-y-2">
-            <p className="text-pickle-orange font-bold text-sm uppercase tracking-widest">Étape de Saisie</p>
+            <p className="text-pickle-muted font-bold text-sm uppercase tracking-widest">Étape de Saisie</p>
             <h4 className="text-white text-lg font-medium italic">&quot;Qui a remporté la victoire ?&quot;</h4>
             <p className="text-slate-500 text-xs">Sélectionnez l&apos;équipe gagnante pour enregistrer le résultat.</p>
           </div>
@@ -91,7 +91,7 @@ export function ResultModal({
               disabled={loading}
               className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
                 match.data.winner === 1 
-                  ? "bg-pickle-orange/20 border-pickle-orange shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
+                  ? "bg-pickle-muted/20 border-pickle-muted shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
                   : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
               }`}
             >
@@ -101,14 +101,14 @@ export function ResultModal({
                 ))}
               </div>
               <div className={`mt-2 py-1 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                match.data.winner === 1 ? "bg-pickle-orange text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
+                match.data.winner === 1 ? "bg-pickle-muted text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
               }`}>
                 {match.data.winner === 1 ? "Gagnant 👑" : "Équipe 1"}
               </div>
             </button>
 
             <div className="flex flex-col items-center justify-center px-4">
-                <div className="text-2xl font-black text-pickle-blue italic">VS</div>
+                <div className="text-2xl font-black text-pickle-secondary italic">VS</div>
             </div>
 
             {/* Team 2 */}
@@ -117,7 +117,7 @@ export function ResultModal({
               disabled={loading}
               className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
                 match.data.winner === 2 
-                  ? "bg-pickle-orange/20 border-pickle-orange shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
+                  ? "bg-pickle-muted/20 border-pickle-muted shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
                   : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
               }`}
             >
@@ -127,7 +127,7 @@ export function ResultModal({
                 ))}
               </div>
               <div className={`mt-2 py-1 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                match.data.winner === 2 ? "bg-pickle-orange text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
+                match.data.winner === 2 ? "bg-pickle-muted text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
               }`}>
                 {match.data.winner === 2 ? "Gagnant 👑" : "Équipe 2"}
               </div>

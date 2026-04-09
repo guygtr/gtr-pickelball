@@ -45,7 +45,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
           <div className="hidden md:flex items-center gap-8 font-medium">
             <Link href="/leagues" className="hover:text-accent transition-colors">Mes Ligues</Link>
             {isAdmin && (
-              <Link href="/admin" className="text-pickle-orange hover:text-pickle-orange/80 transition-colors flex items-center gap-2">
+              <Link href="/admin" className="text-pickle-muted hover:text-pickle-muted/80 transition-colors flex items-center gap-2">
                 <ShieldCheck size={18} />
                 Admin
               </Link>
@@ -136,7 +136,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
               <Link 
                 href="/admin" 
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-lg text-pickle-orange"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-lg text-pickle-muted"
               >
                 <ShieldCheck size={20} />
                 Administration

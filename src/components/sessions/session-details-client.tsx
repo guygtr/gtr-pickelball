@@ -161,7 +161,7 @@ export function SessionDetailsClient({
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-pickle-green" />
+              <Users className="w-5 h-5 text-pickle-primary" />
               Présences ({presentCount}/{leaguePlayers.length})
             </h3>
           </div>
@@ -184,21 +184,21 @@ export function SessionDetailsClient({
                     onClick={() => handleToggleAttendance(player.id, isPresent)}
                     className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
                       isPresent 
-                        ? 'bg-pickle-green/10 border-pickle-green/30 text-white' 
+                        ? 'bg-pickle-primary/10 border-pickle-primary/30 text-white' 
                         : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                     }`}
                   >
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold flex items-center gap-2">
                         {player.firstName} {player.lastName}
-                        <span className={`w-1.5 h-1.5 rounded-full ${player.type === 'permanent' ? 'bg-pickle-blue' : 'bg-pickle-orange'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${player.type === 'permanent' ? 'bg-pickle-secondary' : 'bg-pickle-muted'}`} />
                       </span>
                       <span className="text-[9px] opacity-60 uppercase tracking-widest leading-none mt-1">
                         LEVEL {player.skillLevel.toFixed(1)} • {player.type}
                       </span>
                     </div>
                     {isPresent ? (
-                      <CheckCircle2 className="w-5 h-5 text-pickle-green" />
+                      <CheckCircle2 className="w-5 h-5 text-pickle-primary" />
                     ) : (
                       <Circle className="w-5 h-5 opacity-10" />
                     )}
@@ -210,8 +210,8 @@ export function SessionDetailsClient({
                 <div className="space-y-6">
                   {permanents.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-pickle-blue uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
-                        <div className="w-1 h-3 bg-pickle-blue rounded-full" />
+                      <h4 className="text-[10px] font-black text-pickle-secondary uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
+                        <div className="w-1 h-3 bg-pickle-secondary rounded-full" />
                         Permanents
                       </h4>
                       <div className="space-y-1.5">
@@ -222,8 +222,8 @@ export function SessionDetailsClient({
                   
                   {replacements.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-pickle-orange uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
-                        <div className="w-1 h-3 bg-pickle-orange rounded-full" />
+                      <h4 className="text-[10px] font-black text-pickle-muted uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
+                        <div className="w-1 h-3 bg-pickle-muted rounded-full" />
                         Remplaçants
                       </h4>
                       <div className="space-y-1.5">
@@ -247,7 +247,7 @@ export function SessionDetailsClient({
                   onClick={() => setGenerationMode("RANDOM")}
                   className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
                     generationMode === "RANDOM" 
-                      ? "bg-pickle-blue/20 text-pickle-blue shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
+                      ? "bg-pickle-secondary/20 text-pickle-secondary shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
                       : "text-slate-600 hover:text-slate-400"
                   }`}
                 >
@@ -257,7 +257,7 @@ export function SessionDetailsClient({
                   onClick={() => setGenerationMode("COMPETITIVE")}
                   className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
                     generationMode === "COMPETITIVE" 
-                      ? "bg-pickle-orange/20 text-pickle-orange shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
+                      ? "bg-pickle-muted/20 text-pickle-muted shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
                       : "text-slate-600 hover:text-slate-400"
                   }`}
                 >
@@ -286,7 +286,7 @@ export function SessionDetailsClient({
       <div className="lg:col-span-2 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-2xl font-black text-white flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-pickle-orange" />
+            <Trophy className="w-6 h-6 text-pickle-muted" />
             {"VUE D'ENSEMBLE DES MATCHS"}
           </h3>
 
@@ -327,7 +327,7 @@ export function SessionDetailsClient({
                       <div className={`px-6 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md transition-all duration-500 ${
                         isRoundClosed 
                           ? 'bg-slate-900/40 border-white/5 text-slate-600' 
-                          : 'bg-pickle-green/10 border-pickle-green/30 text-pickle-green shadow-[0_0_20px_rgba(132,204,22,0.15)]'
+                          : 'bg-pickle-primary/10 border-pickle-primary/30 text-pickle-primary shadow-[0_0_20px_rgba(132,204,22,0.15)]'
                       }`}>
                         RONDE {roundIdx + 1}
                       </div>
@@ -336,7 +336,7 @@ export function SessionDetailsClient({
                         className={`p-2 rounded-full border transition-all duration-300 ${
                           isRoundClosed 
                             ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white' 
-                            : 'bg-white/5 border-white/10 text-slate-500 hover:border-pickle-blue/50 hover:text-pickle-blue'
+                            : 'bg-white/5 border-white/10 text-slate-500 hover:border-pickle-secondary/50 hover:text-pickle-secondary'
                         }`}
                         title={isRoundClosed ? "Réactiver la ronde" : "Verrouiller la ronde"}
                       >
@@ -356,14 +356,14 @@ export function SessionDetailsClient({
                           key={match.id} 
                           className={`group relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${
                             hasWinner 
-                              ? 'border-pickle-green/30 bg-pickle-green/[0.03] shadow-[0_0_40px_rgba(132,204,22,0.05)]' 
+                              ? 'border-pickle-primary/30 bg-pickle-primary/[0.03] shadow-[0_0_40px_rgba(132,204,22,0.05)]' 
                               : 'hover:border-white/20'
                           } ${isRoundClosed ? 'grayscale-[0.2] pointer-events-none' : ''}`}
                         >
                           {/* Header du Match */}
                           <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                             <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-green shadow-[0_0_8px_rgba(132,204,22,0.5)]'}`} />
+                              <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-primary shadow-[0_0_8px_rgba(132,204,22,0.5)]'}`} />
                               <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
                                 {match.court?.name || `TERRAIN ${idx + 1}`}
                               </span>
@@ -392,15 +392,15 @@ export function SessionDetailsClient({
                                   const p = leaguePlayers.find(lp => lp.id === pId);
                                   return (
                                     <div key={pId} className="flex items-center gap-3">
-                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-green shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
+                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-primary shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
                                       <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
                                     </div>
                                   )
                                 })}
                                 {match.data.winner === 1 && (
-                                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-pickle-green/20 border border-pickle-green/30 rounded-md mt-2">
-                                    <Trophy className="w-3 h-3 text-pickle-green" />
-                                    <span className="text-[8px] font-black text-pickle-green uppercase tracking-tighter">Vainqueur</span>
+                                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-pickle-primary/20 border border-pickle-primary/30 rounded-md mt-2">
+                                    <Trophy className="w-3 h-3 text-pickle-primary" />
+                                    <span className="text-[8px] font-black text-pickle-primary uppercase tracking-tighter">Vainqueur</span>
                                   </div>
                                 )}
                               </div>
@@ -411,7 +411,7 @@ export function SessionDetailsClient({
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border transition-all duration-700 ${
                                   hasWinner 
                                     ? 'bg-slate-900/80 border-white/5 text-slate-700' 
-                                    : 'bg-white/5 border-white/10 text-slate-500 group-hover:border-pickle-blue group-hover:text-pickle-blue group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                                    : 'bg-white/5 border-white/10 text-slate-500 group-hover:border-pickle-secondary group-hover:text-pickle-secondary group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]'
                                 }`}>
                                   VS
                                 </div>
@@ -425,14 +425,14 @@ export function SessionDetailsClient({
                                   return (
                                     <div key={pId} className="flex items-center justify-end gap-3">
                                       <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
-                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-green shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
+                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-primary shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
                                     </div>
                                   )
                                 })}
                                 {match.data.winner === 2 && (
-                                  <div className="inline-flex items-center justify-end gap-1.5 px-2 py-0.5 bg-pickle-green/20 border border-pickle-green/30 rounded-md mt-2 ml-auto">
-                                    <span className="text-[8px] font-black text-pickle-green uppercase tracking-tighter">Vainqueur</span>
-                                    <Trophy className="w-3 h-3 text-pickle-green" />
+                                  <div className="inline-flex items-center justify-end gap-1.5 px-2 py-0.5 bg-pickle-primary/20 border border-pickle-primary/30 rounded-md mt-2 ml-auto">
+                                    <span className="text-[8px] font-black text-pickle-primary uppercase tracking-tighter">Vainqueur</span>
+                                    <Trophy className="w-3 h-3 text-pickle-primary" />
                                   </div>
                                 )}
                               </div>
@@ -447,7 +447,7 @@ export function SessionDetailsClient({
                               isRoundClosed 
                                 ? 'bg-slate-900/20 text-slate-700' 
                                 : hasWinner
-                                  ? 'bg-pickle-green/5 text-pickle-green hover:bg-pickle-green hover:text-black'
+                                  ? 'bg-pickle-primary/5 text-pickle-primary hover:bg-pickle-primary hover:text-black'
                                   : 'bg-white/[0.02] text-slate-500 hover:bg-white/10 hover:text-white'
                             }`}
                           >

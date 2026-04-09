@@ -81,7 +81,7 @@ export function ImportCSVModal({
       <GlassCard className="w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-300">
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Upload className="w-5 h-5 text-pickle-orange" />
+            <Upload className="w-5 h-5 text-pickle-muted" />
             Importer des Joueurs (CSV)
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
@@ -91,7 +91,7 @@ export function ImportCSVModal({
 
         <div className="p-6 space-y-6">
           {!file ? (
-            <div className="border-2 border-dashed border-white/10 rounded-2xl p-12 text-center hover:border-pickle-orange/30 transition-colors cursor-pointer group relative">
+            <div className="border-2 border-dashed border-white/10 rounded-2xl p-12 text-center hover:border-pickle-muted/30 transition-colors cursor-pointer group relative">
               <input
                 type="file"
                 accept=".csv"
@@ -99,8 +99,8 @@ export function ImportCSVModal({
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full bg-pickle-orange/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <FileText className="w-8 h-8 text-pickle-orange" />
+                <div className="w-16 h-16 rounded-full bg-pickle-muted/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <FileText className="w-8 h-8 text-pickle-muted" />
                 </div>
                 <p className="text-white font-medium">Cliquez ou glissez un fichier CSV</p>
                 <p className="text-slate-500 text-sm mt-1">Colonnes suggérées: Nom, Prénom, Email, Niveau</p>
@@ -110,7 +110,7 @@ export function ImportCSVModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/10">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-pickle-green" />
+                  <CheckCircle2 className="w-5 h-5 text-pickle-primary" />
                   <span className="text-white text-sm font-medium">{file.name}</span>
                 </div>
                 <button onClick={() => setFile(null)} className="text-rose-500 text-xs font-bold uppercase hover:underline">

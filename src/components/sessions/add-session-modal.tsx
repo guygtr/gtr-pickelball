@@ -103,7 +103,7 @@ export function AddSessionModal({
       <GlassCard className="w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-pickle-blue" />
+            <CalendarIcon className="w-5 h-5 text-pickle-secondary" />
             Planifier une Session
           </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
@@ -123,7 +123,7 @@ export function AddSessionModal({
                     required
                     value={datePart}
                     onChange={(e) => setDatePart(e.target.value)}
-                    className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all text-sm"
+                    className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-9 pr-2 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all text-sm"
                   />
                 </div>
               </div>
@@ -134,7 +134,7 @@ export function AddSessionModal({
                   <select
                     value={hourPart}
                     onChange={(e) => setHourPart(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
                   >
                     {hourOptions.map(h => <option key={h} value={h}>{h}</option>)}
                   </select>
@@ -142,7 +142,7 @@ export function AddSessionModal({
                   <select
                     value={minutePart}
                     onChange={(e) => setMinutePart(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
+                    className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2 px-2 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all appearance-none cursor-pointer text-center text-sm"
                   >
                     {minuteOptions.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -157,7 +157,7 @@ export function AddSessionModal({
                 <select
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all appearance-none cursor-pointer text-sm"
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all appearance-none cursor-pointer text-sm"
                 >
                   {durationOptions.map((opt) => (
                     <option key={opt.value} value={opt.value} className="bg-slate-900">
@@ -177,7 +177,7 @@ export function AddSessionModal({
                   placeholder="Ex: Centre Sportif GTR"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-blue/50 outline-none transition-all text-sm"
+                  className="w-full bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all text-sm"
                 />
               </div>
             </div>

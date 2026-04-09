@@ -195,12 +195,12 @@ export function SettingsForm({ league, settings, isOwner, children }: SettingsFo
       {children}
 
       {/* Zone de Danger */}
-      <div className="mt-20 pt-8 border-t border-pickle-pink/20">
-        <h4 className="text-pickle-pink font-black text-xs tracking-[0.3em] uppercase mb-6 flex items-center gap-2">
-            <span className="w-2 h-2 bg-pickle-pink rounded-full animate-pulse" />
+      <div className="mt-20 pt-8 border-t border-pickle-tertiary/20">
+        <h4 className="text-pickle-tertiary font-black text-xs tracking-[0.3em] uppercase mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 bg-pickle-tertiary rounded-full animate-pulse" />
             Zone de Danger
         </h4>
-        <div className="bg-pickle-pink/5 border border-pickle-pink/10 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-pickle-tertiary/5 border border-pickle-tertiary/10 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
                 <h5 className="text-white font-bold text-lg mb-1">
                     {isOwner ? "Supprimer définitivement la ligue" : "Quitter la co-gestion"}
@@ -214,7 +214,7 @@ export function SettingsForm({ league, settings, isOwner, children }: SettingsFo
             <button
                 onClick={handleDelete}
                 disabled={isSaving}
-                className="w-full md:w-auto px-8 py-4 bg-pickle-pink/10 hover:bg-pickle-pink/20 border border-pickle-pink/30 text-pickle-pink text-xs font-black tracking-widest rounded-xl transition-all uppercase whitespace-nowrap flex items-center justify-center gap-2"
+                className="w-full md:w-auto px-8 py-4 bg-pickle-tertiary/10 hover:bg-pickle-tertiary/20 border border-pickle-tertiary/30 text-pickle-tertiary text-xs font-black tracking-widest rounded-xl transition-all uppercase whitespace-nowrap flex items-center justify-center gap-2"
             >
                 <Trash2 className="w-4 h-4" />
                 {isOwner ? "Supprimer la ligue" : "Quitter la ligue"}

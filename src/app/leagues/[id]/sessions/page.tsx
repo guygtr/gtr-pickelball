@@ -32,7 +32,7 @@ export default async function SessionsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-pickle-blue" />
+          <Calendar className="w-6 h-6 text-pickle-secondary" />
           Sessions de Jeu
         </h2>
         <SessionListClient 

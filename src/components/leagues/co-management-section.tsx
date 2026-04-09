@@ -27,8 +27,8 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
 
     if (!isOwner) {
         return (
-            <GlassCard className="p-8 border-pickle-blue/20 bg-pickle-blue/5">
-                <div className="flex items-center gap-4 text-pickle-blue mb-4">
+            <GlassCard className="p-8 border-pickle-secondary/20 bg-pickle-secondary/5">
+                <div className="flex items-center gap-4 text-pickle-secondary mb-4">
                     <ShieldCheck className="w-6 h-6" />
                     <h3 className="text-xl font-black uppercase tracking-tighter">Accès Co-Gestion</h3>
                 </div>
@@ -69,8 +69,8 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
     return (
         <section className="space-y-8">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-pickle-blue/10 rounded-xl flex items-center justify-center border border-pickle-blue/20">
-                    <Users className="w-6 h-6 text-pickle-blue" />
+                <div className="w-12 h-12 bg-pickle-secondary/10 rounded-xl flex items-center justify-center border border-pickle-secondary/20">
+                    <Users className="w-6 h-6 text-pickle-secondary" />
                 </div>
                 <div>
                     <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Équipe de Co-Gestion</h2>
@@ -85,7 +85,7 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
                         <input
                             type="email"
                             placeholder="Email du gestionnaire à inviter..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-pickle-blue/50 transition-colors font-medium"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-pickle-secondary/50 transition-colors font-medium"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -111,7 +111,7 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
                             {coManagers.map((item) => (
                                 <div key={item.manager.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 group hover:border-white/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center font-bold text-pickle-blue">
+                                        <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center font-bold text-pickle-secondary">
                                             {item.manager.name?.[0] || item.manager.email[0].toUpperCase()}
                                         </div>
                                         <div>
@@ -121,7 +121,7 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
                                     </div>
                                     <button
                                         onClick={() => handleRemove(item.manager.id)}
-                                        className="p-2 text-slate-500 hover:text-pickle-pink hover:bg-pickle-pink/10 rounded-lg transition-all"
+                                        className="p-2 text-slate-500 hover:text-pickle-tertiary hover:bg-pickle-tertiary/10 rounded-lg transition-all"
                                         title="Retirer"
                                     >
                                         <UserMinus className="w-5 h-5" />

@@ -58,7 +58,7 @@ export default async function PlayersPage({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Users className="w-6 h-6 text-pickle-green" />
+            <Users className="w-6 h-6 text-pickle-primary" />
             Gestion des Joueurs
           </h2>
           <p className="text-slate-400 text-sm mt-1">
@@ -87,7 +87,7 @@ export default async function PlayersPage({
                 <th className="px-6 py-4">
                   <Link 
                     href={getSortLink("name")} 
-                    className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'name' ? 'text-pickle-green' : ''}`}
+                    className={`hover:text-pickle-primary transition-colors flex items-center gap-1 ${sort === 'name' ? 'text-pickle-primary' : ''}`}
                   >
                     Joueur {sort === 'name' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
@@ -95,7 +95,7 @@ export default async function PlayersPage({
                 <th className="px-6 py-4">
                   <Link 
                     href={getSortLink("type")} 
-                    className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'type' ? 'text-pickle-green' : ''}`}
+                    className={`hover:text-pickle-primary transition-colors flex items-center gap-1 ${sort === 'type' ? 'text-pickle-primary' : ''}`}
                   >
                     Type {sort === 'type' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
@@ -103,7 +103,7 @@ export default async function PlayersPage({
                 <th className="px-6 py-4">
                   <Link 
                     href={getSortLink("level")} 
-                    className={`hover:text-pickle-green transition-colors flex items-center gap-1 ${sort === 'level' ? 'text-pickle-green' : ''}`}
+                    className={`hover:text-pickle-primary transition-colors flex items-center gap-1 ${sort === 'level' ? 'text-pickle-primary' : ''}`}
                   >
                     Niveau {sort === 'level' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
@@ -117,7 +117,7 @@ export default async function PlayersPage({
                 <tr key={player.id} className="group hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pickle-green to-pickle-blue flex items-center justify-center text-pickle-dark text-[10px] font-black">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pickle-primary to-pickle-secondary flex items-center justify-center text-pickle-dark text-[10px] font-black">
                         {player.firstName[0]}{player.lastName[0]}
                       </div>
                       <span className="text-white font-bold">{player.firstName} {player.lastName}</span>
@@ -126,8 +126,8 @@ export default async function PlayersPage({
                   <td className="px-6 py-4">
                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
                       player.type === 'permanent' 
-                        ? 'bg-pickle-blue/10 border-pickle-blue/30 text-pickle-blue' 
-                        : 'bg-pickle-orange/10 border-pickle-orange/30 text-pickle-orange'
+                        ? 'bg-pickle-secondary/10 border-pickle-secondary/30 text-pickle-secondary' 
+                        : 'bg-pickle-muted/10 border-pickle-muted/30 text-pickle-muted'
                     }`}>
                       {player.type === 'permanent' ? 'Permanent' : 'Remplaçant'}
                     </span>

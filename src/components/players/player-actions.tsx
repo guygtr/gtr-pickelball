@@ -47,10 +47,10 @@ export function PlayerActions({ leagueId, player }: PlayerActionsProps) {
 
   return (
     <>
-      <div className="flex items-center justify-end gap-2 text-pickle-blue">
+      <div className="flex items-center justify-end gap-2 text-pickle-secondary">
         <button 
           onClick={() => setShowEditModal(true)}
-          className="p-2 text-slate-500 hover:text-pickle-blue hover:bg-pickle-blue/10 rounded-lg transition-all"
+          className="p-2 text-slate-500 hover:text-pickle-secondary hover:bg-pickle-secondary/10 rounded-lg transition-all"
           title="Modifier le joueur"
         >
           <Pencil className="w-4 h-4" />

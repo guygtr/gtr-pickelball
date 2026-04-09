@@ -73,15 +73,15 @@ export const ImportDataButton = () => {
         className="glass glass-hover w-full flex items-center justify-between p-4 rounded-2xl transition-all group active:scale-[0.98] disabled:opacity-50"
       >
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-pickle-orange/10 text-pickle-orange group-hover:bg-pickle-orange group-hover:text-white transition-colors shadow-lg shadow-pickle-orange/20">
+          <div className="p-3 rounded-xl bg-pickle-muted/10 text-pickle-muted group-hover:bg-pickle-muted group-hover:text-white transition-colors shadow-lg shadow-pickle-muted/20">
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
           </div>
           <div className="text-left">
-            <p className="font-bold text-white group-hover:text-pickle-orange transition-colors">Importer l&apos;intégralité de mes ligues</p>
+            <p className="font-bold text-white group-hover:text-pickle-muted transition-colors">Importer l&apos;intégralité de mes ligues</p>
             <p className="text-xs text-slate-400">Restaurer vos ligues depuis un fichier JSON</p>
           </div>
         </div>
-        <div className="text-xs font-bold text-pickle-orange opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+        <div className="text-xs font-bold text-pickle-muted opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
           <FileJson className="w-3 h-3" />
           CHOISIR
         </div>

@@ -43,7 +43,7 @@ export default async function SessionDetailsPage({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 text-pickle-blue font-bold mb-2">
+          <div className="flex items-center gap-2 text-pickle-secondary font-bold mb-2">
             <Calendar className="w-5 h-5" />
             <span>SESSION DU {format(session.date, "d MMMM yyyy", { locale: fr }).toUpperCase()}</span>
           </div>
