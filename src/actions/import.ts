@@ -178,172 +178,216 @@ export async function importUserData(jsonData: unknown) {
   return { success: true, count: importedCount };
 }
 
-/**
- * Importe des joueurs dans une ligue existante.
- * Utilisé par ImportExportCard.
- */
-export async function importLeaguePlayers(
-  leagueId: string, 
-  players: Array<{
-    firstName: string;
-    lastName: string;
-    email?: string | null;
-    phone?: string | null;
-    skillLevel?: number;
-    isActive?: boolean;
-  }>
-) {
-  await ensureLeagueManager(leagueId);
-  
-  let created = 0;
-  let updated = 0;
-
-  for (const player of players) {
-    // Recherche par email ou nom pour éviter les doublons
-    const existing = await prisma.player.findFirst({
-      where: {
-        leagueId,
-        firstName: player.firstName,
-        lastName: player.lastName,
-      }
-    });
-
-    if (existing) {
-      await prisma.player.update({
-        where: { id: existing.id },
-        data: {
-          email: player.email || existing.email,
-          phone: player.phone || existing.phone,
-          skillLevel: player.skillLevel !== undefined ? getNearestSkillLevel(player.skillLevel) : existing.skillLevel,
-          isActive: player.isActive ?? existing.isActive,
-        }
-      });
-      updated++;
-    } else {
-      await prisma.player.create({
-        data: {
-          firstName: player.firstName,
-          lastName: player.lastName,
-          email: player.email,
-          phone: player.phone,
-          skillLevel: player.skillLevel !== undefined ? getNearestSkillLevel(player.skillLevel) : 3.0,
-          isActive: player.isActive ?? true,
-          leagueId,
-        }
-      });
-      created++;
-    }
-  }
-
-  revalidatePath(`/leagues/${leagueId}`);
-  return { success: true, results: { created, updated } };
-}
 
 /**
- * Synchronise l'intégralité des données d'une ligue existante à partir d'un export.
- * Gère le remappage des IDs pour restaurer les relations complexes (sessions, matchs, présences).
+ * Restaure une ligue complète à partir d'un backup JSON.
+ * Gère la création d'une nouvelle ligue (Scénario 1).
  */
-export async function syncLeagueData(leagueId: string, jsonData: any) {
-  await ensureLeagueManager(leagueId);
+export async function restoreLeagueFromBackup(jsonData: any, importSessions: boolean = true) {
+  const user = await ensurePrismaManager();
   
-  // Validation sommaire de la structure - on s'attend au format exportLeagueData
-  if (!jsonData.players || !jsonData.sessions) {
-    return { success: false, error: "Format de données invalide pour une synchronisation de ligue." };
+  if (!jsonData.league || !jsonData.players) {
+    return { success: false, error: "Format de backup invalide." };
   }
 
   try {
     return await prisma.$transaction(async (tx) => {
-      // 1. Synchronisation des Joueurs
+      // 1. Création de la ligue
+      const newLeague = await tx.league.create({
+        data: {
+          name: `${jsonData.league.name} (Restauré)`,
+          description: jsonData.league.description,
+          settings: (jsonData.league.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
+          managerId: user.id,
+        },
+      });
+
       const playerIdMap: Record<string, string> = {};
+      const courtIdMap: Record<string, string> = {};
+
+      // 2. Joueurs
       for (const p of jsonData.players) {
-        const existing = await tx.player.findFirst({
-          where: {
-            leagueId,
+        const player = await tx.player.create({
+          data: {
             firstName: p.firstName,
             lastName: p.lastName,
-          }
+            email: p.email,
+            phone: p.phone,
+            skillLevel: p.level || p.skillLevel || 3.0,
+            isActive: p.isActive ?? true,
+            leagueId: newLeague.id,
+          },
         });
-
-        let targetPlayer;
-        if (existing) {
-          targetPlayer = await tx.player.update({
-            where: { id: existing.id },
-            data: {
-              email: p.email || existing.email,
-              phone: p.phone || existing.phone,
-              skillLevel: getNearestSkillLevel(p.level || p.skillLevel || existing.skillLevel),
-              isActive: p.isActive ?? existing.isActive,
-            }
-          });
-        } else {
-          targetPlayer = await tx.player.create({
-            data: {
-              firstName: p.firstName,
-              lastName: p.lastName,
-              email: p.email,
-              phone: p.phone,
-              skillLevel: getNearestSkillLevel(p.level || p.skillLevel || 3.0),
-              isActive: p.isActive ?? true,
-              leagueId,
-            }
-          });
-        }
-        playerIdMap[p.id] = targetPlayer.id;
+        playerIdMap[p.id] = player.id;
       }
 
-      // 2. Synchronisation des Terrains
-      const courtIdMap: Record<string, string> = {};
-      const actualCourts = await tx.court.findMany({ where: { leagueId } });
-      
+      // 3. Terrains
       if (jsonData.courts) {
         for (const c of jsonData.courts) {
-          const existing = actualCourts.find(ac => ac.name === c.name);
-          let targetCourt;
-          if (existing) {
-            targetCourt = await tx.court.update({
-              where: { id: existing.id },
-              data: {
-                note: c.note || existing.note,
-                playerCapacity: c.playerCapacity || c.capacity || existing.playerCapacity,
-              }
-            });
-          } else {
-            targetCourt = await tx.court.create({
-              data: {
-                name: c.name,
-                note: c.note,
-                playerCapacity: c.playerCapacity || c.capacity || 4,
-                leagueId,
-              }
-            });
-          }
-          courtIdMap[c.id] = targetCourt.id;
+          const court = await tx.court.create({
+            data: {
+              name: c.name,
+              note: c.note,
+              playerCapacity: c.playerCapacity || 4,
+              leagueId: newLeague.id,
+            },
+          });
+          courtIdMap[c.id] = court.id;
         }
       }
 
-      // 3. Synchronisation des Sessions
-      let sessionsRestored = 0;
-      let matchesRestored = 0;
+      // 4. Sessions (Optionnel)
+      if (importSessions && jsonData.sessions) {
+        for (const s of jsonData.sessions) {
+          const newSession = await tx.session.create({
+            data: {
+              date: new Date(s.date),
+              status: s.status,
+              location: s.location,
+              maxPlayers: s.maxPlayers,
+              duration: s.duration,
+              description: s.description,
+              settings: (s.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
+              leagueId: newLeague.id,
+            },
+          });
 
-      for (const s of jsonData.sessions) {
-        const sessionDate = new Date(s.date);
-        
-        // On cherche une session à la même date/heure (plus ou moins quelques secondes)
-        const existingSession = await tx.session.findFirst({
-          where: {
-            leagueId,
-            date: {
-              equals: sessionDate
+          // Présences
+          if (s.attendances) {
+             await tx.attendance.createMany({
+                data: s.attendances
+                    .filter((a: any) => playerIdMap[a.playerId])
+                    .map((a: any) => ({
+                        sessionId: newSession.id,
+                        playerId: playerIdMap[a.playerId],
+                        isPresent: a.isPresent,
+                    })),
+             });
+          }
+
+          // Matchs
+          if (s.matches) {
+            for (const m of s.matches) {
+              let updatedData = m.data;
+              if (updatedData && typeof updatedData === 'object') {
+                const data = { ...updatedData };
+                if (Array.isArray(data.team1)) data.team1 = data.team1.map((id: string) => playerIdMap[id] || id);
+                if (Array.isArray(data.team2)) data.team2 = data.team2.map((id: string) => playerIdMap[id] || id);
+                updatedData = data;
+              }
+              await tx.match.create({
+                data: {
+                  sessionId: newSession.id,
+                  courtId: courtIdMap[m.courtId] || (Object.values(courtIdMap)[0] || ""),
+                  startTime: m.startTime ? new Date(m.startTime) : null,
+                  duration: m.duration,
+                  data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
+                }
+              });
             }
           }
-        });
+        }
+      }
 
-        let targetSessionId: string;
-        if (existingSession) {
-          // Si la session existe, on ne la recrée pas pour éviter les doublons de matchs
-          // Mais on pourrait vouloir mettre à jour ses métadonnées
-          targetSessionId = existingSession.id;
-        } else {
+      revalidatePath("/leagues");
+      return { success: true, id: newLeague.id };
+    }, { timeout: 60000 });
+  } catch (error: any) {
+    console.error("Restore error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Version intelligente de syncLeagueData avec options et détection de doublons fine.
+ */
+export async function smartImportIntoLeague(
+    leagueId: string, 
+    jsonData: any, 
+    options: { players: boolean, sessions: boolean }
+) {
+  await ensureLeagueManager(leagueId);
+  
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const playerIdMap: Record<string, string> = {};
+      let playersCreated = 0;
+      let playersSkipped = 0;
+      let sessionsCreated = 0;
+      let sessionsSkipped = 0;
+
+      // 1. Joueurs : Toujours construire le mapping pour garantir l'intégrité des relations
+      if (jsonData.players) {
+        for (const p of jsonData.players) {
+          const existing = await tx.player.findFirst({
+            where: {
+              leagueId,
+              firstName: p.firstName,
+              lastName: p.lastName,
+              email: p.email || null,
+            }
+          });
+
+          if (existing) {
+            playerIdMap[p.id] = existing.id;
+            if (options.players) playersSkipped++;
+          } else if (options.players) {
+            // Création uniquement si l'option est activée
+            const player = await tx.player.create({
+              data: {
+                firstName: p.firstName,
+                lastName: p.lastName,
+                email: p.email,
+                phone: p.phone,
+                skillLevel: p.level || p.skillLevel || 3.0,
+                isActive: p.isActive ?? true,
+                leagueId,
+              },
+            });
+            playerIdMap[p.id] = player.id;
+            playersCreated++;
+          }
+        }
+      }
+
+      // 2. Terrains (essentiel pour les matchs si on importe les sessions)
+      const courtIdMap: Record<string, string> = {};
+      const existingCourts = await tx.court.findMany({ where: { leagueId } });
+      if (jsonData.courts) {
+        for (const c of jsonData.courts) {
+          const existing = existingCourts.find(ec => ec.name === c.name);
+          if (existing) {
+            courtIdMap[c.id] = existing.id;
+          } else {
+             const court = await tx.court.create({
+                data: {
+                    name: c.name,
+                    note: c.note,
+                    playerCapacity: c.playerCapacity || 4,
+                    leagueId,
+                }
+             });
+             courtIdMap[c.id] = court.id;
+          }
+        }
+      }
+
+      // 3. Sessions (si activé)
+      if (options.sessions && jsonData.sessions) {
+        for (const s of jsonData.sessions) {
+          const sessionDate = new Date(s.date);
+          const existing = await tx.session.findFirst({
+            where: { 
+                leagueId, 
+                date: sessionDate // Détection exacte par Date
+            }
+          });
+
+          if (existing) {
+            sessionsSkipped++;
+            continue;
+          }
+
           const newSession = await tx.session.create({
             data: {
               date: sessionDate,
@@ -354,74 +398,58 @@ export async function syncLeagueData(leagueId: string, jsonData: any) {
               description: s.description,
               settings: (s.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
               leagueId,
-            }
+            },
           });
-          targetSessionId = newSession.id;
-          sessionsRestored++;
+          sessionsCreated++;
 
-          // 4. Dépendances de la Session (uniquement si session nouvellement créée)
-          
-          // 4a. Présences
-          if (s.attendances && s.attendances.length > 0) {
-            await tx.attendance.createMany({
-              data: s.attendances
-                .filter((a: any) => playerIdMap[a.playerId])
-                .map((a: any) => ({
-                  sessionId: targetSessionId,
-                  playerId: playerIdMap[a.playerId],
-                  isPresent: a.isPresent,
-                })),
-              skipDuplicates: true
-            });
+          // Dépendances
+          if (s.attendances) {
+             await tx.attendance.createMany({
+                data: s.attendances
+                    .filter((a: any) => playerIdMap[a.playerId])
+                    .map((a: any) => ({
+                        sessionId: newSession.id,
+                        playerId: playerIdMap[a.playerId],
+                        isPresent: a.isPresent,
+                    })),
+                skipDuplicates: true
+             });
           }
 
-          // 4b. Matchs
-          if (s.matches && s.matches.length > 0) {
+          if (s.matches) {
             for (const m of s.matches) {
-              // Remappage des joueurs dans le JSON data
               let updatedData = m.data;
               if (updatedData && typeof updatedData === 'object') {
                 const data = { ...updatedData };
-                if (Array.isArray(data.team1)) {
-                  data.team1 = data.team1.map((pId: string) => playerIdMap[pId] || pId);
-                }
-                if (Array.isArray(data.team2)) {
-                  data.team2 = data.team2.map((pId: string) => playerIdMap[pId] || pId);
-                }
+                if (Array.isArray(data.team1)) data.team1 = data.team1.map((id: string) => playerIdMap[id] || id);
+                if (Array.isArray(data.team2)) data.team2 = data.team2.map((id: string) => playerIdMap[id] || id);
                 updatedData = data;
               }
-
               await tx.match.create({
                 data: {
-                  sessionId: targetSessionId,
-                  courtId: courtIdMap[m.courtId] || (actualCourts[0]?.id || ""),
+                  sessionId: newSession.id,
+                  courtId: courtIdMap[m.courtId] || (existingCourts[0]?.id || ""),
                   startTime: m.startTime ? new Date(m.startTime) : null,
                   duration: m.duration,
                   data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
                 }
               });
-              matchesRestored++;
             }
           }
         }
       }
 
       revalidatePath(`/leagues/${leagueId}`);
-      revalidatePath(`/leagues/${leagueId}/sessions`);
-      
       return { 
         success: true, 
         results: { 
-          sessions: sessionsRestored, 
-          matches: matchesRestored,
-          players: Object.keys(playerIdMap).length 
+            players: { created: playersCreated, skipped: playersSkipped },
+            sessions: { created: sessionsCreated, skipped: sessionsSkipped } 
         } 
       };
-    }, {
-      timeout: 30000
-    });
+    }, { timeout: 60000 });
   } catch (error: any) {
-    console.error("Sync error:", error);
-    return { success: false, error: error.message || "Erreur lors de la synchronisation des données" };
+    console.error("Smart Import error:", error);
+    return { success: false, error: error.message };
   }
 }

@@ -13,6 +13,7 @@ interface Player {
   email?: string | null;
   phone?: string | null;
   skillLevel: number;
+  type: "permanent" | "remplacant";
 }
 
 interface PlayerActionsProps {

@@ -113,7 +113,7 @@ export default async function PlayersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {players.map((player: { id: string; firstName: string; lastName: string; email: string | null; phone: string | null; skillLevel: number; type: string }) => (
+              {players.map((player: any) => (
                 <tr key={player.id} className="group hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

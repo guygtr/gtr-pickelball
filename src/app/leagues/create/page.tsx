@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createLeague } from "@/actions/league";
+import { restoreLeagueFromBackup } from "@/actions/import";
 import toast from "react-hot-toast";
-import { Plus, Trophy, Layout, Settings, Target } from "lucide-react";
+import { Plus, Trophy, Layout, Settings, Target, Upload, FileJson } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 
@@ -35,6 +36,37 @@ export default function CreateLeaguePage() {
     } finally {
       setIsPending(false);
     }
+  }
+
+  async function handleRestore(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsPending(true);
+    const loadingToast = toast.loading("Restauration de la ligue en cours...");
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        const importSessions = window.confirm("Voulez-vous importer également l'historique des sessions ?");
+        
+        const result: any = await restoreLeagueFromBackup(json, importSessions);
+        
+        if (result.success) {
+          toast.success("Ligue restaurée avec succès !", { id: loadingToast });
+          router.push(`/leagues/${result.id}`);
+          router.refresh();
+        } else {
+          toast.error(result.error || "Échec de la restauration", { id: loadingToast });
+        }
+      } catch (err) {
+        toast.error("Format de fichier invalide.", { id: loadingToast });
+      } finally {
+        setIsPending(false);
+      }
+    };
+    reader.readAsText(file);
   }
 
   return (
@@ -166,6 +198,19 @@ export default function CreateLeaguePage() {
               >
                 Annuler
               </button>
+              
+              <label className="flex-[1] flex items-center justify-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-black py-5 rounded-2xl tracking-[0.1em] transition-all uppercase text-[10px] cursor-pointer text-center">
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  className="hidden" 
+                  onChange={handleRestore}
+                  disabled={isPending}
+                />
+                <FileJson className="w-4 h-4" />
+                RESTAURER
+              </label>
+
               <NeonButton
                 type="submit"
                 variant="green"

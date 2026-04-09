@@ -68,7 +68,7 @@ export default async function SessionDetailsPage({
 
       <SessionDetailsClient 
         session={{ id: session.id, settings: session.settings as Record<string, unknown> }} 
-        leaguePlayers={session.league.players}
+        leaguePlayers={session.league.players.map(p => ({...p, type: p.type as "permanent" | "remplacant"}))}
         initialAttendances={session.attendances}
         courtCount={session.league.courts.length}
         statusLabel={getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta).label}

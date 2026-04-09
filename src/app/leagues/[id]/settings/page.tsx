@@ -61,7 +61,7 @@ export default async function LeagueSettingsPage({ params }: { params: { id: str
                     <p className="text-slate-500 text-xs font-medium">Configurez les terrains disponibles pour vos matchs.</p>
                </div>
                {isOwner && (
-                <form action={addCourt.bind(null, league.id)}>
+                <form action={async () => { "use server"; await addCourt(league.id); }}>
                     <button
                         type="submit"
                         className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-black tracking-widest rounded-xl transition-all uppercase"

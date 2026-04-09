@@ -39,3 +39,17 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 - **Notification** : Alerte de flotte envoyée avec succès sur Discord.
 
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️🤝
+
+## 📅 2026-04-09 — Evolution v3.3.6 (Deletion Intelligente) 🗑️🛡️🛸⚓🚀
+
+### 🛠️ Gestion des Ligues & Sécurité
+- **Suppression Adaptative** : Implémentation de la logique de suppression différenciée entre Propriétaire (Full Delete) et Co-Gestionnaire (Retrait).
+- **Zone de Danger** : Ajout d'une section dédiée dans les paramètres avec alertes visuelles `pickle-pink` et icônes.
+- **Cascade SQL** : Validation de l'intégrité des données via les contraintes de suppression en cascade de Prisma.
+
+### 🚀 Release Master v3.3.6 [STABLE]
+- **Audit GTR 2026** : Build de production validé et synchronisation globale des secrets via `GTR-Sync`.
+- **Déploiement** : Mise en ligne atomique sur Vercel avec succès.
+- **Notification** : Alerte de flotte envoyée sur Discord.
+
+**Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️🤝
