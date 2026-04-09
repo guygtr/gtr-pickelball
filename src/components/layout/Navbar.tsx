@@ -84,10 +84,10 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
                       Connexion
                     </button>
                   </Link>
-                  <Link href="/auth/register">
+                  <Link href="/leagues/create">
                     <NeonButton variant="green" className="px-6 py-2.5 text-[10px] tracking-[0.2em]">
                       <UserPlus size={14} className="mr-2" />
-                      S&apos;INSCRIRE
+                      CRÉER UNE LIGUE
                     </NeonButton>
                   </Link>
                 </div>
@@ -172,9 +172,9 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
                       Connexion
                     </button>
                   </Link>
-                  <Link href="/auth/register" onClick={() => setIsMenuOpen(false)}>
+                  <Link href="/leagues/create" onClick={() => setIsMenuOpen(false)}>
                     <button className="w-full bg-accent text-accent-foreground py-4 rounded-xl font-bold shadow-lg shadow-accent/20">
-                      S&apos;inscrire
+                      Démarrer une ligue
                     </button>
                   </Link>
                 </>

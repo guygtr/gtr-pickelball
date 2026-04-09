@@ -34,7 +34,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
-          <Link href="/auth/register">
+          <Link href="/leagues/create">
             <NeonButton variant="green" className="px-10 py-6 text-sm tracking-[0.2em]">
               DÉMARRER MA LIGUE
               <ChevronRight className="w-5 h-5 ml-2" />
