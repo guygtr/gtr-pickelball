@@ -179,7 +179,7 @@ export function SettingsForm({ league, settings, isOwner, children }: SettingsFo
           <NeonButton
             type="submit"
             disabled={isSaving}
-            variant="green"
+            variant="primary"
             className="flex-1 py-4"
           >
             {isSaving ? (

@@ -92,7 +92,7 @@ export function CoManagementSection({ leagueId, coManagers, isOwner }: CoManagem
                         />
                     </div>
                     <NeonButton 
-                        variant="blue" 
+                        variant="secondary" 
                         type="submit" 
                         disabled={isLoading}
                         className="px-8 whitespace-nowrap tracking-widest"

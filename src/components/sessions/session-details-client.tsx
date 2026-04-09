@@ -268,7 +268,7 @@ export function SessionDetailsClient({
 
             <NeonButton 
               className="w-full py-5 text-[12px] tracking-[0.25em]" 
-              variant={generationMode === "COMPETITIVE" ? "orange" : "green"}
+              variant={generationMode === "COMPETITIVE" ? "muted" : "primary"}
               disabled={presentCount < 2 || loading || statusLabel === "Terminé"}
               onClick={handleGenerateMatches}
             >

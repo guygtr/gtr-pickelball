@@ -162,7 +162,7 @@ export function ImportCSVModal({
             </button>
             <NeonButton 
               className="flex-1" 
-              variant="orange"
+              variant="muted"
               onClick={handleImport}
               disabled={!file || loading}
             >

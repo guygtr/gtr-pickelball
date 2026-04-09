@@ -14,13 +14,13 @@ export function PlayerListClient({ leagueId }: { leagueId: string }) {
     <div className="flex items-center gap-3">
       <NeonButton 
         onClick={() => setIsImportModalOpen(true)}
-        variant="blue"
+        variant="secondary"
       >
         <Upload className="w-4 h-4" />
         Importer CSV
       </NeonButton>
       
-      <NeonButton onClick={() => setIsAddModalOpen(true)} variant="green">
+      <NeonButton onClick={() => setIsAddModalOpen(true)} variant="primary">
         <Plus className="w-4 h-4" />
         Ajouter un Joueur
       </NeonButton>

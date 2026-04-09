@@ -200,7 +200,7 @@ export function AddSessionModal({
             </button>
             <NeonButton 
               className="flex-1" 
-              variant="blue"
+              variant="secondary"
               type="submit"
             >
               {loading ? "Création..." : "Planifier"}

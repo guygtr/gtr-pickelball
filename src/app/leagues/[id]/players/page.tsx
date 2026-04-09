@@ -74,7 +74,7 @@ export default async function PlayersPage({
       <GlassCard className="overflow-hidden">
         <div className="p-4 border-b border-white/5 bg-white/5 flex flex-col sm:flex-row gap-4 justify-between">
           <PlayerSearch />
-          <NeonButton variant="blue" className="py-2 text-[10px]">
+          <NeonButton variant="secondary" className="py-2 text-[10px]">
             <Filter className="w-4 h-4 flex-shrink-0" />
             FILTRER
           </NeonButton>

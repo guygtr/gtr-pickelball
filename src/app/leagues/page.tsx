@@ -30,7 +30,7 @@ export default async function LeaguesPage() {
                     <h2 className="text-3xl font-black text-white mb-4 tracking-tighter uppercase">Accès Restreint</h2>
                     <p className="text-slate-500 mb-8 font-medium">Veuillez vous connecter pour administrer vos ligues et accéder au dashboard.</p>
                     <Link href="/auth/login">
-                        <NeonButton variant="blue" className="w-full py-4 tracking-[0.2em]">
+                        <NeonButton variant="secondary" className="w-full py-4 tracking-[0.2em]">
                             SE CONNECTER
                         </NeonButton>
                     </Link>
@@ -67,7 +67,7 @@ export default async function LeaguesPage() {
             </p>
           </div>
           <Link href="/leagues/create">
-            <NeonButton variant="green" className="px-8 py-4 tracking-[0.2em]">
+            <NeonButton variant="primary" className="px-8 py-4 tracking-[0.2em]">
               <Plus className="w-5 h-5 mr-2" />
               NOUVELLE LIGUE
             </NeonButton>
@@ -84,7 +84,7 @@ export default async function LeaguesPage() {
               Vous n&apos;avez pas encore orchestré de ligue. Commencez l&apos;aventure dès maintenant.
             </p>
             <Link href="/leagues/create">
-              <NeonButton variant="blue" className="px-10 py-5 tracking-[0.2em]">
+              <NeonButton variant="secondary" className="px-10 py-5 tracking-[0.2em]">
                 CRÉER MA PREMIÈRE LIGUE
               </NeonButton>
             </Link>

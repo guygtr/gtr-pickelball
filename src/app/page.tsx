@@ -35,13 +35,13 @@ export default function Home() {
 
         <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
           <Link href="/leagues/create">
-            <NeonButton variant="green" className="px-10 py-6 text-sm tracking-[0.2em]">
+            <NeonButton variant="primary" className="px-10 py-6 text-sm tracking-[0.2em]">
               DÉMARRER MA LIGUE
               <ChevronRight className="w-5 h-5 ml-2" />
             </NeonButton>
           </Link>
           <Link href="/leagues">
-            <NeonButton variant="blue" className="px-10 py-6 text-sm tracking-[0.2em]">
+            <NeonButton variant="secondary" className="px-10 py-6 text-sm tracking-[0.2em]">
               EXPLORER LES LIGUES
               <Play className="w-4 h-4 ml-2" />
             </NeonButton>

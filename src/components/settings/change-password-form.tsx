@@ -127,7 +127,7 @@ export function ChangePasswordForm() {
 
       <NeonButton 
         type="submit"
-        variant="blue"
+        variant="secondary"
         className="w-full py-4 text-[11px] tracking-[0.2em]"
         disabled={isPending || !formData.oldPassword || !formData.newPassword || formData.newPassword !== formData.confirmPassword}
       >

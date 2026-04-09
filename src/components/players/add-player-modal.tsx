@@ -162,7 +162,7 @@ export function AddPlayerModal({
             </button>
             <NeonButton 
               className="flex-1" 
-              variant="green"
+              variant="primary"
               type="submit"
             >
               {loading ? "Création..." : "Ajouter"}

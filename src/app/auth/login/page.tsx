@@ -74,7 +74,7 @@ export default function LoginPage() {
             <NeonButton
               type="submit"
               className="w-full py-6 text-lg"
-              variant="green"
+              variant="primary"
               disabled={isPending}
             >
               {isPending ? "Authentification..." : "Entrer dans l'Arène"}

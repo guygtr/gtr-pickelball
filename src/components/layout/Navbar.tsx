@@ -63,7 +63,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
                   </div>
                   
                   <Link href="/settings">
-                    <NeonButton variant="blue" className="px-5 py-2.5 text-[10px] tracking-[0.2em]">
+                    <NeonButton variant="secondary" className="px-5 py-2.5 text-[10px] tracking-[0.2em]">
                       <User size={14} className="mr-2" />
                       MON COMPTE
                     </NeonButton>
@@ -85,7 +85,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
                     </button>
                   </Link>
                   <Link href="/leagues/create">
-                    <NeonButton variant="green" className="px-6 py-2.5 text-[10px] tracking-[0.2em]">
+                    <NeonButton variant="primary" className="px-6 py-2.5 text-[10px] tracking-[0.2em]">
                       <UserPlus size={14} className="mr-2" />
                       CRÉER UNE LIGUE
                     </NeonButton>

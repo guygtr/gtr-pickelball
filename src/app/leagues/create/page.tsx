@@ -213,7 +213,7 @@ export default function CreateLeaguePage() {
 
               <NeonButton
                 type="submit"
-                variant="green"
+                variant="primary"
                 className="flex-[2] py-5 tracking-[0.3em] font-black"
                 disabled={isPending}
               >
