@@ -84,23 +84,23 @@ export default function CreateLeaguePage() {
         
         {/* Elite Header Style Mockup */}
         <div className="text-center mb-12 space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-cyan-500/10 rounded-full border border-cyan-500/20 mb-2">
-            <ShieldCheck className="w-6 h-6 text-cyan-400" />
+          <div className="inline-flex items-center justify-center p-3 bg-pickle-primary/10 rounded-full border border-pickle-primary/20 mb-2">
+            <ShieldCheck className="w-6 h-6 text-pickle-primary" />
           </div>
           <h1 className="text-3xl md:text-4xl font-black tracking-[0.15em] uppercase neon-text-green">
             Configurer votre ligue
           </h1>
-          <div className="h-1 w-20 bg-gradient-to-r from-cyan-500 to-pickle-secondary mx-auto rounded-full opacity-50" />
+          <div className="h-1 w-20 bg-gradient-to-r from-pickle-muted to-pickle-primary mx-auto rounded-full opacity-50" />
         </div>
 
         <GlassCard variant="neon" className="p-0 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
           {/* Tab Switcher - Style Maquette */}
-          <div className="flex border-b border-cyan-500/10 bg-black/20">
+          <div className="flex border-b border-pickle-primary/10 bg-black/20">
             <button
               onClick={() => setActiveTab('manual')}
               className={`flex-1 py-5 text-[10px] font-black uppercase tracking-[0.25em] transition-all flex items-center justify-center gap-3 ${
                 activeTab === 'manual' 
-                  ? 'text-[#dcfc44] bg-cyan-500/5' 
+                  ? 'text-[#dcfc44] bg-pickle-primary/5' 
                   : 'text-slate-500 hover:text-slate-300'
               }`}
             >
@@ -111,7 +111,7 @@ export default function CreateLeaguePage() {
               onClick={() => setActiveTab('restore')}
               className={`flex-1 py-5 text-[10px] font-black uppercase tracking-[0.25em] transition-all flex items-center justify-center gap-3 ${
                 activeTab === 'restore' 
-                  ? 'text-[#dcfc44] bg-cyan-500/5' 
+                  ? 'text-[#dcfc44] bg-pickle-primary/5' 
                   : 'text-slate-500 hover:text-slate-300'
               }`}
             >
@@ -125,28 +125,42 @@ export default function CreateLeaguePage() {
               <form action={handleCreate} className="space-y-12 relative z-10">
                 {/* Section: Identité */}
                 <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label htmlFor="name" className="text-[9px] font-black text-pickle-primary/60 uppercase tracking-[0.3em] pl-1">Nom de la Ligue</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      required
+                      placeholder="Ex: Sunset Pickleball Club"
+                      className="w-full neon-input rounded-xl px-6 py-4 text-white placeholder-slate-700 text-sm font-bold"
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-3">
-                      <label htmlFor="name" className="text-[9px] font-black text-cyan-400/60 uppercase tracking-[0.3em] pl-1">Nom de la Ligue</label>
+                      <label htmlFor="maxPlayers" className="text-[9px] font-black text-cyan-400/60 uppercase tracking-[0.3em] pl-1">Capacité (Joueurs)</label>
                       <input
-                        type="text"
-                        id="name"
-                        name="name"
+                        type="number"
+                        id="maxPlayers"
+                        name="maxPlayers"
                         required
-                        placeholder="Ex: Sunset Pickleball Club"
-                        className="w-full neon-input rounded-xl px-6 py-4 text-white placeholder-slate-700 text-sm font-bold"
+                        defaultValue={20}
+                        min={2}
+                        className="w-full neon-input rounded-xl px-6 py-4 text-white text-sm font-bold"
                       />
                     </div>
 
                     <div className="space-y-3">
-                      <label htmlFor="courtCount" className="text-[9px] font-black text-cyan-400/60 uppercase tracking-[0.3em] pl-1">Capacité (Terrains)</label>
+                      <label htmlFor="courtCount" className="text-[9px] font-black text-cyan-400/60 uppercase tracking-[0.3em] pl-1">Nombre de Terrains</label>
                       <input
                         type="number"
                         id="courtCount"
                         name="courtCount"
                         required
-                        defaultValue={2}
+                        defaultValue={4}
                         min={1}
+                        max={20}
                         className="w-full neon-input rounded-xl px-6 py-4 text-white text-sm font-bold"
                       />
                     </div>
@@ -218,8 +232,8 @@ export default function CreateLeaguePage() {
             ) : (
               <div className="space-y-12 relative z-10 animate-in fade-in zoom-in-95 duration-500 py-6">
                 <div className="text-center max-w-sm mx-auto space-y-4 mb-10">
-                  <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mx-auto border border-cyan-500/20 mb-6 rotate-3">
-                    <FileJson className="w-8 h-8 text-cyan-400" />
+                  <div className="w-16 h-16 bg-pickle-primary/10 rounded-2xl flex items-center justify-center mx-auto border border-pickle-primary/20 mb-6 rotate-3">
+                    <FileJson className="w-8 h-8 text-pickle-primary" />
                   </div>
                   <h3 className="text-lg font-black text-white uppercase tracking-tighter">Restauration Système</h3>
                   <p className="text-slate-500 text-[11px] leading-relaxed font-bold uppercase tracking-wide">
@@ -228,15 +242,15 @@ export default function CreateLeaguePage() {
                 </div>
 
                 <label 
-                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-cyan-400/50', 'bg-cyan-400/5'); }}
-                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-cyan-400/50', 'bg-cyan-400/5'); }}
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-pickle-primary/50', 'bg-pickle-primary/5'); }}
+                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-pickle-primary/50', 'bg-pickle-primary/5'); }}
                   onDrop={(e) => { e.preventDefault(); handleRestore(e as unknown as React.DragEvent); }}
-                  className="block w-full border-2 border-dashed border-cyan-500/10 rounded-[2rem] p-16 text-center cursor-pointer transition-all hover:bg-cyan-500/[0.03] group"
+                  className="block w-full border-2 border-dashed border-pickle-primary/10 rounded-[2rem] p-16 text-center cursor-pointer transition-all hover:bg-pickle-primary/[0.03] group"
                 >
                   <input type="file" accept=".json" className="hidden" onChange={handleRestore} disabled={isPending} />
                   <div className="space-y-6">
                     <div className="flex justify-center">
-                      <div className="p-5 bg-black/40 rounded-2xl border border-white/5 group-hover:border-cyan-500/30 transition-colors">
+                      <div className="p-5 bg-black/40 rounded-2xl border border-white/5 group-hover:border-pickle-primary/30 transition-colors">
                          <Upload className="w-8 h-8 text-[#dcfc44]" />
                       </div>
                     </div>
