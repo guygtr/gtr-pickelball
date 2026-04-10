@@ -59,14 +59,14 @@ export function LeagueNav({ leagueId }: LeagueNavProps) {
               className={cn(
                 "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 group relative overflow-hidden",
                 isActive 
-                  ? "bg-white/15 text-pickle-primary shadow-[0_0_15px_rgba(132,204,22,0.3)] ring-1 ring-white/20" 
+                  ? "bg-white/15 text-pickle-primary shadow-[0_0_15px_rgba(220,252,68,0.3)] ring-1 ring-white/20" 
                   : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
             >
               <item.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", isActive ? "text-pickle-primary" : "text-slate-400 group-hover:text-white")} />
               {item.name}
               {isActive && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pickle-primary shadow-[0_0_8px_rgba(132,204,22,0.8)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pickle-primary shadow-[0_0_8px_rgba(220,252,68,0.8)]" />
               )}
             </Link>
           );

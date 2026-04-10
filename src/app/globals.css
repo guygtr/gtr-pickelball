@@ -6,10 +6,10 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   
-  --color-pickle-primary: #e31837;
-  --color-pickle-muted: #962002;
+  --color-pickle-primary: #dcfc44;
+  --color-pickle-muted: #84cc16;
   --color-pickle-tertiary: #3b82f6;
-  --color-pickle-secondary: #dcfc44;
+  --color-pickle-secondary: #e31837;
   --color-pickle-yellow: #fde047;
   --color-pickle-dark: #1a1c1e;
   
@@ -20,15 +20,15 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --accent: #e31837;
-  --accent-foreground: #ffffff;
+  --accent: #dcfc44;
+  --accent-foreground: #000000;
 }
 
 .dark {
   --background: #0a0a0c;
   --foreground: #f8fafc;
-  --accent: #e31837;
-  --accent-foreground: #ffffff;
+  --accent: #dcfc44;
+  --accent-foreground: #000000;
 }
 
 body {
