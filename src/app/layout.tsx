@@ -48,7 +48,7 @@ export default async function RootLayout({
           }
         }} />
         <Navbar userEmail={user?.email} isAdmin={isAdmin} />
-        <main className="min-h-screen pt-24">
+        <main className="relative z-10 min-h-screen pt-24 isolate">
           {children}
         </main>
       </body>

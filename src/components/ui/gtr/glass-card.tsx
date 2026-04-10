@@ -10,13 +10,18 @@ import React from 'react';
 export const GlassCard = ({ 
   children, 
   className = '', 
-  hoverEffect = true 
+  hoverEffect = true,
+  variant = 'default'
 }: { 
   children: React.ReactNode; 
   className?: string; 
   hoverEffect?: boolean;
+  variant?: 'default' | 'neon';
 }) => {
-  const baseClasses = "glass p-6 rounded-xl border border-white/10";
+  const baseClasses = variant === 'neon' 
+    ? "glass-neon p-6 rounded-2xl" 
+    : "glass p-6 rounded-2xl border border-white/5 shadow-2xl";
+    
   const hoverClasses = hoverEffect ? "glass-hover cursor-pointer" : "";
   
   return (
