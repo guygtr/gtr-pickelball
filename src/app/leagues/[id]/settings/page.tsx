@@ -7,10 +7,11 @@ import { ImportExportCard } from "@/components/leagues/import-export-card";
 import { CoManagementSection } from "@/components/leagues/co-management-section";
 import { getEnsuredUser } from "@/lib/auth-utils";
 
-export default async function LeagueSettingsPage({ params }: { params: { id: string } }) {
+export default async function LeagueSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   const user = await getEnsuredUser();
   const league = await prisma.league.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: { 
         courts: true,
         coManagers: {

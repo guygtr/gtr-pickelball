@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { BackgroundScene } from "@/components/layout/BackgroundScene";
 import { Toaster } from "react-hot-toast";
 
 const outfit = Outfit({
@@ -35,8 +36,9 @@ export default async function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body
-        className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-primary selection:text-pickle-dark`}
+         className={`${outfit.variable} ${geistMono.variable} font-sans antialiased selection:bg-pickle-primary selection:text-pickle-dark bg-[#0a0a0c]`}
       >
+        <BackgroundScene />
         <Toaster position="bottom-right" toastOptions={{
           style: {
             background: '#0f172a',
