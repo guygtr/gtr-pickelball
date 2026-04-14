@@ -37,7 +37,7 @@ export default async function SessionsPage({
         </h2>
         <SessionListClient 
           leagueId={resolvedParams.id} 
-          leagueSettings={league?.settings as Record<string, any>}
+          leagueSettings={league?.settings as Record<string, unknown>}
         />
       </div>
 

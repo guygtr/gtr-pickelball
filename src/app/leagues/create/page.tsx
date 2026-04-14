@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createLeague } from "@/actions/league";
 import { restoreLeagueFromBackup } from "@/actions/import";
 import toast from "react-hot-toast";
-import { Plus, Trophy, Layout, Settings, Target, Upload, FileJson, ArrowRight, ShieldCheck } from "lucide-react";
+import { Layout, Upload, FileJson, ShieldCheck } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 
@@ -32,7 +32,7 @@ export default function CreateLeaguePage() {
       });
       router.push(`/leagues/${result.id}/settings`);
       router.refresh();
-    } catch (e: any) {
+    } catch {
       toast.error("Erreur technique lors de la création.", { id: loadingToast });
     } finally {
       setIsPending(false);
@@ -60,7 +60,7 @@ export default function CreateLeaguePage() {
         const json = JSON.parse(event.target?.result as string);
         const importSessions = window.confirm("Importer également l'historique des sessions ?");
         
-        const result: any = await restoreLeagueFromBackup(json, importSessions);
+        const result = (await restoreLeagueFromBackup(json, importSessions)) as { success: boolean, id?: string, error?: string };
         
         if (result.success) {
           toast.success("Système restauré !", { id: loadingToast });
@@ -69,7 +69,7 @@ export default function CreateLeaguePage() {
         } else {
           toast.error(result.error || "Échec de la restauration", { id: loadingToast });
         }
-      } catch (err) {
+      } catch {
         toast.error("Format corrompu.", { id: loadingToast });
       } finally {
         setIsPending(false);

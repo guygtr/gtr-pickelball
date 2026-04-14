@@ -55,9 +55,10 @@ export async function addCoManager(leagueId: string, email: string) {
 
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur addCoManager:", error);
-    return { success: false, error: error.message || "Une erreur est survenue." };
+    const msg = error instanceof Error ? error.message : "Une erreur est survenue.";
+    return { success: false, error: msg };
   }
 }
 
@@ -90,7 +91,7 @@ export async function removeCoManager(leagueId: string, managerId: string) {
 
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erreur removeCoManager:", error);
     return { success: false, error: "Impossible de retirer le gestionnaire." };
   }

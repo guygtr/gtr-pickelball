@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Player, Prisma } from "@prisma/client";
 import { Users, Filter } from "lucide-react";
 import { PlayerListClient } from "@/components/players/player-list-client";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
@@ -21,7 +22,7 @@ export default async function PlayersPage({
   const dir = resolvedSearchParams.dir || (sort === "level" ? "desc" : "asc");
 
   // Logic pour le tri stable (toujours inclure le nom en secondaire)
-  let orderBy: any = [{ lastName: dir }, { firstName: dir }];
+  let orderBy: Prisma.PlayerOrderByWithRelationInput[] = [{ lastName: dir }, { firstName: dir }];
   if (sort === "level") orderBy = [{ skillLevel: dir }, { lastName: "asc" }];
   if (sort === "type") orderBy = [{ type: dir }, { lastName: "asc" }];
 
@@ -113,7 +114,7 @@ export default async function PlayersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {players.map((player: any) => (
+              {players.map((player: Player) => (
                 <tr key={player.id} className="group hover:bg-white/[0.02] transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

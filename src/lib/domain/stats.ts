@@ -1,5 +1,5 @@
 import { Player } from "@prisma/client";
-import { MatchDataSchema } from "@/lib/session-utils";
+
 
 export interface PlayerRank {
   id: string;
@@ -17,7 +17,7 @@ export interface PlayerRank {
  */
 export function calculateLeagueRankings(
   players: Player[], 
-  matches: { data: any }[]
+  matches: { data: unknown }[]
 ): PlayerRank[] {
   const statsMap = new Map<string, { wins: number; losses: number; matchesPlayed: number }>();
 
@@ -28,7 +28,7 @@ export function calculateLeagueRankings(
 
   // Parcourir les matchs terminés
   matches.forEach(m => {
-    const data = m.data as any; // Cast à cause de Prisma Json
+    const data = m.data as { team1?: string[], team2?: string[], winner?: number | null }; // Cast à cause de Prisma Json
     if (!data || data.winner === undefined || data.winner === null) return;
 
     const team1 = data.team1 as string[] || [];

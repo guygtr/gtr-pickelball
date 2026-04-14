@@ -56,7 +56,7 @@ export default async function HallOfFamePage({
       
       <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 text-center">
         <p className="text-slate-500 text-xs italic">
-          Le classement est basé sur le taux de victoire (Win Rate). En cas d'égalité, le nombre de victoires totales prévaut.
+          Le classement est basé sur le taux de victoire (Win Rate). En cas d&apos;égalité, le nombre de victoires totales prévaut.
         </p>
       </div>
     </div>

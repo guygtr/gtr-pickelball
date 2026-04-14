@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Download, Upload, FileJson, Check, AlertCircle, Loader2, Users, CalendarDays, RefreshCw } from "lucide-react";
+import { Download, FileJson, Check, AlertCircle, Loader2, Users, CalendarDays, RefreshCw } from "lucide-react";
 import { exportLeagueData } from "@/actions/export";
 import { smartImportIntoLeague } from "@/actions/import";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
@@ -61,7 +61,7 @@ export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, l
                     throw new Error("Format d'importation non valide. Impossible de trouver les données de joueurs.");
                 }
 
-                let result: any;
+                let result;
                 if (importMode === 'PLAYERS') {
                     result = await smartImportIntoLeague(leagueId, json, { players: true, sessions: false });
                 } else if (importMode === 'SESSIONS') {

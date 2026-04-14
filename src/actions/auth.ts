@@ -30,7 +30,7 @@ export async function signOut() {
   redirect("/auth/login");
 }
 
-export async function changePassword(prevState: any, formData: FormData) {
+export async function changePassword(prevState: unknown, formData: FormData) {
   const oldPassword = formData.get("oldPassword") as string;
   const newPassword = formData.get("newPassword") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
@@ -71,7 +71,7 @@ export async function changePassword(prevState: any, formData: FormData) {
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Erreur changePassword:", err);
     return { error: "Une erreur technique est survenue." };
   }

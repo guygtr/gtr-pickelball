@@ -75,9 +75,9 @@ export function SessionsViewToggle({
           onChange={(e) => setSortOrder(e.target.value as "upcoming_first" | "date_desc" | "date_asc")}
           className="bg-white/5 border border-white/10 text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-pickle-secondary/50 cursor-pointer"
         >
-          <option value="upcoming_first" className="bg-slate-900 text-slate-200">Actives d'abord (Chronologique)</option>
-          <option value="date_desc" className="bg-slate-900 text-slate-200">Plus récentes d'abord</option>
-          <option value="date_asc" className="bg-slate-900 text-slate-200">Plus anciennes d'abord</option>
+          <option value="upcoming_first" className="bg-slate-900 text-slate-200">Actives d&apos;abord (Chronologique)</option>
+          <option value="date_desc" className="bg-slate-900 text-slate-200">Plus récentes d&apos;abord</option>
+          <option value="date_asc" className="bg-slate-900 text-slate-200">Plus anciennes d&apos;abord</option>
         </select>
 
         <div className="flex p-1 bg-white/5 border border-white/10 rounded-xl disabled">

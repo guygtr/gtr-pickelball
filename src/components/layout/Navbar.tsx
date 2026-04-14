@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, ShieldCheck, User, LogIn, UserPlus, LogOut } from "lucide-react";
+import { Menu, X, ShieldCheck, User, UserPlus, LogOut } from "lucide-react";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { signOut } from "@/actions/auth";
 

@@ -3,24 +3,19 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { Trophy, Plus, Users, ArrowRight, Lock, Target } from "lucide-react";
+import { Trophy, Plus, ArrowRight, Lock, Target } from "lucide-react";
 
 interface LeagueSettings {
   maxPlayers?: number;
 }
 
-interface LeagueUI {
-  id: string;
-  name: string;
-  description: string | null;
-  settings: LeagueSettings | null;
-}
+
 
 export default async function LeaguesPage() {
     let user;
     try {
         user = await ensurePrismaManager();
-    } catch (e) {
+    } catch {
         return (
             <main className="min-h-screen pt-24 px-4 flex items-center justify-center">
                 <GlassCard className="p-12 text-center max-w-md animate-fade-in-up">
@@ -113,7 +108,7 @@ export default async function LeaguesPage() {
                           Capacité
                         </span>
                         <span className="text-lg font-black text-white">
-                          {(league.settings as any)?.maxPlayers || 0} <span className="text-xs text-slate-600">JOUEURS</span>
+                          {(league.settings as LeagueSettings)?.maxPlayers || 0} <span className="text-xs text-slate-600">JOUEURS</span>
                         </span>
                       </div>
                     </div>

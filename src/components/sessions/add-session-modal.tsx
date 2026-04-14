@@ -16,7 +16,7 @@ export function AddSessionModal({
   isOpen: boolean; 
   onClose: () => void; 
   leagueId: string;
-  leagueSettings?: Record<string, any>;
+  leagueSettings?: Record<string, unknown>;
 }) {
   // Helper to get initials states rounded to 15m
   const getInitialValues = () => {

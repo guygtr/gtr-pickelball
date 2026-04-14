@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, UserCheck, Mail, Phone, BarChart3 } from "lucide-react";
+import { X, UserCheck, Mail, Phone } from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { updatePlayer } from "@/actions/player";

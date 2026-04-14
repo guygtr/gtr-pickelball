@@ -2,7 +2,7 @@
 
 import { PlayerRank } from "@/lib/domain/stats";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
-import { Trophy, Medal, Star, ChevronDown, ChevronUp, User } from "lucide-react";
+import { Trophy, Medal, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 
 interface LeaderboardProps {
@@ -132,7 +132,7 @@ export function Leaderboard({ rankings }: LeaderboardProps) {
             ))
           ) : (
             <div className="p-8 text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest">
-               En attente d'autres résultats...
+               En attente d&apos;autres résultats...
             </div>
           )}
         </div>

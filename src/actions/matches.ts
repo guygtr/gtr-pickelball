@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Attendance, Player, Prisma } from "@prisma/client";
 import { ensureSessionManager, ensureMatchManager, ensureLeagueManager } from "@/lib/auth-utils";
-import { generateFullSessionMatches, getPartnershipKey, getMatchupKey, getQuartetKey, MatchmakingStats, MatchDesign, MatchmakingMode } from "@/lib/domain/matchmaking";
+import { generateFullSessionMatches, getPartnershipKey, getMatchupKey, getQuartetKey, MatchmakingStats, MatchmakingMode } from "@/lib/domain/matchmaking";
 
 import { 
   matchIdSchema, 

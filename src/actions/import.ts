@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getEnsuredUser, ensureLeagueManager, ensurePrismaManager } from "@/lib/auth-utils";
+import { ensureLeagueManager, ensurePrismaManager } from "@/lib/auth-utils";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { getNearestSkillLevel } from "@/lib/constants";
+
 
 // Schéma de validation pour l'importation
 const ImportSchema = z.object({
@@ -128,8 +128,8 @@ export async function importUserData(jsonData: unknown) {
         if (session.attendances && session.attendances.length > 0) {
           await tx.attendance.createMany({
             data: session.attendances
-              .filter((a: any) => playerIdMap[a.playerId])
-              .map((a: any) => ({
+              .filter((a) => playerIdMap[a.playerId])
+              .map((a) => ({
                 sessionId: newSession.id,
                 playerId: playerIdMap[a.playerId],
                 isPresent: a.isPresent,
@@ -183,7 +183,7 @@ export async function importUserData(jsonData: unknown) {
  * Restaure une ligue complète à partir d'un backup JSON.
  * Gère la création d'une nouvelle ligue (Scénario 1).
  */
-export async function restoreLeagueFromBackup(jsonData: any, importSessions: boolean = true) {
+export async function restoreLeagueFromBackup(jsonData: unknown, importSessions: boolean = true) {
   const user = await ensurePrismaManager();
   
   if (!jsonData.league || !jsonData.players) {
@@ -256,8 +256,8 @@ export async function restoreLeagueFromBackup(jsonData: any, importSessions: boo
           if (s.attendances) {
              await tx.attendance.createMany({
                 data: s.attendances
-                    .filter((a: any) => playerIdMap[a.playerId])
-                    .map((a: any) => ({
+                    .filter((a: { playerId: string }) => playerIdMap[a.playerId])
+                    .map((a: { playerId: string, isPresent: boolean }) => ({
                         sessionId: newSession.id,
                         playerId: playerIdMap[a.playerId],
                         isPresent: a.isPresent,
@@ -292,9 +292,10 @@ export async function restoreLeagueFromBackup(jsonData: any, importSessions: boo
       revalidatePath("/leagues");
       return { success: true, id: newLeague.id };
     }, { timeout: 60000 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Restore error:", error);
-    return { success: false, error: error.message };
+    const msg = error instanceof Error ? error.message : "Erreur inconnue";
+    return { success: false, error: msg };
   }
 }
 
@@ -303,7 +304,7 @@ export async function restoreLeagueFromBackup(jsonData: any, importSessions: boo
  */
 export async function smartImportIntoLeague(
     leagueId: string, 
-    jsonData: any, 
+    jsonData: unknown, 
     options: { players: boolean, sessions: boolean }
 ) {
   await ensureLeagueManager(leagueId);
@@ -406,8 +407,8 @@ export async function smartImportIntoLeague(
           if (s.attendances) {
              await tx.attendance.createMany({
                 data: s.attendances
-                    .filter((a: any) => playerIdMap[a.playerId])
-                    .map((a: any) => ({
+                    .filter((a: { playerId: string }) => playerIdMap[a.playerId])
+                    .map((a: { playerId: string, isPresent: boolean }) => ({
                         sessionId: newSession.id,
                         playerId: playerIdMap[a.playerId],
                         isPresent: a.isPresent,
@@ -448,8 +449,9 @@ export async function smartImportIntoLeague(
         } 
       };
     }, { timeout: 60000 });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Smart Import error:", error);
-    return { success: false, error: error.message };
+    const msg = error instanceof Error ? error.message : "Erreur inconnue";
+    return { success: false, error: msg };
   }
 }

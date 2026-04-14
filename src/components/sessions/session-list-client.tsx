@@ -10,7 +10,7 @@ export function SessionListClient({
   leagueSettings 
 }: { 
   leagueId: string;
-  leagueSettings?: Record<string, any>;
+  leagueSettings?: Record<string, unknown>;
 }) {
   const [showAddModal, setShowAddModal] = useState(false);
 

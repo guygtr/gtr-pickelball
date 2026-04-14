@@ -1,10 +1,9 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { getEnsuredUser } from "@/lib/auth-utils";
-import { ExportDataButton } from "@/components/settings/export-data-button";
-import { ImportDataButton } from "@/components/settings/import-data-button";
+
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
-import { User, Shield, Database } from "lucide-react";
+import { User, Shield } from "lucide-react";
 
 export default async function SettingsPage() {
   let user;

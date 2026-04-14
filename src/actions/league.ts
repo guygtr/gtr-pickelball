@@ -47,9 +47,10 @@ export async function createLeague(formData: FormData) {
 
     revalidatePath("/leagues");
     return { success: true, id: league.id };
-  } catch (err: any) {
+  } catch (err) {
     console.error("Erreur createLeague:", err);
-    return { success: false, error: err.message || "Une erreur imprévue est survenue lors de la création." };
+    const errorMessage = err instanceof Error ? err.message : "Une erreur imprévue est survenue lors de la création.";
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -139,8 +140,9 @@ export async function deleteLeague(leagueId: string) {
         } else {
             throw new Error("Action non autorisée.");
         }
-    } catch (error: any) {
+    } catch (error) {
         console.error("Erreur deleteLeague:", error);
-        return { success: false, error: error.message || "Une erreur est survenue lors de la suppression." };
+        const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la suppression.";
+        return { success: false, error: errorMessage };
     }
 }
