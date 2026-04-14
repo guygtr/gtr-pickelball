@@ -5,6 +5,7 @@ import { fr } from "date-fns/locale";
 import { Calendar } from "lucide-react";
 import { SessionDetailsClient } from "@/components/sessions/session-details-client";
 import { getSessionStatus } from "@/lib/session-utils";
+import { ensureLeagueManager } from "@/lib/auth-utils";
 
 export default async function SessionDetailsPage({
   params,
@@ -13,6 +14,12 @@ export default async function SessionDetailsPage({
 }) {
   const { id, sessionId } = await params;
 
+  // Vérification d'autorisation : seul le gestionnaire ou co-gestionnaire peut accéder
+  try {
+    await ensureLeagueManager(id);
+  } catch {
+    notFound();
+  }
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
     include: {

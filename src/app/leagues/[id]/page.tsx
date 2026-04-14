@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ensureLeagueManager } from "@/lib/auth-utils";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { Users, Calendar, Trophy, TrendingUp, MapPin, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -13,6 +14,13 @@ export default async function LeagueDashboard({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
+  
+  // Vérification d'autorisation : seul le gestionnaire ou co-gestionnaire peut accéder
+  try {
+    await ensureLeagueManager(resolvedParams.id);
+  } catch {
+    notFound();
+  }
   
   // 1. Charger les données de la ligue
   const league = await prisma.league.findUnique({
