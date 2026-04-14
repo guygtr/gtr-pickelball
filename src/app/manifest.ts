@@ -11,12 +11,10 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#c0ff2d',
     icons: [
       {
-        src: '/favicon.ico',
-        sizes: 'any',
-        type: 'image/x-icon',
+        src: '/logo.png',
+        sizes: '192x192 512x512',
+        type: 'image/png',
       },
-      // Note: In a real production apps, we would add 192x192 and 512x512 icons here.
-      // For now, we use the standard favicon to enable the PWA manifest detection.
     ],
   }
 }

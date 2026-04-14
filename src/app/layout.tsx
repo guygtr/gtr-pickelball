@@ -23,10 +23,10 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Pickelball GTR",
+    title: "GTR-Pickelball",
   },
   icons: {
-    apple: "/favicon.ico",
+    apple: "/logo.png",
   },
 };
 
