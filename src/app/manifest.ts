@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next'
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'GTR-Pickelball',
-    short_name: 'Pickelball',
+    short_name: 'GTR-Pickelball',
     description: 'La plateforme de ligue ultime pour le Pickleball.',
     start_url: '/',
     display: 'standalone',
