@@ -6,6 +6,7 @@ import { sessionSchema } from "@/lib/validations/session";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ensureLeagueManager } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 
 /**
  * Crée une nouvelle session de jeu pour une ligue.
@@ -33,7 +34,7 @@ export async function createSession(data: z.infer<typeof sessionSchema>) {
     return { success: true, session };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Erreur inconnue lors de la création de la session";
-    console.error("Error creating session:", errorMessage);
+    logError("createSession", error);
     return { success: false, error: errorMessage };
   }
 }
@@ -70,7 +71,7 @@ export async function deleteSession(sessionId: string) {
     return { success: true };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Erreur inconnue lors de la suppression";
-    console.error("Error deleting session:", errorMessage);
+    logError("deleteSession", error);
     return { success: false, error: errorMessage };
   }
 }
@@ -101,7 +102,7 @@ export async function terminateSession(sessionId: string) {
     return { success: true };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-    console.error("Error terminating session:", errorMessage);
+    logError("terminateSession", error);
     return { success: false, error: errorMessage };
   }
 }

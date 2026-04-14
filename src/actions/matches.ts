@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Attendance, Player, Prisma } from "@prisma/client";
 import { ensureSessionManager, ensureMatchManager, ensureLeagueManager } from "@/lib/auth-utils";
 import { generateFullSessionMatches, getPartnershipKey, getMatchupKey, getQuartetKey, MatchmakingStats, MatchmakingMode } from "@/lib/domain/matchmaking";
+import { logError } from "@/lib/logger";
 
 import { 
   matchIdSchema, 
@@ -161,7 +162,7 @@ export async function generateMatches(rawSessionId: string, mode: MatchmakingMod
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error generating matches:", error);
+    logError("generateMatches", error);
     return { success: false, error: error instanceof Error ? error.message : "Erreur lors de la génération" };
   }
 }
@@ -193,7 +194,7 @@ export async function toggleAttendance(raw: { sessionId: string, playerId: strin
     }
     return { success: true };
   } catch (error) {
-    console.error("Error toggling attendance:", error);
+    logError("toggleAttendance", error);
     return { success: false, error: "Erreur lors de la mise à jour de la présence" };
   }
 }
@@ -220,7 +221,7 @@ export async function deleteMatch(rawMatchId: string) {
     revalidatePath(`/leagues/${match.session.leagueId}/sessions/${match.sessionId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting match:", error);
+    logError("deleteMatch", error);
     return { success: false, error: "Erreur lors de la suppression du match" };
   }
 }
@@ -246,7 +247,7 @@ export async function deleteAllMatches(rawSessionId: string) {
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting all matches:", error);
+    logError("deleteAllMatches", error);
     return { success: false, error: "Erreur lors de la suppression massive" };
   }
 }
@@ -289,7 +290,7 @@ export async function toggleRoundStatus(raw: { sessionId: string, roundIdx: numb
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error toggling round status:", error);
+    logError("toggleRoundStatus", error);
     return { success: false, error: "Erreur lors du verrouillage" };
   }
 }
@@ -332,7 +333,7 @@ export async function updateMatchResult(matchIdRaw: string, winnerRaw: number) {
     return { success: true };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-    console.error("Error updating match result:", errorMessage);
+    logError("updateMatchResult", error);
     return { success: false, error: errorMessage };
   }
 }

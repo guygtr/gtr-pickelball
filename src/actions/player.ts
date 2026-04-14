@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { playerSchema, playerImportSchema, PlayerInput } from "@/lib/validations/player";
 import { revalidatePath } from "next/cache";
 import { ensureLeagueManager } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 
 /**
  * Action pour ajouter un joueur manuellement.
@@ -28,7 +29,7 @@ export async function createPlayer(data: PlayerInput) {
     revalidatePath(`/leagues/${validated.leagueId}/players`);
     return { success: true, player };
   } catch (error) {
-    console.error("Error adding player:", error);
+    logError("createPlayer", error);
     return { success: false, error: "Impossible d'ajouter le joueur" };
   }
 }
@@ -66,7 +67,7 @@ export async function importPlayers(leagueId: string, players: Record<string, un
     revalidatePath(`/leagues/${leagueId}/players`);
     return { success: true, count: validatedPlayers.length };
   } catch (error) {
-    console.error("Error importing players:", error);
+    logError("importPlayers", error);
     return { success: false, error: "L'importation a échoué" };
   }
 }
@@ -85,7 +86,7 @@ export async function deletePlayer(playerId: string, leagueId: string) {
     revalidatePath(`/leagues/${leagueId}/players`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting player:", error);
+    logError("deletePlayer", error);
     return { success: false, error: "Impossible de supprimer le joueur" };
   }
 }
@@ -113,7 +114,7 @@ export async function updatePlayer(playerId: string, data: PlayerInput) {
     revalidatePath(`/leagues/${validated.leagueId}/players`);
     return { success: true };
   } catch (error) {
-    console.error("Error updating player:", error);
+    logError("updatePlayer", error);
     return { success: false, error: "Impossible de mettre à jour le joueur" };
   }
 }

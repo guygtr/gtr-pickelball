@@ -6,6 +6,7 @@ import { isUserAdmin } from "@/lib/user-utils";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { logError, logWarn } from "@/lib/logger";
 
 const ManagerAccountSchema = z.object({
   email: z.string().email("Format d'email invalide"),
@@ -58,7 +59,7 @@ export async function getManagers() {
     });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Erreur inconnue lors de la récupération des infos Auth";
-    console.error("Erreur lors de la récupération des infos Auth:", errorMessage);
+    logError("getManagers", errorMessage);
     return managers;
   }
 }
@@ -100,7 +101,7 @@ export async function createManagerAccount(email: string, password: string, name
     return { success: true, user: data.user };
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Erreur lors de la création du compte gestionnaire";
-    console.error("Erreur de création de compte:", errorMessage);
+    logError("createManagerAccount", err);
     return { success: false, error: errorMessage };
   }
 }
@@ -121,7 +122,7 @@ export async function deleteManager(id: string, email: string) {
     
     if (authUser) {
       const { error } = await adminClient.auth.admin.deleteUser(authUser.id);
-      if (error) console.warn("Erreur suppression Auth (peut-être déjà supprimé):", error.message);
+      if (error) logWarn("deleteManager", `Erreur suppression Auth (peut-être déjà supprimé): ${error.message}`);
     }
 
     // Suppression Prisma
@@ -131,7 +132,7 @@ export async function deleteManager(id: string, email: string) {
     return { success: true };
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : "Erreur lors de la suppression du gestionnaire";
-    console.error("Erreur suppression gestionnaire:", errorMessage);
+    logError("deleteManager", err);
     return { success: false, error: errorMessage };
   }
 }

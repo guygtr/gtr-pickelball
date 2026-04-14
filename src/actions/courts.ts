@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ensureLeagueManager } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 import { z } from "zod";
 
 export async function addCourt(leagueId: string) {
@@ -18,7 +19,7 @@ export async function addCourt(leagueId: string) {
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
   } catch (error) {
-    console.error("Error adding court:", error);
+    logError("addCourt", error);
     return { success: false, error: "Erreur lors de l'ajout du terrain" };
   }
 }
@@ -35,7 +36,7 @@ export async function renameCourt(courtId: string, name: string, leagueId: strin
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
   } catch (error) {
-    console.error("Error renaming court:", error);
+    logError("renameCourt", error);
     return { success: false, error: "Erreur lors du renommage" };
   }
 }
@@ -53,7 +54,7 @@ export async function deleteCourt(courtId: string, leagueId: string) {
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting court:", error);
+    logError("deleteCourt", error);
     return { success: false, error: "Erreur lors de la suppression" };
   }
 }

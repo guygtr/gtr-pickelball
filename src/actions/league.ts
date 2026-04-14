@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { leagueSchema } from "@/lib/validations/league";
 import { revalidatePath } from "next/cache";
 import { ensurePrismaManager, ensureLeagueManager } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 
 export async function createLeague(formData: FormData) {
   try {
@@ -48,7 +49,7 @@ export async function createLeague(formData: FormData) {
     revalidatePath("/leagues");
     return { success: true, id: league.id };
   } catch (err) {
-    console.error("Erreur createLeague:", err);
+    logError("createLeague", err);
     const errorMessage = err instanceof Error ? err.message : "Une erreur imprévue est survenue lors de la création.";
     return { success: false, error: errorMessage };
   }
@@ -92,7 +93,7 @@ export async function updateLeague(leagueId: string, formData: FormData) {
     revalidatePath(`/leagues/${leagueId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error updating league:", error);
+    logError("updateLeague", error);
     return { success: false, error: "Erreur lors de la mise à jour" };
   }
 }
@@ -141,7 +142,7 @@ export async function deleteLeague(leagueId: string) {
             throw new Error("Action non autorisée.");
         }
     } catch (error) {
-        console.error("Erreur deleteLeague:", error);
+        logError("deleteLeague", error);
         const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de la suppression.";
         return { success: false, error: errorMessage };
     }

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getEnsuredUser } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 
 /**
  * Ajoute un co-gestionnaire à une ligue via son adresse email.
@@ -56,7 +57,7 @@ export async function addCoManager(leagueId: string, email: string) {
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
   } catch (error) {
-    console.error("Erreur addCoManager:", error);
+    logError("addCoManager", error);
     const msg = error instanceof Error ? error.message : "Une erreur est survenue.";
     return { success: false, error: msg };
   }
@@ -92,7 +93,7 @@ export async function removeCoManager(leagueId: string, managerId: string) {
     revalidatePath(`/leagues/${leagueId}/settings`);
     return { success: true };
   } catch (error) {
-    console.error("Erreur removeCoManager:", error);
+    logError("removeCoManager", error);
     return { success: false, error: "Impossible de retirer le gestionnaire." };
   }
 }

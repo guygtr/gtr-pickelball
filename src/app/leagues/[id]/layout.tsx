@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { LeagueNav } from "@/components/leagues/league-nav";
+import { z } from "zod";
+
+const leagueIdSchema = z.string().cuid("Identifiant de ligue invalide.");
 
 export default async function LeagueLayout({
   children,
@@ -10,13 +13,21 @@ export default async function LeagueLayout({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
+
+  // Validation du format de l'identifiant (CUID) avant toute requête DB
+  const parsedId = leagueIdSchema.safeParse(resolvedParams.id);
+  if (!parsedId.success) {
+    notFound();
+  }
+
   const league = await prisma.league.findUnique({
-    where: { id: resolvedParams.id },
+    where: { id: parsedId.data },
   });
 
   if (!league) {
     notFound();
   }
+
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">

@@ -1,7 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { ensureLeagueManager, ensurePrismaManager } from "@/lib/auth-utils";
+import { ensurePrismaManager, ensureLeagueManager } from "@/lib/auth-utils";
+import { logError } from "@/lib/logger";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -293,7 +294,7 @@ export async function restoreLeagueFromBackup(jsonData: unknown, importSessions:
       return { success: true, id: newLeague.id };
     }, { timeout: 60000 });
   } catch (error) {
-    console.error("Restore error:", error);
+    logError("restoreLeagueFromBackup", error);
     const msg = error instanceof Error ? error.message : "Erreur inconnue";
     return { success: false, error: msg };
   }
@@ -450,7 +451,7 @@ export async function smartImportIntoLeague(
       };
     }, { timeout: 60000 });
   } catch (error) {
-    console.error("Smart Import error:", error);
+    logError("smartImportIntoLeague", error);
     const msg = error instanceof Error ? error.message : "Erreur inconnue";
     return { success: false, error: msg };
   }
