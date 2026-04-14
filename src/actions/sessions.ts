@@ -74,3 +74,34 @@ export async function deleteSession(sessionId: string) {
     return { success: false, error: errorMessage };
   }
 }
+
+/**
+ * Force la fin d'une session prématurément, ce qui empêchera de générer de nouveaux matchs.
+ * @param {string} sessionId ID de la session.
+ */
+export async function terminateSession(sessionId: string) {
+  try {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { leagueId: true }
+    });
+
+    if (!session) return { success: false, error: "Session non trouvée" };
+
+    await ensureLeagueManager(session.leagueId);
+
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: { status: "COMPLETED" }
+    });
+
+    revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
+    revalidatePath(`/leagues/${session.leagueId}/sessions`);
+    
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
+    console.error("Error terminating session:", errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}

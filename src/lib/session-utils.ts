@@ -15,9 +15,17 @@ export type SessionWithMeta = {
 };
 
 /**
- * Détermine le statut d'une session en fonction de l'avancement des matchs.
+ * Détermine le statut d'une session en fonction de l'avancement des matchs ou de son forçage.
  */
 export function getSessionStatus(session: SessionWithMeta) {
+  // 1. Terminé forcé (si terminé manuellement via la base de données)
+  if (session.status === "COMPLETED") {
+    return {
+      label: "Terminé",
+      color: "bg-slate-500/10 text-slate-400 font-bold flex gap-1",
+    };
+  }
+
   const matches = session.matches || [];
   const totalMatches = matches.length || (session._count?.matches || 0);
 

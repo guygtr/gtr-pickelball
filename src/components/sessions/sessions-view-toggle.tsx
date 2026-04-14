@@ -37,11 +37,50 @@ export function SessionsViewToggle({
   leagueId: string;
 }) {
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [sortOrder, setSortOrder] = useState<"upcoming_first" | "date_desc" | "date_asc">("upcoming_first");
+
+  const sortedSessions = [...sessions].sort((a, b) => {
+    if (sortOrder === "date_desc") {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    }
+    if (sortOrder === "date_asc") {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+    
+    // Sort logic for "upcoming_first"
+    const statusA = getSessionStatus(a as unknown as import("@/lib/session-utils").SessionWithMeta);
+    const statusB = getSessionStatus(b as unknown as import("@/lib/session-utils").SessionWithMeta);
+    
+    const aIsFinished = statusA.label === "Terminé";
+    const bIsFinished = statusB.label === "Terminé";
+
+    // Finished ones go to the bottom
+    if (aIsFinished && !bIsFinished) return 1;
+    if (!aIsFinished && bIsFinished) return -1;
+
+    // Both are NOT finished: sort ascending (closest incoming first)
+    if (!aIsFinished && !bIsFinished) {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    }
+    
+    // Both ARE finished: sort descending (most recent finished first)
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <div className="flex p-1 bg-white/5 border border-white/10 rounded-xl">
+      <div className="flex justify-between items-center sm:justify-end gap-3 flex-wrap">
+        <select 
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value as "upcoming_first" | "date_desc" | "date_asc")}
+          className="bg-white/5 border border-white/10 text-slate-300 text-xs rounded-xl px-3 py-2 outline-none focus:border-pickle-secondary/50 cursor-pointer"
+        >
+          <option value="upcoming_first" className="bg-slate-900 text-slate-200">Actives d'abord (Chronologique)</option>
+          <option value="date_desc" className="bg-slate-900 text-slate-200">Plus récentes d'abord</option>
+          <option value="date_asc" className="bg-slate-900 text-slate-200">Plus anciennes d'abord</option>
+        </select>
+
+        <div className="flex p-1 bg-white/5 border border-white/10 rounded-xl disabled">
           <button
             onClick={() => setView("grid")}
             className={`p-2 rounded-lg transition-all ${
@@ -67,7 +106,7 @@ export function SessionsViewToggle({
 
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sessions.map((session) => {
+          {sortedSessions.map((session) => {
             const status = getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta);
             return (
               <Link key={session.id} href={`/leagues/${leagueId}/sessions/${session.id}`}>
@@ -125,7 +164,7 @@ export function SessionsViewToggle({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {sessions.map((session) => {
+                {sortedSessions.map((session) => {
                   const status = getSessionStatus(session as unknown as import("@/lib/session-utils").SessionWithMeta);
                   return (
                     <tr key={session.id} className="group hover:bg-white/5 transition-colors">

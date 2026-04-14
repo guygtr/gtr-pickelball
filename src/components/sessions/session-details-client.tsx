@@ -5,6 +5,7 @@ import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Lock, Unlock } from 
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matches";
+import { terminateSession } from "@/actions/sessions";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
 import toast from "react-hot-toast";
@@ -152,6 +153,26 @@ export function SessionDetailsClient({
     }
   }
 
+  async function handleTerminateSession() {
+    if (!confirm("Voulez-vous vraiment terminer cette session ?\n\nCela empêchera la génération de nouvelles parties.")) return;
+    setLoading(true);
+    const loadingToast = toast.loading("Fermeture de la session...");
+    try {
+      const result = await terminateSession(session.id);
+      if (result.success) {
+        toast.success("Session terminée avec succès", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur de fermeture", { id: loadingToast });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur technique", { id: loadingToast });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const presentCount = initialAttendances.filter(a => a.isPresent).length;
 
   return (
@@ -290,16 +311,29 @@ export function SessionDetailsClient({
             {"VUE D'ENSEMBLE DES MATCHS"}
           </h3>
 
-          {initialMatches.length > 0 && (
-            <button
-                onClick={handleDeleteAllMatches}
+          <div className="flex items-center gap-2">
+            {statusLabel !== "Terminé" && initialMatches.length > 0 && (
+              <button
+                onClick={handleTerminateSession}
                 disabled={loading}
-                className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-red-500 hover:text-white border border-red-500/30 hover:bg-red-500 rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
-            >
-                <Trash2 className="w-3 h-3" />
-                Tout supprimer
-            </button>
-          )}
+                className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-pickle-primary hover:text-black border border-pickle-primary/30 hover:bg-pickle-primary rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Terminer
+              </button>
+            )}
+
+            {initialMatches.length > 0 && (
+              <button
+                  onClick={handleDeleteAllMatches}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-red-500 hover:text-white border border-red-500/30 hover:bg-red-500 rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
+              >
+                  <Trash2 className="w-3 h-3" />
+                  Tout supprimer
+              </button>
+            )}
+          </div>
         </div>
 
         {initialMatches.length === 0 ? (
