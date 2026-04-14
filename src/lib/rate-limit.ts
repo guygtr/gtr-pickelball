@@ -1,5 +1,3 @@
-"use server";
-
 /**
  * Module de rate limiting en mémoire pour les Server Actions.
  * Protège les actions d'authentification contre les attaques par force brute.
