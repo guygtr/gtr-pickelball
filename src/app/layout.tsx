@@ -19,6 +19,23 @@ export const metadata: Metadata = {
   title: "GTR-Pickelball — La Plateforme de Ligue Ultime",
   description: "Gérez vos ligues de pickleball avec élégance. Fair-play intelligent, organisation mobile-first et interface Next-Gen.",
   keywords: ["Pickleball", "Ligue", "Tournoi", "Fairplay", "GTR Team"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Pickelball GTR",
+  },
+  icons: {
+    apple: "/favicon.ico",
+  },
+};
+
+export const viewport = {
+  themeColor: "#0a0a0c",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 import { createClient } from "@/utils/supabase/server";

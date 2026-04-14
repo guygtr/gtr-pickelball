@@ -53,3 +53,20 @@ Ce journal consigne l'histoire technique du projet GTR-Pickleball.
 - **Notification** : Alerte de flotte envoyée sur Discord.
 
 **Sceau de l'Agent : Starship (Antigravity AI)** 🛸⚓🛡️🤝
+## 📅 2026-04-14 — Evolution v2.7.4 (Hardening & QA Audit) 🛡️🚀
+
+### 🛡️ Sécurité & Hardening
+- **IDOR Protection** : Durcissement systématique de toutes les Server Actions avec `ensureLeagueManager()`.
+- **Validation CUID** : Centralisation de la validation des identifiants dans le `layout.tsx` pour protéger l'ensemble des sous-routes de ligue.
+- **Logging Sécurisé** : Remplacement des `console.error` par `logError()` pour masquer les détails techniques en production tout en préservant le diagnostic.
+- **Rate Limiting** : Implémentation d'un module de limitation de débit en mémoire pour protéger les actions d'authentification.
+
+### 🧪 Assurance Qualité (QA)
+- **Audit de Production** : Test exhaustif des flux (Ligue, Joueurs, Sessions, Matchmaking) validé avec un compte de test dédié.
+- **Workflows GTR-Team** : Déploiement des workflows `/full-solution-qa` et `/incremental-qa-audit` dans le dépôt central de la flotte.
+
+### 🚀 Release Master v2.7.4 [STABLE]
+- **Correction Build** : Résolution de l'erreur Turbopack liée aux exports synchrones dans les fichiers `"use server"`.
+- **Déploiement** : Mise en production confirmée sur Vercel après validation du build local.
+
+**Sceau de l'Agent : Antigravity (Advanced AI Coding)** 🛸⚓🛡️🚀
