@@ -21,7 +21,6 @@ export interface MatchmakingStats {
   matchupCount: Map<string, number>;
   quartetCount: Map<string, number>; // Groups of 4 playing together
   lastMatchups: Set<string>; 
-  lastOppositions: Set<string>;
   playerSkills: Map<string, number>;
   mode: MatchmakingMode;
 }
@@ -65,10 +64,9 @@ function calculateMatchCost(
 
   // Configuration des poids de rotation
   const PARTNER_WEIGHT = isRandomMode ? 50000 : 1000; 
-  const OPPOSITION_WEIGHT = isRandomMode ? 500 : 2000; // Élevé pour décourager les redites face à face
+  const OPPOSITION_WEIGHT = isRandomMode ? 500 : 1;
   const MATCHUP_WEIGHT = isRandomMode ? 20000 : 5000;
   const QUARTET_WEIGHT = isRandomMode ? 100000 : 2000; // Forte pénalité pour éviter que les 4 mêmes restent ensemble
-  const CONSECUTIVE_OPP_WEIGHT = isRandomMode ? 10000 : 25000; // Interdiction d'affronter deux rondes consécutives
 
   // Configuration des poids de niveau (Skill)
   // En mode COMPÉTITION, l'équilibre des niveaux devient crucial
@@ -80,22 +78,10 @@ function calculateMatchCost(
     const p1 = stats.partnershipCount.get(getPartnershipKey(team1[0], team1[1])) || 0;
     const p2 = stats.partnershipCount.get(getPartnershipKey(team2[0], team2[1])) || 0;
     
-    const kO1 = getPartnershipKey(team1[0], team2[0]);
-    const kO2 = getPartnershipKey(team1[0], team2[1]);
-    const kO3 = getPartnershipKey(team1[1], team2[0]);
-    const kO4 = getPartnershipKey(team1[1], team2[1]);
-
-    const o1 = stats.oppositionCount.get(kO1) || 0;
-    const o2 = stats.oppositionCount.get(kO2) || 0;
-    const o3 = stats.oppositionCount.get(kO3) || 0;
-    const o4 = stats.oppositionCount.get(kO4) || 0;
-
-    const consecutiveOppCost = (
-      (stats.lastOppositions.has(kO1) ? 1 : 0) +
-      (stats.lastOppositions.has(kO2) ? 1 : 0) +
-      (stats.lastOppositions.has(kO3) ? 1 : 0) +
-      (stats.lastOppositions.has(kO4) ? 1 : 0)
-    ) * CONSECUTIVE_OPP_WEIGHT;
+    const o1 = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[0])) || 0;
+    const o2 = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[1])) || 0;
+    const o3 = stats.oppositionCount.get(getPartnershipKey(team1[1], team2[0])) || 0;
+    const o4 = stats.oppositionCount.get(getPartnershipKey(team1[1], team2[1])) || 0;
     
     const matchupKey = getMatchupKey(team1, team2);
     const mCount = stats.matchupCount.get(matchupKey) || 0;
@@ -106,8 +92,7 @@ function calculateMatchCost(
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
     currentCost += (p1 + p2) * PARTNER_WEIGHT + 
-                   (Math.pow(o1, 2) + Math.pow(o2, 2) + Math.pow(o3, 2) + Math.pow(o4, 2)) * OPPOSITION_WEIGHT + 
-                   consecutiveOppCost +
+                   (o1 + o2 + o3 + o4) * OPPOSITION_WEIGHT + 
                    (mCount * MATCHUP_WEIGHT) + 
                    (qCount * QUARTET_WEIGHT) +
                    immediatePenalty;
@@ -134,14 +119,11 @@ function calculateMatchCost(
 
   } else {
     // Mode Simple
-    const kO = getPartnershipKey(team1[0], team2[0]);
-    const o = stats.oppositionCount.get(kO) || 0;
-    const consecutiveOppCost = stats.lastOppositions.has(kO) ? CONSECUTIVE_OPP_WEIGHT : 0;
-    
+    const o = stats.oppositionCount.get(getPartnershipKey(team1[0], team2[0])) || 0;
     const matchupKey = getMatchupKey(team1, team2);
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
     
-    currentCost += (Math.pow(o, 2) * OPPOSITION_WEIGHT) + consecutiveOppCost + immediatePenalty;
+    currentCost += o * OPPOSITION_WEIGHT + immediatePenalty;
 
     if (stats.mode === "COMPETITIVE") {
       const s1 = stats.playerSkills.get(team1[0]) || 3.0;
@@ -212,7 +194,6 @@ function cloneMatchmakingStats(stats: MatchmakingStats): MatchmakingStats {
     matchupCount: new Map(stats.matchupCount),
     quartetCount: new Map(stats.quartetCount),
     lastMatchups: new Set(stats.lastMatchups),
-    lastOppositions: new Set(stats.lastOppositions),
     playerSkills: new Map(stats.playerSkills),
     mode: stats.mode
   };
@@ -263,7 +244,6 @@ export function generateFullSessionMatches(
       
       // 3. Préparer les Matchups de la ronde précédente
       stats.lastMatchups.clear();
-      stats.lastOppositions.clear();
 
       // 4. Appliquer les matchs et mettre à jour les stats temporaires de la simulation
       roundMatches.forEach(m => {
@@ -282,15 +262,14 @@ export function generateFullSessionMatches(
         if (m.team1.length === 2) {
           stats.partnershipCount.set(getPartnershipKey(m.team1[0], m.team1[1]), (stats.partnershipCount.get(getPartnershipKey(m.team1[0], m.team1[1])) || 0) + 1);
           stats.partnershipCount.set(getPartnershipKey(m.team2[0], m.team2[1]), (stats.partnershipCount.get(getPartnershipKey(m.team2[0], m.team2[1])) || 0) + 1);
-        }
-
-        m.team1.forEach(p1Id => {
-          m.team2.forEach(p2Id => {
-            const key = getPartnershipKey(p1Id, p2Id);
-            stats.oppositionCount.set(key, (stats.oppositionCount.get(key) || 0) + 1);
-            stats.lastOppositions.add(key);
+          
+          m.team1.forEach(p1Id => {
+            m.team2.forEach(p2Id => {
+              const key = getPartnershipKey(p1Id, p2Id);
+              stats.oppositionCount.set(key, (stats.oppositionCount.get(key) || 0) + 1);
+            });
           });
-        });
+        }
       });
     }
 
