@@ -67,7 +67,7 @@ export default async function SettingsPage() {
 
       {/* Footer info */}
       <p className="mt-12 text-center text-xs text-slate-500 font-medium">
-        GTR-Pickelball v1.0.0 — Fait avec passion pour le sport.
+        GTR-Pickelball v2.7.3 — Fait avec passion pour le sport.
       </p>
     </div>
   );
