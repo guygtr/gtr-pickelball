@@ -23,6 +23,7 @@ export function AddPlayerModal({
     email: "",
     phone: "",
     skillLevel: DEFAULT_SKILL_LEVEL,
+    aiLevel: null as number | null,
     type: "permanent" as "permanent" | "remplacant",
   });
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,7 @@ export function AddPlayerModal({
           email: "",
           phone: "",
           skillLevel: DEFAULT_SKILL_LEVEL,
+          aiLevel: null,
           type: "permanent",
         });
       }
@@ -109,7 +111,7 @@ export function AddPlayerModal({
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300 flex justify-between">
-                Skill Level
+                Niveau Manuel
                 <span className="text-pickle-primary font-bold">{formData.skillLevel.toFixed(1)}</span>
               </label>
               <select
@@ -124,6 +126,27 @@ export function AddPlayerModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300 flex justify-between">
+              Niveau IA (Facultatif)
+              <span className="text-pickle-secondary font-bold">
+                {formData.aiLevel ? formData.aiLevel.toFixed(1) : "Automatique"}
+              </span>
+            </label>
+            <select
+              value={formData.aiLevel || ""}
+              onChange={(e) => setFormData({ ...formData, aiLevel: e.target.value ? parseFloat(e.target.value) : null })}
+              className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all appearance-none cursor-pointer"
+            >
+              <option value="">Utiliser le niveau manuel</option>
+              {SKILL_LEVELS.map(level => (
+                <option key={level} value={level}>
+                  {level.toFixed(1)}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2">

@@ -21,6 +21,7 @@ export async function createPlayer(data: PlayerInput) {
         email: validated.email || null,
         phone: validated.phone || null,
         skillLevel: validated.skillLevel,
+        aiLevel: validated.aiLevel ?? null,
         type: validated.type,
         leagueId: validated.leagueId,
       },
@@ -48,6 +49,7 @@ export async function importPlayers(leagueId: string, players: Record<string, un
       email: p.email ? String(p.email) : "",
       phone: p.phone ? String(p.phone) : "",
       skillLevel: p.skillLevel ? parseFloat(String(p.skillLevel)) : 2.0,
+      aiLevel: p.aiLevel ? parseFloat(String(p.aiLevel)) : null,
       type: (p.type === "remplacant" || p.type === "permanent") ? p.type : "permanent",
     }));
 
@@ -58,6 +60,7 @@ export async function importPlayers(leagueId: string, players: Record<string, un
     await prisma.player.createMany({
       data: validatedPlayers.map(p => ({
         ...p,
+        aiLevel: p.aiLevel ?? p.skillLevel, // Si absent, on prend le niveau manuel
         email: p.email || null,
         phone: p.phone || null,
         leagueId,
@@ -107,6 +110,7 @@ export async function updatePlayer(playerId: string, data: PlayerInput) {
         email: validated.email || null,
         phone: validated.phone || null,
         skillLevel: validated.skillLevel,
+        aiLevel: validated.aiLevel ?? null,
         type: validated.type,
       },
     });

@@ -81,7 +81,9 @@ model Player {
   lastName    String   // Nom
   email       String?  // Courriel (optionnel)
   phone       String?  // Téléphone (optionnel)
-  skillLevel  Float    @default(2.0) // Niveau actuel (ex: 2.0, 3.5, 4.0)
+  skillLevel  Float    @default(2.0) // Niveau manuel (Matchmaking)
+  aiLevel     Float?   // Niveau évolutif calculé par l'IA
+  aiMetadata  Json?    // Historique, confiance et notes IA
   type        String   @default("permanent") // "permanent" | "remplacant"
   isActive    Boolean  @default(true)
   

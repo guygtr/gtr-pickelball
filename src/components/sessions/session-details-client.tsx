@@ -8,6 +8,7 @@ import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggl
 import { terminateSession } from "@/actions/sessions";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
+import { AiRecapCard } from "./AiRecapCard";
 import toast from "react-hot-toast";
 
 interface Player {
@@ -335,6 +336,15 @@ export function SessionDetailsClient({
             )}
           </div>
         </div>
+
+        {/* GTR SMART RECAP (IA) */}
+        {(statusLabel === "Terminé" || (session.settings as any)?.aiRecap) && (
+          <AiRecapCard 
+            sessionId={session.id} 
+            initialRecap={(session.settings as any)?.aiRecap}
+            isCompleted={statusLabel === "Terminé"}
+          />
+        )}
 
         {initialMatches.length === 0 ? (
           <GlassCard className="p-16 text-center border-dashed border-white/5">

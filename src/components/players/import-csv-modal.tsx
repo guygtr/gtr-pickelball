@@ -59,6 +59,7 @@ export function ImportCSVModal({
             email: row.email || row.Email || row.Courriel || "",
             phone: row.phone || row.telephone || row.Telephone || row.Phone || "",
             skillLevel: row.skillLevel || row.niveau || row.Niveau || row.Level || "3.0",
+            aiLevel: row.aiLevel || row.ia || row.IA || row["Niveau IA"] || row["Niveau évolutif"] || row["AI Level"] || null,
           })).filter((p) => p.firstName || p.lastName);
 
           await importPlayers(leagueId, mappedPlayers);

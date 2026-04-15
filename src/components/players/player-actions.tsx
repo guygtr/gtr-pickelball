@@ -13,6 +13,7 @@ interface Player {
   email?: string | null;
   phone?: string | null;
   skillLevel: number;
+  aiLevel?: number | null;
   type: "permanent" | "remplacant";
 }
 

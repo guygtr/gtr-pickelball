@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ensureLeagueManager } from "@/lib/auth-utils";
 import { logError } from "@/lib/logger";
+import { processSessionAiLevels } from "./ai-level";
 
 /**
  * Crée une nouvelle session de jeu pour une ligue.
@@ -95,6 +96,12 @@ export async function terminateSession(sessionId: string) {
       where: { id: sessionId },
       data: { status: "COMPLETED" }
     });
+
+    // DÉCLENCHEUR IA : Recalculer les niveaux de performance
+    // On le fait de manière asynchrone pour ne pas bloquer l'UI, 
+    // ou bloquante si on veut être sûr que les données sont prêtes.
+    // Ici, on attend pour garantir la cohérence avant le rafraîchissement.
+    await processSessionAiLevels(sessionId);
 
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);
     revalidatePath(`/leagues/${session.leagueId}/sessions`);

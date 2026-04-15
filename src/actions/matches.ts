@@ -15,21 +15,10 @@ import {
   toggleRoundStatusSchema 
 } from "@/lib/validations/match";
 
+import { MatchData } from "@/lib/domain/match-types";
+
 interface SessionWithIterations {
   iterations: number;
-}
-
-/**
- * Interface pour les données JSON d'un match.
- */
-interface MatchData {
-  status: "UPCOMING" | "LIVE" | "COMPLETED";
-  team1: string[];
-  team2: string[];
-  score1: number;
-  score2: number;
-  type: "SINGLES" | "DOUBLES";
-  winner?: number;
 }
 
 /**

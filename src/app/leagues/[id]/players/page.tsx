@@ -109,6 +109,9 @@ export default async function PlayersPage({
                     Niveau {sort === 'level' && (dir === 'asc' ? "↑" : "↓")}
                   </Link>
                 </th>
+                <th className="px-6 py-4">
+                  <span className="text-pickle-primary group-hover:text-pickle-secondary transition-colors">IA</span>
+                </th>
                 <th className="px-6 py-4 text-slate-500/50">Contact</th>
                 <th className="px-6 py-4 text-right text-slate-500/50">Actions</th>
               </tr>
@@ -134,9 +137,29 @@ export default async function PlayersPage({
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-bold font-mono">
-                      {player.skillLevel.toFixed(1)}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-bold font-mono w-fit">
+                        {player.skillLevel.toFixed(1)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-1 rounded-md font-mono text-xs font-bold ${
+                        player.aiLevel 
+                          ? 'bg-pickle-primary/10 border border-pickle-primary/20 text-pickle-primary' 
+                          : 'bg-white/5 border border-white/10 text-slate-500 italic'
+                      }`}>
+                        {player.aiLevel ? player.aiLevel.toFixed(3) : player.skillLevel.toFixed(3)}
+                      </span>
+                      {player.aiLevel && (Math.abs(player.aiLevel - player.skillLevel) >= 0.2) && (
+                        <span className={`text-[10px] font-black ${
+                          player.aiLevel > player.skillLevel ? 'text-green-500 animate-pulse' : 'text-orange-500'
+                        }`}>
+                          {player.aiLevel > player.skillLevel ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-slate-400 text-[11px]">
                     {player.email || player.phone || "-"}

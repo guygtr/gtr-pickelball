@@ -15,6 +15,7 @@ interface Player {
   email?: string | null;
   phone?: string | null;
   skillLevel: number;
+  aiLevel?: number | null;
   type: "permanent" | "remplacant";
 }
 
@@ -35,6 +36,7 @@ export function EditPlayerModal({
     email: "",
     phone: "",
     skillLevel: DEFAULT_SKILL_LEVEL,
+    aiLevel: null as number | null,
     type: "permanent" as "permanent" | "remplacant",
   });
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,7 @@ export function EditPlayerModal({
         email: player.email || "",
         phone: player.phone || "",
         skillLevel: player.skillLevel || DEFAULT_SKILL_LEVEL,
+        aiLevel: player.aiLevel ?? null,
         type: (player.type as "permanent" | "remplacant") || "permanent",
       });
     }
@@ -149,7 +152,7 @@ export function EditPlayerModal({
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-300 flex justify-between">
-                Skill Level
+                Niveau Manuel
                 <span className="text-pickle-secondary font-bold">{formData.skillLevel.toFixed(1)}</span>
               </label>
               <select
@@ -157,6 +160,37 @@ export function EditPlayerModal({
                 onChange={(e) => setFormData({ ...formData, skillLevel: parseFloat(e.target.value) })}
                 className="w-full bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-secondary/50 outline-none transition-all appearance-none cursor-pointer"
               >
+                {SKILL_LEVELS.map(level => (
+                  <option key={level} value={level}>
+                    {level.toFixed(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-300 flex justify-between">
+              Niveau IA (Évolutif)
+              <span className={`font-bold ${formData.aiLevel ? 'text-pickle-primary' : 'text-slate-400'}`}>
+                {formData.aiLevel ? formData.aiLevel.toFixed(3) : formData.skillLevel.toFixed(1)}
+              </span>
+            </label>
+            <div className="flex gap-4">
+              <select
+                value={formData.aiLevel || ""}
+                onChange={(e) => setFormData({ ...formData, aiLevel: e.target.value ? parseFloat(e.target.value) : null })}
+                className="flex-1 bg-slate-900 border border-white/10 rounded-lg py-2.5 px-4 text-white focus:ring-2 focus:ring-pickle-primary/50 outline-none transition-all appearance-none cursor-pointer"
+              >
+                {/* Si un niveau IA spécifique existe et n'est pas dans la liste standard, on l'affiche comme l'option actuelle */}
+                {formData.aiLevel && !SKILL_LEVELS.includes(formData.aiLevel) && (
+                  <option value={formData.aiLevel}>
+                    Calculé par IA ({formData.aiLevel.toFixed(3)})
+                  </option>
+                )}
+                
+                <option value="">Identique Niveau Manuel</option>
+                
                 {SKILL_LEVELS.map(level => (
                   <option key={level} value={level}>
                     {level.toFixed(1)}
