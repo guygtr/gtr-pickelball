@@ -21,7 +21,8 @@
 - [ ] (Optionnel) Prisma 6 alignement bar-manager — non prioritaire
 
 ## Notes agents locaux
-- `agents/yoda.md`, `mario.md`, `ezio.md`, `leia.md` conservés
+- Alignés roster hub : `elon.md` · `tesla.md` · `ezio.md` · `altair.md` · `spacex.md`
+- Anciens yoda/mario/leia retirés
 
 ---
-**Alignement .gtr v3.6** : 2026-07-13
+**Alignement .gtr v3.6.1** : 2026-07-13 (rename équipe)
