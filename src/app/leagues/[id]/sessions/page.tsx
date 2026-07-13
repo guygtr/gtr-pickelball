@@ -9,34 +9,39 @@ export default async function SessionsPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  
+
   const league = await prisma.league.findUnique({
     where: { id: resolvedParams.id },
-    select: { settings: true }
+    select: { settings: true },
   });
 
   const sessions = await prisma.session.findMany({
     where: { leagueId: resolvedParams.id },
     include: {
       matches: {
-        select: { data: true }
+        select: { data: true },
       },
       _count: {
-        select: { matches: true }
-      }
+        select: { matches: true },
+      },
     },
     orderBy: { date: "desc" },
   });
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-pickle-secondary" />
-          Sessions de Jeu
-        </h2>
-        <SessionListClient 
-          leagueId={resolvedParams.id} 
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/5 pb-6">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-semibold text-white tracking-tight flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-pickle-primary" />
+            Sessions
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Planifiez, puis ouvrez le jour de match sur le terrain.
+          </p>
+        </div>
+        <SessionListClient
+          leagueId={resolvedParams.id}
           leagueSettings={league?.settings as Record<string, unknown>}
         />
       </div>

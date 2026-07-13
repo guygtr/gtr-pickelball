@@ -17,18 +17,21 @@ interface Match {
   data: {
     team1: string[];
     team2: string[];
-    winner?: number; // 1, 2, or 0 (draw)
+    winner?: number;
   };
 }
 
-export function ResultModal({ 
-  isOpen, 
-  onClose, 
+/**
+ * Saisie score — Option B : gros boutons tactiles, copy claire.
+ */
+export function ResultModal({
+  isOpen,
+  onClose,
   match,
-  leaguePlayers
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
+  leaguePlayers,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
   match: Match | null;
   leaguePlayers: Player[];
 }) {
@@ -37,13 +40,13 @@ export function ResultModal({
 
   if (!isOpen || !match) return null;
 
-  const team1Names = match.data.team1.map(id => {
-    const p = leaguePlayers.find(lp => lp.id === id);
+  const team1Names = match.data.team1.map((id) => {
+    const p = leaguePlayers.find((lp) => lp.id === id);
     return p ? `${p.firstName} ${p.lastName}` : "Inconnu";
   });
 
-  const team2Names = match.data.team2.map(id => {
-    const p = leaguePlayers.find(lp => lp.id === id);
+  const team2Names = match.data.team2.map((id) => {
+    const p = leaguePlayers.find((lp) => lp.id === id);
     return p ? `${p.firstName} ${p.lastName}` : "Inconnu";
   });
 
@@ -65,92 +68,111 @@ export function ResultModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <GlassCard className="w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border-pickle-muted/30">
-        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
+      <GlassCard
+        className="w-full max-w-lg overflow-hidden rounded-t-2xl sm:rounded-2xl border-white/10"
+        hoverEffect={false}
+      >
+        <div className="p-4 sm:p-5 border-b border-white/5 flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 text-pickle-muted" />
-            Résultat du Match
+            Qui a gagné ?
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            aria-label="Fermer"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-8 space-y-8">
-          <div className="text-center space-y-2">
-            <p className="text-pickle-muted font-bold text-sm uppercase tracking-widest">Étape de Saisie</p>
-            <h4 className="text-white text-lg font-medium italic">&quot;Qui a remporté la victoire ?&quot;</h4>
-            <p className="text-slate-500 text-xs">Sélectionnez l&apos;équipe gagnante pour enregistrer le résultat.</p>
-          </div>
+        <div className="p-4 sm:p-6 space-y-4">
+          <p className="text-sm text-slate-400 text-center">
+            Appuyez sur l&apos;équipe gagnante
+          </p>
 
-          <div className="flex items-stretch gap-4">
-            {/* Team 1 */}
-            <button 
+          <div className="flex flex-col sm:flex-row items-stretch gap-3">
+            <button
+              type="button"
               onClick={() => handleSetWinner(1)}
               disabled={loading}
-              className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
-                match.data.winner === 1 
-                  ? "bg-pickle-muted/20 border-pickle-muted shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
-                  : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
+              className={`flex-1 min-h-[100px] p-5 rounded-2xl border-2 transition-colors flex flex-col items-center justify-center gap-2 active:scale-[0.98] ${
+                match.data.winner === 1
+                  ? "bg-pickle-primary/15 border-pickle-primary"
+                  : "bg-white/5 border-white/10 hover:border-white/25"
               }`}
             >
               <div className="space-y-1 text-center">
                 {team1Names.map((name, i) => (
-                  <div key={i} className="font-bold text-white text-sm">{name}</div>
+                  <div key={i} className="font-semibold text-white text-sm">
+                    {name}
+                  </div>
                 ))}
               </div>
-              <div className={`mt-2 py-1 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                match.data.winner === 1 ? "bg-pickle-muted text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
-              }`}>
-                {match.data.winner === 1 ? "Gagnant 👑" : "Équipe 1"}
-              </div>
+              <span
+                className={`mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+                  match.data.winner === 1
+                    ? "bg-pickle-primary text-black"
+                    : "bg-white/10 text-slate-400"
+                }`}
+              >
+                {match.data.winner === 1 ? "Gagnants" : "Équipe 1"}
+              </span>
             </button>
 
-            <div className="flex flex-col items-center justify-center px-4">
-                <div className="text-2xl font-black text-pickle-secondary italic">VS</div>
+            <div className="hidden sm:flex items-center justify-center px-1">
+              <span className="text-sm font-medium text-slate-500">VS</span>
             </div>
 
-            {/* Team 2 */}
-            <button 
+            <button
+              type="button"
               onClick={() => handleSetWinner(2)}
               disabled={loading}
-              className={`flex-1 p-6 rounded-2xl border-2 transition-all group flex flex-col items-center justify-center gap-3 ${
-                match.data.winner === 2 
-                  ? "bg-pickle-muted/20 border-pickle-muted shadow-[0_0_30px_rgba(251,146,60,0.2)]" 
-                  : "bg-white/5 border-white/5 hover:border-white/20 active:scale-95"
+              className={`flex-1 min-h-[100px] p-5 rounded-2xl border-2 transition-colors flex flex-col items-center justify-center gap-2 active:scale-[0.98] ${
+                match.data.winner === 2
+                  ? "bg-pickle-primary/15 border-pickle-primary"
+                  : "bg-white/5 border-white/10 hover:border-white/25"
               }`}
             >
               <div className="space-y-1 text-center">
                 {team2Names.map((name, i) => (
-                  <div key={i} className="font-bold text-white text-sm">{name}</div>
+                  <div key={i} className="font-semibold text-white text-sm">
+                    {name}
+                  </div>
                 ))}
               </div>
-              <div className={`mt-2 py-1 px-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                match.data.winner === 2 ? "bg-pickle-muted text-white" : "bg-white/10 text-slate-500 group-hover:text-slate-300"
-              }`}>
-                {match.data.winner === 2 ? "Gagnant 👑" : "Équipe 2"}
-              </div>
+              <span
+                className={`mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+                  match.data.winner === 2
+                    ? "bg-pickle-primary text-black"
+                    : "bg-white/10 text-slate-400"
+                }`}
+              >
+                {match.data.winner === 2 ? "Gagnants" : "Équipe 2"}
+              </span>
             </button>
           </div>
 
-          <div className="flex flex-col gap-3">
-             <button
+          <div className="flex flex-col gap-2 pt-1">
+            <button
+              type="button"
               onClick={() => handleSetWinner(0)}
               disabled={loading}
-              className={`w-full py-3 rounded-xl border font-bold text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
-                match.data.winner === 0 
-                  ? "bg-white/10 border-white/30 text-white" 
-                  : "bg-transparent border-white/5 text-slate-500 hover:text-slate-300 hover:border-white/10"
+              className={`w-full min-h-[44px] py-3 rounded-xl border text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                match.data.winner === 0
+                  ? "bg-white/10 border-white/25 text-white"
+                  : "border-white/10 text-slate-400 hover:text-white hover:border-white/20"
               }`}
             >
               <Minus className="w-4 h-4" />
-              Match Nul
+              Match nul
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2 text-slate-600 hover:text-slate-400 font-bold text-[10px] uppercase tracking-widest transition-all"
+              className="w-full py-2.5 text-sm text-slate-500 hover:text-slate-300 transition-colors"
             >
               Annuler
             </button>

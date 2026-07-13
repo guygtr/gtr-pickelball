@@ -10,8 +10,7 @@ export default async function HallOfFamePage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = await params;
-  
-  // 1. Charger les données de la ligue et des joueurs
+
   const league = await prisma.league.findUnique({
     where: { id: resolvedParams.id },
     include: {
@@ -23,42 +22,44 @@ export default async function HallOfFamePage({
     notFound();
   }
 
-  // 2. Récupérer tous les matchs terminés de la ligue
   const matches = await prisma.match.findMany({
     where: {
       session: {
-        leagueId: league.id
-      }
+        leagueId: league.id,
+      },
     },
     select: {
-      data: true
-    }
+      data: true,
+    },
   });
 
-  // 3. Calculer le classement
   const rankings = calculateLeagueRankings(league.players, matches);
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-pickle-muted/10 border border-pickle-muted/20">
-          <Trophy className="w-8 h-8 text-pickle-muted" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-            Hall of <span className="text-pickle-muted">Fame</span>
-          </h2>
-          <p className="text-[10px] font-bold text-slate-500 tracking-[0.3em] uppercase mt-1">Élite de la ligue — Classement Officiel</p>
+    <div className="space-y-6">
+      <div className="border-b border-white/5 pb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+            <Trophy className="w-5 h-5 text-pickle-muted" />
+          </div>
+          <div>
+            <h2 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+              Hall of Fame
+            </h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Classement par taux de victoire — égalité départagée par les wins.
+            </p>
+          </div>
         </div>
       </div>
 
-      <Leaderboard rankings={rankings} />
-      
-      <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 text-center">
-        <p className="text-slate-500 text-xs italic">
-          Le classement est basé sur le taux de victoire (Win Rate). En cas d&apos;égalité, le nombre de victoires totales prévaut.
-        </p>
-      </div>
+      {rankings.length === 0 ? (
+        <div className="text-center py-16 text-slate-500 text-sm">
+          Aucun match terminé pour l&apos;instant.
+        </div>
+      ) : (
+        <Leaderboard rankings={rankings} />
+      )}
     </div>
   );
 }

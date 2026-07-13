@@ -1,10 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Play, CheckCircle2, Circle, Trophy, Trash2, Lock, Unlock } from "lucide-react";
+import {
+  Users,
+  Play,
+  CheckCircle2,
+  Circle,
+  Trophy,
+  Trash2,
+  Lock,
+  Unlock,
+  AlertTriangle,
+} from "lucide-react";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
-import { toggleAttendance, generateMatches, deleteMatch, deleteAllMatches, toggleRoundStatus } from "@/actions/matches";
+import {
+  toggleAttendance,
+  generateMatches,
+  deleteMatch,
+  deleteAllMatches,
+  toggleRoundStatus,
+} from "@/actions/matches";
 import { terminateSession } from "@/actions/sessions";
 import { useRouter } from "next/navigation";
 import { ResultModal } from "@/components/matches/result-modal";
@@ -31,7 +47,7 @@ interface Match {
   data: {
     team1: string[];
     team2: string[];
-    winner?: number; // 1, 2, or 0 (draw)
+    winner?: number;
     status?: string;
   };
 }
@@ -41,479 +57,665 @@ interface Session {
   settings?: Record<string, unknown>;
 }
 
-export function SessionDetailsClient({ 
-  session, 
-  leaguePlayers, 
+/**
+ * Jour de match — Option B : présences → générer → scores, mobile-first.
+ */
+export function SessionDetailsClient({
+  session,
+  leaguePlayers,
   initialAttendances,
   initialMatches,
   courtCount,
-  statusLabel
-}: { 
-  session: Session; 
-  leaguePlayers: Player[]; 
+  statusLabel,
+}: {
+  session: Session;
+  leaguePlayers: Player[];
   initialAttendances: Attendance[];
   initialMatches: Match[];
   courtCount: number;
   statusLabel: string;
 }) {
   const [loading, setLoading] = useState(false);
-  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">("COMPETITIVE");
+  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">(
+    "COMPETITIVE"
+  );
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 
-  const attendancesMap = new Map(initialAttendances.map(a => [a.playerId, a.isPresent]));
-  const closedRounds = (session.settings as { closedRounds?: number[] })?.closedRounds || [];
+  const attendancesMap = new Map(
+    initialAttendances.map((a) => [a.playerId, a.isPresent])
+  );
+  const closedRounds =
+    (session.settings as { closedRounds?: number[] })?.closedRounds || [];
+  const aiRecap = (session.settings as { aiRecap?: string })?.aiRecap;
+  const isFinished = statusLabel === "Terminé";
+  const presentCount = initialAttendances.filter((a) => a.isPresent).length;
+  const scoredCount = initialMatches.filter(
+    (m) => m.data.winner !== undefined && m.data.winner !== null
+  ).length;
 
-  async function handleToggleAttendance(playerId: string, currentStatus: boolean) {
-    const action = currentStatus ? "Suppression de la présence..." : "Marquage de la présence...";
-    const loadingToast = toast.loading(action);
+  async function handleToggleAttendance(
+    playerId: string,
+    currentStatus: boolean
+  ) {
+    const loadingToast = toast.loading(
+      currentStatus ? "Marquer absent…" : "Marquer présent…"
+    );
     try {
-      const result = await toggleAttendance({ sessionId: session.id, playerId, isPresent: !currentStatus });
+      const result = await toggleAttendance({
+        sessionId: session.id,
+        playerId,
+        isPresent: !currentStatus,
+      });
       if (result.success) {
-        toast.success(currentStatus ? "Joueur absent" : "Joueur présent", { id: loadingToast });
+        toast.success(currentStatus ? "Absent" : "Présent", {
+          id: loadingToast,
+        });
         router.refresh();
       } else {
-        toast.error(result.error || "Erreur lors de la mise à jour", { id: loadingToast });
+        toast.error(result.error || "Erreur", { id: loadingToast });
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur technique de présence", { id: loadingToast });
+    } catch {
+      toast.error("Erreur technique", { id: loadingToast });
     }
   }
 
   async function handleGenerateMatches() {
     setLoading(true);
-    const modeLabel = generationMode === "RANDOM" ? "Aléatoire" : "Compétition";
-    const loadingToast = toast.loading(`Calcul des matchs (${modeLabel})...`);
+    const modeLabel =
+      generationMode === "RANDOM" ? "Aléatoire" : "Compétition";
+    const loadingToast = toast.loading(`Génération (${modeLabel})…`);
     try {
       const result = await generateMatches(session.id, generationMode);
       if (result.success) {
-        toast.success("Matchs générés avec succès !", { id: loadingToast });
+        toast.success("Matchs générés", { id: loadingToast });
         router.refresh();
       } else {
-        toast.error(result.error || "Échec de la génération", { id: loadingToast });
+        toast.error(result.error || "Échec", { id: loadingToast });
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur technique lors de la génération", { id: loadingToast });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleToggleRoundStatus(roundIdx: number, isClosed: boolean) {
-    const loadingToast = toast.loading(isClosed ? "Verrouillage de la ronde..." : "Déverrouillage...");
-    try {
-      const result = await toggleRoundStatus({ sessionId: session.id, roundIdx, isClosed });
-      if (result.success) {
-        toast.success(isClosed ? "Ronde verrouillée" : "Ronde déverrouillée", { id: loadingToast });
-        router.refresh();
-      } else {
-        toast.error(result.error || "Erreur de verrouillage", { id: loadingToast });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur technique de verrouillage", { id: loadingToast });
-    }
-  }
-
-  async function handleDeleteMatch(matchId: string) {
-    if (!confirm("Supprimer ce match ?")) return;
-    const loadingToast = toast.loading("Suppression du match...");
-    try {
-      const result = await deleteMatch(matchId);
-      if (result.success) {
-        toast.success("Match supprimé", { id: loadingToast });
-        router.refresh();
-      } else {
-        toast.error(result.error || "Erreur lors de la suppression", { id: loadingToast });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur technique de suppression", { id: loadingToast });
-    }
-  }
-
-  async function handleDeleteAllMatches() {
-    if (!confirm("⚠️ ATTENTION : Voulez-vous supprimer TOUS les matchs de cette session ? Cette action est irréversible.")) return;
-    setLoading(true);
-    const loadingToast = toast.loading("Nettoyage complet de la session...");
-    try {
-      const result = await deleteAllMatches(session.id);
-      if (result.success) {
-        toast.success("Tous les matchs ont été supprimés", { id: loadingToast });
-        router.refresh();
-      } else {
-        toast.error(result.error || "Erreur lors du nettoyage", { id: loadingToast });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur technique de nettoyage", { id: loadingToast });
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleTerminateSession() {
-    if (!confirm("Voulez-vous vraiment terminer cette session ?\n\nCela empêchera la génération de nouvelles parties.")) return;
-    setLoading(true);
-    const loadingToast = toast.loading("Fermeture de la session...");
-    try {
-      const result = await terminateSession(session.id);
-      if (result.success) {
-        toast.success("Session terminée avec succès", { id: loadingToast });
-        router.refresh();
-      } else {
-        toast.error(result.error || "Erreur de fermeture", { id: loadingToast });
-      }
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Erreur technique", { id: loadingToast });
     } finally {
       setLoading(false);
     }
   }
 
-  const presentCount = initialAttendances.filter(a => a.isPresent).length;
+  async function handleToggleRoundStatus(roundIdx: number, isClosed: boolean) {
+    const loadingToast = toast.loading(
+      isClosed ? "Verrouillage…" : "Déverrouillage…"
+    );
+    try {
+      const result = await toggleRoundStatus({
+        sessionId: session.id,
+        roundIdx,
+        isClosed,
+      });
+      if (result.success) {
+        toast.success(isClosed ? "Ronde verrouillée" : "Ronde ouverte", {
+          id: loadingToast,
+        });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur", { id: loadingToast });
+      }
+    } catch {
+      toast.error("Erreur technique", { id: loadingToast });
+    }
+  }
+
+  async function handleDeleteMatch(matchId: string) {
+    if (!confirm("Supprimer ce match ?")) return;
+    const loadingToast = toast.loading("Suppression…");
+    try {
+      const result = await deleteMatch(matchId);
+      if (result.success) {
+        toast.success("Match supprimé", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur", { id: loadingToast });
+      }
+    } catch {
+      toast.error("Erreur technique", { id: loadingToast });
+    }
+  }
+
+  async function handleDeleteAllMatches() {
+    if (
+      !confirm(
+        "Supprimer TOUS les matchs de cette session ? Action irréversible."
+      )
+    )
+      return;
+    setLoading(true);
+    const loadingToast = toast.loading("Nettoyage…");
+    try {
+      const result = await deleteAllMatches(session.id);
+      if (result.success) {
+        toast.success("Matchs supprimés", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur", { id: loadingToast });
+      }
+    } catch {
+      toast.error("Erreur technique", { id: loadingToast });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleTerminateSession() {
+    if (
+      !confirm(
+        "Terminer cette session ?\nPlus de nouvelles parties ne pourront être générées."
+      )
+    )
+      return;
+    setLoading(true);
+    const loadingToast = toast.loading("Fermeture…");
+    try {
+      const result = await terminateSession(session.id);
+      if (result.success) {
+        toast.success("Session terminée", { id: loadingToast });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Erreur", { id: loadingToast });
+      }
+    } catch {
+      toast.error("Erreur technique", { id: loadingToast });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const canGenerate = presentCount >= 2 && !loading && !isFinished;
+  const emptyCourts = courtCount < 1;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Liste des Présences */}
-      <div className="lg:col-span-1 space-y-6">
-        <GlassCard className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-pickle-primary" />
-              Présences ({presentCount}/{leaguePlayers.length})
-            </h3>
-          </div>
-
-          <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-            {(() => {
-              const permanents = leaguePlayers
-                .filter(p => p.type === 'permanent')
-                .sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
-              
-              const replacements = leaguePlayers
-                .filter(p => p.type === 'remplacant')
-                .sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
-
-              const renderPlayer = (player: Player) => {
-                const isPresent = attendancesMap.get(player.id) ?? false;
-                return (
-                  <button
-                    key={player.id}
-                    onClick={() => handleToggleAttendance(player.id, isPresent)}
-                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                      isPresent 
-                        ? 'bg-pickle-primary/10 border-pickle-primary/30 text-white' 
-                        : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="flex flex-col items-start text-left">
-                      <span className="font-bold flex items-center gap-2">
-                        {player.firstName} {player.lastName}
-                        <span className={`w-1.5 h-1.5 rounded-full ${player.type === 'permanent' ? 'bg-pickle-secondary' : 'bg-pickle-muted'}`} />
-                      </span>
-                      <span className="text-[9px] opacity-60 uppercase tracking-widest leading-none mt-1">
-                        LEVEL {player.skillLevel.toFixed(1)} • {player.type}
-                      </span>
-                    </div>
-                    {isPresent ? (
-                      <CheckCircle2 className="w-5 h-5 text-pickle-primary" />
-                    ) : (
-                      <Circle className="w-5 h-5 opacity-10" />
-                    )}
-                  </button>
-                );
-              };
-
-              return (
-                <div className="space-y-6">
-                  {permanents.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-pickle-secondary uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
-                        <div className="w-1 h-3 bg-pickle-secondary rounded-full" />
-                        Permanents
-                      </h4>
-                      <div className="space-y-1.5">
-                        {permanents.map(renderPlayer)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {replacements.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-pickle-muted uppercase tracking-[0.2em] px-1 opacity-80 flex items-center gap-2">
-                        <div className="w-1 h-3 bg-pickle-muted rounded-full" />
-                        Remplaçants
-                      </h4>
-                      <div className="space-y-1.5">
-                        {replacements.map(renderPlayer)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-white/5">
-            {/* Mode Selector */}
-            <div className="mb-6 space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 opacity-60">
-                Mode de Matchmaking
-              </label>
-              <div className="grid grid-cols-2 gap-2 bg-black/20 p-1 rounded-2xl border border-white/5">
-                <button 
-                  onClick={() => setGenerationMode("RANDOM")}
-                  className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
-                    generationMode === "RANDOM" 
-                      ? "bg-pickle-secondary/20 text-pickle-secondary shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
-                      : "text-slate-600 hover:text-slate-400"
-                  }`}
-                >
-                  ALÉATOIRE
-                </button>
-                <button 
-                  onClick={() => setGenerationMode("COMPETITIVE")}
-                  className={`py-2.5 rounded-xl text-[10px] font-black transition-all duration-300 tracking-widest ${
-                    generationMode === "COMPETITIVE" 
-                      ? "bg-pickle-muted/20 text-pickle-muted shadow-[0_0_15px_rgba(249,115,22,0.15)]" 
-                      : "text-slate-600 hover:text-slate-400"
-                  }`}
-                >
-                  COMPÉTITION
-                </button>
-              </div>
-            </div>
-
-            <NeonButton 
-              className="w-full py-5 text-[12px] tracking-[0.25em]" 
-              variant={generationMode === "COMPETITIVE" ? "muted" : "primary"}
-              disabled={presentCount < 2 || loading || statusLabel === "Terminé"}
-              onClick={handleGenerateMatches}
+    <div className="space-y-6">
+      {/* Étapes jour de match */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          {
+            n: 1,
+            label: "Présences",
+            done: presentCount >= 2,
+            active: presentCount < 2 && !isFinished,
+          },
+          {
+            n: 2,
+            label: "Matchs",
+            done: initialMatches.length > 0,
+            active:
+              presentCount >= 2 && initialMatches.length === 0 && !isFinished,
+          },
+          {
+            n: 3,
+            label: "Scores",
+            done:
+              initialMatches.length > 0 &&
+              scoredCount === initialMatches.length,
+            active: initialMatches.length > 0 && scoredCount < initialMatches.length,
+          },
+        ].map((step) => (
+          <div
+            key={step.n}
+            className={`rounded-xl border px-3 py-2.5 text-center ${
+              step.done
+                ? "border-pickle-primary/30 bg-pickle-primary/10"
+                : step.active
+                  ? "border-white/15 bg-white/5"
+                  : "border-white/5 bg-transparent opacity-60"
+            }`}
+          >
+            <p className="text-[10px] text-slate-500 mb-0.5">Étape {step.n}</p>
+            <p
+              className={`text-sm font-medium ${
+                step.done ? "text-pickle-primary" : "text-white"
+              }`}
             >
-              <Play className="w-5 h-5 flex-shrink-0" />
-              {statusLabel === "Terminé" ? "SESSION TERMINÉE" : loading ? "GÉNÉRATION..." : "GÉNÉRER LES PARTIES"}
-            </NeonButton>
-            <p className="text-[9px] text-center text-slate-500 mt-4 uppercase font-bold tracking-[0.3em] opacity-40">
-              GTR FAIR PLAY ENGINE v2.5
+              {step.label}
+              {step.n === 1 && presentCount > 0 ? ` (${presentCount})` : ""}
+              {step.n === 3 && initialMatches.length > 0
+                ? ` ${scoredCount}/${initialMatches.length}`
+                : ""}
             </p>
           </div>
-        </GlassCard>
+        ))}
       </div>
 
-      {/* Liste des Matchs */}
-      <div className="lg:col-span-2 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h3 className="text-2xl font-black text-white flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-pickle-muted" />
-            {"VUE D'ENSEMBLE DES MATCHS"}
-          </h3>
-
-          <div className="flex items-center gap-2">
-            {statusLabel !== "Terminé" && initialMatches.length > 0 && (
-              <button
-                onClick={handleTerminateSession}
-                disabled={loading}
-                className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-pickle-primary hover:text-black border border-pickle-primary/30 hover:bg-pickle-primary rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-3 h-3" />
-                Terminer
-              </button>
-            )}
-
-            {initialMatches.length > 0 && (
-              <button
-                  onClick={handleDeleteAllMatches}
-                  disabled={loading}
-                  className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-red-500 hover:text-white border border-red-500/30 hover:bg-red-500 rounded-lg transition-all uppercase tracking-widest disabled:opacity-50"
-              >
-                  <Trash2 className="w-3 h-3" />
-                  Tout supprimer
-              </button>
-            )}
+      {emptyCourts && (
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/25 bg-amber-500/10 text-sm text-amber-100">
+          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" />
+          <div>
+            <p className="font-medium">Aucun terrain configuré</p>
+            <p className="text-amber-100/70 text-xs mt-0.5">
+              Ajoutez des terrains dans Paramètres avant de générer des matchs.
+            </p>
           </div>
         </div>
+      )}
 
-        {/* GTR SMART RECAP (IA) */}
-        {(statusLabel === "Terminé" || (session.settings as any)?.aiRecap) && (
-          <AiRecapCard 
-            sessionId={session.id} 
-            initialRecap={(session.settings as any)?.aiRecap}
-            isCompleted={statusLabel === "Terminé"}
-          />
-        )}
-
-        {initialMatches.length === 0 ? (
-          <GlassCard className="p-16 text-center border-dashed border-white/5">
-            <div className="bg-white/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Play className="w-10 h-10 text-slate-700" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Présences */}
+        <div className="lg:col-span-1 space-y-4">
+          <GlassCard className="p-4 md:p-5" hoverEffect={false}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-pickle-primary" />
+                Présences
+              </h3>
+              <span className="text-sm font-medium tabular-nums text-slate-400">
+                {presentCount}/{leaguePlayers.length}
+              </span>
             </div>
-            <h4 className="text-xl font-bold text-slate-300">Aucune partie générée</h4>
-            <p className="text-slate-500 mt-4 max-w-sm mx-auto text-sm leading-relaxed">
-                Sélectionnez les joueurs présents et cliquez sur &quot;GÉNÉRER LES PARTIES&quot; pour organiser les rencontres sur les terrains.
-            </p>
-          </GlassCard>
-        ) : (
-          <div className="space-y-12">
-            {Array.from({ length: Math.ceil(initialMatches.length / Math.max(1, courtCount)) }).map((_, roundIdx) => {
-              const roundMatches = initialMatches.slice(roundIdx * courtCount, (roundIdx + 1) * courtCount);
-              const isRoundClosed = closedRounds.includes(roundIdx);
-              const gridCols = courtCount === 2 ? 'md:grid-cols-2' : courtCount >= 3 ? 'lg:grid-cols-3' : 'md:grid-cols-2';
-              
-              return (
-                <div key={roundIdx} className={`space-y-8 transition-all duration-700 ${isRoundClosed ? 'opacity-95' : ''}`}>
-                  <div className="flex items-center gap-4">
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                    <div className="flex items-center gap-3">
-                      <div className={`px-6 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-md transition-all duration-500 ${
-                        isRoundClosed 
-                          ? 'bg-slate-900/40 border-white/5 text-slate-600' 
-                          : 'bg-pickle-primary/10 border-pickle-primary/30 text-pickle-primary shadow-[0_0_20px_rgba(132,204,22,0.15)]'
-                      }`}>
-                        RONDE {roundIdx + 1}
-                      </div>
-                      <button
-                        onClick={() => handleToggleRoundStatus(roundIdx, !isRoundClosed)}
-                        className={`p-2 rounded-full border transition-all duration-300 ${
-                          isRoundClosed 
-                            ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white' 
-                            : 'bg-white/5 border-white/10 text-slate-500 hover:border-pickle-secondary/50 hover:text-pickle-secondary'
-                        }`}
-                        title={isRoundClosed ? "Réactiver la ronde" : "Verrouiller la ronde"}
-                      >
-                        {isRoundClosed ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                    <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                  </div>
 
-                  <div className={`grid grid-cols-1 gap-6 ${gridCols}`}>
-                    {roundMatches.map((match, idx) => {
-                      const globalIdx = roundIdx * courtCount + idx;
-                      const hasWinner = match.data.winner !== undefined && match.data.winner !== null;
-                      
-                      return (
-                        <GlassCard 
-                          key={match.id} 
-                          className={`group relative overflow-hidden transition-all duration-700 backdrop-blur-2xl ${
-                            hasWinner 
-                              ? 'border-pickle-primary/30 bg-pickle-primary/[0.03] shadow-[0_0_40px_rgba(132,204,22,0.05)]' 
-                              : 'hover:border-white/20'
-                          } ${isRoundClosed ? 'grayscale-[0.2] pointer-events-none' : ''}`}
+            <div className="space-y-2 max-h-[min(55vh,520px)] overflow-y-auto pr-1 custom-scrollbar">
+              {(() => {
+                const permanents = leaguePlayers
+                  .filter((p) => p.type === "permanent")
+                  .sort((a, b) =>
+                    `${a.firstName} ${a.lastName}`.localeCompare(
+                      `${b.firstName} ${b.lastName}`
+                    )
+                  );
+                const replacements = leaguePlayers
+                  .filter((p) => p.type === "remplacant")
+                  .sort((a, b) =>
+                    `${a.firstName} ${a.lastName}`.localeCompare(
+                      `${b.firstName} ${b.lastName}`
+                    )
+                  );
+
+                const renderPlayer = (player: Player) => {
+                  const isPresent = attendancesMap.get(player.id) ?? false;
+                  return (
+                    <button
+                      key={player.id}
+                      type="button"
+                      onClick={() =>
+                        handleToggleAttendance(player.id, isPresent)
+                      }
+                      className={`w-full flex items-center justify-between min-h-[52px] px-3 py-2.5 rounded-xl border transition-colors active:scale-[0.99] ${
+                        isPresent
+                          ? "bg-pickle-primary/10 border-pickle-primary/35 text-white"
+                          : "bg-white/[0.03] border-white/5 text-slate-400 hover:bg-white/5"
+                      }`}
+                    >
+                      <div className="flex flex-col items-start text-left min-w-0">
+                        <span className="font-medium text-sm truncate max-w-full">
+                          {player.firstName} {player.lastName}
+                        </span>
+                        <span className="text-xs opacity-60">
+                          Niv. {player.skillLevel.toFixed(1)}
+                          {player.type === "remplacant" ? " · remp." : ""}
+                        </span>
+                      </div>
+                      {isPresent ? (
+                        <CheckCircle2 className="w-6 h-6 text-pickle-primary shrink-0" />
+                      ) : (
+                        <Circle className="w-6 h-6 opacity-20 shrink-0" />
+                      )}
+                    </button>
+                  );
+                };
+
+                return (
+                  <div className="space-y-4">
+                    {permanents.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-medium text-slate-500 px-1">
+                          Permanents
+                        </p>
+                        {permanents.map(renderPlayer)}
+                      </div>
+                    )}
+                    {replacements.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-medium text-slate-500 px-1">
+                          Remplaçants
+                        </p>
+                        {replacements.map(renderPlayer)}
+                      </div>
+                    )}
+                    {leaguePlayers.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center py-8">
+                        Aucun joueur dans la ligue.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="mt-5 pt-5 border-t border-white/5 space-y-3">
+              <p className="text-xs font-medium text-slate-500">
+                Mode de matchmaking
+              </p>
+              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setGenerationMode("RANDOM")}
+                  className={`py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    generationMode === "RANDOM"
+                      ? "bg-white/10 text-white"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  Aléatoire
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGenerationMode("COMPETITIVE")}
+                  className={`py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                    generationMode === "COMPETITIVE"
+                      ? "bg-pickle-primary/20 text-pickle-primary"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  Compétition
+                </button>
+              </div>
+
+              <div className="hidden lg:block">
+                <NeonButton
+                  className="w-full py-4"
+                  variant="primary"
+                  disabled={!canGenerate || emptyCourts}
+                  onClick={handleGenerateMatches}
+                >
+                  <Play className="w-4 h-4" />
+                  {isFinished
+                    ? "Session terminée"
+                    : loading
+                      ? "Génération…"
+                      : "Générer les parties"}
+                </NeonButton>
+                {presentCount < 2 && !isFinished && (
+                  <p className="text-xs text-center text-slate-500 mt-2">
+                    Marquez au moins 2 présents.
+                  </p>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Matchs */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-pickle-muted" />
+              Matchs
+              {initialMatches.length > 0 && (
+                <span className="text-sm font-normal text-slate-500">
+                  · {scoredCount}/{initialMatches.length} scorés
+                </span>
+              )}
+            </h3>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {!isFinished && initialMatches.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleTerminateSession}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-pickle-primary border border-pickle-primary/30 hover:bg-pickle-primary hover:text-black rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Terminer
+                </button>
+              )}
+              {initialMatches.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAllMatches}
+                  disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 border border-red-500/25 hover:bg-red-500 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Tout effacer
+                </button>
+              )}
+            </div>
+          </div>
+
+          {(isFinished || aiRecap) && (
+            <AiRecapCard
+              sessionId={session.id}
+              initialRecap={aiRecap}
+              isCompleted={isFinished}
+            />
+          )}
+
+          {initialMatches.length === 0 ? (
+            <GlassCard
+              className="p-10 md:p-14 text-center border-dashed border-white/10"
+              hoverEffect={false}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                <Play className="w-7 h-7 text-slate-600" />
+              </div>
+              <h4 className="text-base font-semibold text-white">
+                Aucune partie encore
+              </h4>
+              <p className="text-slate-500 mt-2 max-w-sm mx-auto text-sm leading-relaxed">
+                Cochez les présents, choisissez le mode, puis générez les
+                rencontres sur les terrains.
+              </p>
+            </GlassCard>
+          ) : (
+            <div className="space-y-8">
+              {Array.from({
+                length: Math.ceil(
+                  initialMatches.length / Math.max(1, courtCount)
+                ),
+              }).map((_, roundIdx) => {
+                const safeCourts = Math.max(1, courtCount);
+                const roundMatches = initialMatches.slice(
+                  roundIdx * safeCourts,
+                  (roundIdx + 1) * safeCourts
+                );
+                const isRoundClosed = closedRounds.includes(roundIdx);
+                const gridCols =
+                  courtCount === 2
+                    ? "md:grid-cols-2"
+                    : courtCount >= 3
+                      ? "lg:grid-cols-3"
+                      : "md:grid-cols-2";
+
+                return (
+                  <div key={roundIdx} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-px flex-1 bg-white/10" />
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-3 py-1 rounded-lg text-xs font-medium border ${
+                            isRoundClosed
+                              ? "bg-white/5 border-white/5 text-slate-500"
+                              : "bg-pickle-primary/10 border-pickle-primary/25 text-pickle-primary"
+                          }`}
                         >
-                          {/* Header du Match */}
-                          <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-2 h-2 rounded-full ${isRoundClosed ? 'bg-slate-600' : 'bg-pickle-primary shadow-[0_0_8px_rgba(132,204,22,0.5)]'}`} />
-                              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                                {match.court?.name || `TERRAIN ${idx + 1}`}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest border border-white/5 px-2 py-0.5 rounded-md">
-                                #{globalIdx + 1}
+                          Ronde {roundIdx + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleToggleRoundStatus(roundIdx, !isRoundClosed)
+                          }
+                          className={`p-2 rounded-lg border transition-colors ${
+                            isRoundClosed
+                              ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              : "border-white/10 text-slate-500 hover:text-white"
+                          }`}
+                          title={
+                            isRoundClosed
+                              ? "Rouvrir la ronde"
+                              : "Verrouiller la ronde"
+                          }
+                        >
+                          {isRoundClosed ? (
+                            <Lock className="w-3.5 h-3.5" />
+                          ) : (
+                            <Unlock className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                      <div className="h-px flex-1 bg-white/10" />
+                    </div>
+
+                    <div className={`grid grid-cols-1 gap-3 ${gridCols}`}>
+                      {roundMatches.map((match, idx) => {
+                        const hasWinner =
+                          match.data.winner !== undefined &&
+                          match.data.winner !== null;
+
+                        return (
+                          <GlassCard
+                            key={match.id}
+                            className={`p-0 overflow-hidden transition-colors ${
+                              hasWinner
+                                ? "border-pickle-primary/25"
+                                : "border-white/10"
+                            } ${isRoundClosed ? "opacity-70" : ""}`}
+                            hoverEffect={false}
+                          >
+                            <div className="px-4 py-2.5 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                              <span className="text-xs font-medium text-slate-400">
+                                {match.court?.name || `Terrain ${idx + 1}`}
                               </span>
                               {!isRoundClosed && (
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteMatch(match.id); }}
-                                  className="p-1 text-slate-700 hover:text-red-500 transition-colors"
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteMatch(match.id);
+                                  }}
+                                  className="p-1.5 text-slate-600 hover:text-red-400 transition-colors"
+                                  aria-label="Supprimer le match"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               )}
                             </div>
-                          </div>
-                          
-                          {/* Corps du Match */}
-                          <div className="p-6 relative">
-                            <div className="flex items-center justify-between gap-4">
-                              {/* Équipe 1 */}
-                              <div className={`flex-1 space-y-3 transition-all duration-500 ${match.data.winner === 1 ? 'scale-[1.02]' : match.data.winner === 2 ? 'opacity-30' : ''}`}>
-                                {match.data.team1.map((pId: string) => {
-                                  const p = leaguePlayers.find(lp => lp.id === pId);
-                                  return (
-                                    <div key={pId} className="flex items-center gap-3">
-                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 1 ? 'bg-pickle-primary shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
-                                      <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
-                                    </div>
-                                  )
-                                })}
-                                {match.data.winner === 1 && (
-                                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-pickle-primary/20 border border-pickle-primary/30 rounded-md mt-2">
-                                    <Trophy className="w-3 h-3 text-pickle-primary" />
-                                    <span className="text-[8px] font-black text-pickle-primary uppercase tracking-tighter">Vainqueur</span>
-                                  </div>
-                                )}
-                              </div>
 
-                              {/* VS Middle */}
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="h-4 w-[1px] bg-white/5" />
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border transition-all duration-700 ${
-                                  hasWinner 
-                                    ? 'bg-slate-900/80 border-white/5 text-slate-700' 
-                                    : 'bg-white/5 border-white/10 text-slate-500 group-hover:border-pickle-secondary group-hover:text-pickle-secondary group-hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                                }`}>
-                                  VS
+                            <div className="p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <div
+                                  className={`flex-1 space-y-2 min-w-0 ${
+                                    match.data.winner === 2 ? "opacity-40" : ""
+                                  }`}
+                                >
+                                  {match.data.team1.map((pId: string) => {
+                                    const p = leaguePlayers.find(
+                                      (lp) => lp.id === pId
+                                    );
+                                    return (
+                                      <p
+                                        key={pId}
+                                        className="text-sm font-medium text-white leading-snug truncate"
+                                      >
+                                        {p?.firstName} {p?.lastName}
+                                      </p>
+                                    );
+                                  })}
+                                  {match.data.winner === 1 && (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-pickle-primary">
+                                      <Trophy className="w-3 h-3" />
+                                      Gagnants
+                                    </span>
+                                  )}
                                 </div>
-                                <div className="h-4 w-[1px] bg-white/5" />
-                              </div>
 
-                              {/* Équipe 2 */}
-                              <div className={`flex-1 space-y-3 text-right transition-all duration-500 ${match.data.winner === 2 ? 'scale-[1.02]' : match.data.winner === 1 ? 'opacity-30' : ''}`}>
-                                {match.data.team2.map((pId: string) => {
-                                  const p = leaguePlayers.find(lp => lp.id === pId);
-                                  return (
-                                    <div key={pId} className="flex items-center justify-end gap-3">
-                                      <div className="text-sm font-extrabold text-white leading-tight">{p?.firstName} <br/> <span className="text-slate-400 font-medium truncate inline-block max-w-[100px]">{p?.lastName}</span></div>
-                                      <div className={`w-1 h-6 rounded-full shrink-0 ${match.data.winner === 2 ? 'bg-pickle-primary shadow-[0_0_10px_rgba(132,204,22,0.5)]' : 'bg-white/5'}`} />
-                                    </div>
-                                  )
-                                })}
-                                {match.data.winner === 2 && (
-                                  <div className="inline-flex items-center justify-end gap-1.5 px-2 py-0.5 bg-pickle-primary/20 border border-pickle-primary/30 rounded-md mt-2 ml-auto">
-                                    <span className="text-[8px] font-black text-pickle-primary uppercase tracking-tighter">Vainqueur</span>
-                                    <Trophy className="w-3 h-3 text-pickle-primary" />
-                                  </div>
-                                )}
+                                <span className="text-xs font-semibold text-slate-500 shrink-0">
+                                  VS
+                                </span>
+
+                                <div
+                                  className={`flex-1 space-y-2 text-right min-w-0 ${
+                                    match.data.winner === 1 ? "opacity-40" : ""
+                                  }`}
+                                >
+                                  {match.data.team2.map((pId: string) => {
+                                    const p = leaguePlayers.find(
+                                      (lp) => lp.id === pId
+                                    );
+                                    return (
+                                      <p
+                                        key={pId}
+                                        className="text-sm font-medium text-white leading-snug truncate"
+                                      >
+                                        {p?.firstName} {p?.lastName}
+                                      </p>
+                                    );
+                                  })}
+                                  {match.data.winner === 2 && (
+                                    <span className="inline-flex items-center justify-end gap-1 text-[11px] font-medium text-pickle-primary">
+                                      Gagnants
+                                      <Trophy className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Footer / Bouton */}
-                          <button 
-                            onClick={() => !isRoundClosed && setSelectedMatch(match)}
-                            disabled={isRoundClosed}
-                            className={`w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] border-t border-white/5 transition-all duration-500 flex items-center justify-center gap-2 ${
-                              isRoundClosed 
-                                ? 'bg-slate-900/20 text-slate-700' 
-                                : hasWinner
-                                  ? 'bg-pickle-primary/5 text-pickle-primary hover:bg-pickle-primary hover:text-black'
-                                  : 'bg-white/[0.02] text-slate-500 hover:bg-white/10 hover:text-white'
-                            }`}
-                          >
-                            {hasWinner ? (
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                            ) : (
-                              <Play className="w-3.5 h-3.5" />
-                            )}
-                            {hasWinner ? "MODIFIER RÉSULTAT" : "SAISIR RÉSULTAT"}
-                          </button>
-                        </GlassCard>
-                      );
-                    })}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                !isRoundClosed && setSelectedMatch(match)
+                              }
+                              disabled={isRoundClosed}
+                              className={`w-full min-h-[48px] text-sm font-semibold border-t border-white/5 transition-colors flex items-center justify-center gap-2 ${
+                                isRoundClosed
+                                  ? "bg-white/[0.02] text-slate-600"
+                                  : hasWinner
+                                    ? "bg-pickle-primary/10 text-pickle-primary hover:bg-pickle-primary hover:text-black"
+                                    : "bg-white/[0.03] text-white hover:bg-white/10"
+                              }`}
+                            >
+                              {hasWinner ? (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  Modifier le score
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-4 h-4" />
+                                  Saisir le score
+                                </>
+                              )}
+                            </button>
+                          </GlassCard>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      <ResultModal 
+      {/* Barre sticky mobile — générer */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-slate-950/95 border-t border-white/10 backdrop-blur-md safe-area-pb">
+        <NeonButton
+          className="w-full py-4 text-sm"
+          variant="primary"
+          disabled={!canGenerate || emptyCourts}
+          onClick={handleGenerateMatches}
+        >
+          <Play className="w-4 h-4" />
+          {isFinished
+            ? "Session terminée"
+            : loading
+              ? "Génération…"
+              : presentCount < 2
+                ? "Cochez 2 présents min."
+                : "Générer les parties"}
+        </NeonButton>
+      </div>
+
+      <ResultModal
         isOpen={!!selectedMatch}
         onClose={() => setSelectedMatch(null)}
         match={selectedMatch}
