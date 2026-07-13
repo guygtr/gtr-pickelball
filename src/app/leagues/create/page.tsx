@@ -29,11 +29,12 @@ export default function CreateLeaguePage() {
         return;
       }
 
-      toast.success("Ligue créée. Configurez les terrains.", {
+      toast.success("Ligue créée — suivez les 3 étapes sur le tableau de bord.", {
         id: loadingToast,
         duration: 5000,
       });
-      router.push(`/leagues/${result.id}/settings`);
+      // Dashboard affiche la checklist onboarding (joueurs → terrains → session)
+      router.push(`/leagues/${result.id}`);
       router.refresh();
     } catch {
       toast.error("Erreur technique lors de la création.", { id: loadingToast });

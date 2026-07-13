@@ -21,9 +21,16 @@
 - [x] P1 headers CSP/HSTS, logs Prisma prod, co-manager anti-enum, rate-limit renforcé
 - [x] P2 admin listUsers paginé, export loggé, mdp 12+, .env.example, typecheck build on
 
+## Produit (2026-07-13)
+- [x] Soirée type 4 étapes (présences → générer → scores → clôturer)
+- [x] Cards joueurs mobile / table desktop
+- [x] Onboarding 3 étapes post-création ligue
+- [x] A11y contraste glass + focus-visible
+- [x] Tests domaine matchmaking (`npm test`)
+
 ## Roadmap
-- [ ] Smoke QA manuel post-sécu (non connecté + autre manager)
-- [ ] Deploy prod (confirm humain)
+- [ ] Smoke QA manuel post-sécu (multi-comptes)
+- [ ] Deploy prod produit (confirm humain)
 - [ ] (Optionnel) rate-limit Redis multi-instances
 
 ## Notes agents locaux

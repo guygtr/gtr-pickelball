@@ -229,59 +229,107 @@ export function SessionDetailsClient({
 
   const canGenerate = presentCount >= 2 && !loading && !isFinished;
   const emptyCourts = courtCount < 1;
+  const allScored =
+    initialMatches.length > 0 && scoredCount === initialMatches.length;
+
+  /** Soirée type — 4 étapes max (le reste est secondaire) */
+  const flowStep: 1 | 2 | 3 | 4 = isFinished
+    ? 4
+    : presentCount < 2
+      ? 1
+      : initialMatches.length === 0
+        ? 2
+        : !allScored
+          ? 3
+          : 4;
+
+  const flowSteps = [
+    {
+      n: 1 as const,
+      label: "Présences",
+      done: presentCount >= 2,
+      meta: presentCount > 0 ? `${presentCount}` : "",
+    },
+    {
+      n: 2 as const,
+      label: "Générer",
+      done: initialMatches.length > 0,
+      meta: "",
+    },
+    {
+      n: 3 as const,
+      label: "Scores",
+      done: allScored,
+      meta:
+        initialMatches.length > 0
+          ? `${scoredCount}/${initialMatches.length}`
+          : "",
+    },
+    {
+      n: 4 as const,
+      label: "Clôturer",
+      done: isFinished,
+      meta: "",
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Étapes jour de match */}
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          {
-            n: 1,
-            label: "Présences",
-            done: presentCount >= 2,
-            active: presentCount < 2 && !isFinished,
-          },
-          {
-            n: 2,
-            label: "Matchs",
-            done: initialMatches.length > 0,
-            active:
-              presentCount >= 2 && initialMatches.length === 0 && !isFinished,
-          },
-          {
-            n: 3,
-            label: "Scores",
-            done:
-              initialMatches.length > 0 &&
-              scoredCount === initialMatches.length,
-            active: initialMatches.length > 0 && scoredCount < initialMatches.length,
-          },
-        ].map((step) => (
-          <div
-            key={step.n}
-            className={`rounded-xl border px-3 py-2.5 text-center ${
-              step.done
-                ? "border-pickle-primary/30 bg-pickle-primary/10"
-                : step.active
-                  ? "border-white/15 bg-white/5"
-                  : "border-white/5 bg-transparent opacity-60"
-            }`}
-          >
-            <p className="text-[10px] text-slate-500 mb-0.5">Étape {step.n}</p>
-            <p
-              className={`text-sm font-medium ${
-                step.done ? "text-pickle-primary" : "text-white"
-              }`}
-            >
-              {step.label}
-              {step.n === 1 && presentCount > 0 ? ` (${presentCount})` : ""}
-              {step.n === 3 && initialMatches.length > 0
-                ? ` ${scoredCount}/${initialMatches.length}`
-                : ""}
-            </p>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-6 pb-24 lg:pb-8">
+      {/* Parcours soirée — 4 écrans logiques */}
+      <nav aria-label="Parcours soirée type" className="space-y-2">
+        <p className="text-xs font-medium text-slate-300 px-0.5">
+          Soirée type · étape {flowStep}/4
+        </p>
+        <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {flowSteps.map((step) => {
+            const active = flowStep === step.n;
+            return (
+              <li
+                key={step.n}
+                aria-current={active ? "step" : undefined}
+                className={`rounded-xl border px-3 py-2.5 text-center ${
+                  step.done
+                    ? "border-pickle-primary/35 bg-pickle-primary/10"
+                    : active
+                      ? "border-white/20 bg-white/[0.07] ring-1 ring-pickle-primary/40"
+                      : "border-white/10 bg-transparent opacity-70"
+                }`}
+              >
+                <p className="text-[10px] text-slate-300 mb-0.5">
+                  {step.n}
+                </p>
+                <p
+                  className={`text-sm font-semibold ${
+                    step.done || active
+                      ? "text-white"
+                      : "text-slate-300"
+                  }`}
+                >
+                  {step.label}
+                  {step.meta ? (
+                    <span className="text-pickle-primary font-medium">
+                      {" "}
+                      {step.meta}
+                    </span>
+                  ) : null}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          {flowStep === 1 &&
+            "Cochez qui est là ce soir (minimum 2)."}
+          {flowStep === 2 &&
+            "Choisissez le mode puis générez les parties sur les terrains."}
+          {flowStep === 3 &&
+            "Saisissez les scores match par match (gros bouton sur chaque carte)."}
+          {flowStep === 4 &&
+            (isFinished
+              ? "Session terminée. Recap IA et stats disponibles."
+              : "Tous les scores sont saisis — vous pouvez clôturer la session.")}
+        </p>
+      </nav>
 
       {emptyCourts && (
         <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/25 bg-amber-500/10 text-sm text-amber-100">
@@ -296,15 +344,24 @@ export function SessionDetailsClient({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Présences */}
-        <div className="lg:col-span-1 space-y-4">
-          <GlassCard className="p-4 md:p-5" hoverEffect={false}>
+        {/* Étape 1 — Présences (+ mode pour étape 2) */}
+        <div
+          className={`lg:col-span-1 space-y-4 ${
+            flowStep === 1 || flowStep === 2 ? "order-1" : "order-1 lg:opacity-95"
+          }`}
+        >
+          <GlassCard
+            className={`p-4 md:p-5 ${
+              flowStep === 1 ? "ring-1 ring-pickle-primary/30" : ""
+            }`}
+            hoverEffect={false}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-pickle-primary" />
-                Présences
+                <Users className="w-4 h-4 text-pickle-primary" aria-hidden />
+                1. Présences
               </h3>
-              <span className="text-sm font-medium tabular-nums text-slate-400">
+              <span className="text-sm font-medium tabular-nums text-slate-300">
                 {presentCount}/{leaguePlayers.length}
               </span>
             </div>
@@ -387,18 +444,22 @@ export function SessionDetailsClient({
               })()}
             </div>
 
-            <div className="mt-5 pt-5 border-t border-white/5 space-y-3">
-              <p className="text-xs font-medium text-slate-500">
-                Mode de matchmaking
+            <div className="mt-5 pt-5 border-t border-white/10 space-y-3">
+              <p className="text-xs font-semibold text-slate-300">
+                2. Mode puis générer
               </p>
-              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/5">
+              <div
+                className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10"
+                role="group"
+                aria-label="Mode de matchmaking"
+              >
                 <button
                   type="button"
                   onClick={() => setGenerationMode("RANDOM")}
-                  className={`py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`py-2.5 rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pickle-primary ${
                     generationMode === "RANDOM"
-                      ? "bg-white/10 text-white"
-                      : "text-slate-500 hover:text-slate-300"
+                      ? "bg-white/15 text-white"
+                      : "text-slate-300 hover:text-white"
                   }`}
                 >
                   Aléatoire
@@ -406,10 +467,10 @@ export function SessionDetailsClient({
                 <button
                   type="button"
                   onClick={() => setGenerationMode("COMPETITIVE")}
-                  className={`py-2.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`py-2.5 rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pickle-primary ${
                     generationMode === "COMPETITIVE"
-                      ? "bg-pickle-primary/20 text-pickle-primary"
-                      : "text-slate-500 hover:text-slate-300"
+                      ? "bg-pickle-primary/25 text-pickle-primary"
+                      : "text-slate-300 hover:text-white"
                   }`}
                 >
                   Compétition
@@ -423,7 +484,7 @@ export function SessionDetailsClient({
                   disabled={!canGenerate || emptyCourts}
                   onClick={handleGenerateMatches}
                 >
-                  <Play className="w-4 h-4" />
+                  <Play className="w-4 h-4" aria-hidden />
                   {isFinished
                     ? "Session terminée"
                     : loading
@@ -431,7 +492,7 @@ export function SessionDetailsClient({
                       : "Générer les parties"}
                 </NeonButton>
                 {presentCount < 2 && !isFinished && (
-                  <p className="text-xs text-center text-slate-500 mt-2">
+                  <p className="text-xs text-center text-slate-300 mt-2">
                     Marquez au moins 2 présents.
                   </p>
                 )}
@@ -440,44 +501,82 @@ export function SessionDetailsClient({
           </GlassCard>
         </div>
 
-        {/* Matchs */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Étapes 3–4 — Scores + clôture */}
+        <div
+          className={`lg:col-span-2 space-y-4 ${
+            flowStep >= 3 ? "ring-0" : ""
+          }`}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-pickle-muted" />
-              Matchs
+              <Trophy className="w-5 h-5 text-pickle-muted" aria-hidden />
+              3. Scores
               {initialMatches.length > 0 && (
-                <span className="text-sm font-normal text-slate-500">
+                <span className="text-sm font-normal text-slate-300">
                   · {scoredCount}/{initialMatches.length} scorés
                 </span>
               )}
             </h3>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {!isFinished && initialMatches.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleTerminateSession}
-                  disabled={loading}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-pickle-primary border border-pickle-primary/30 hover:bg-pickle-primary hover:text-black rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Terminer
-                </button>
-              )}
+              {/* Secondaire : actions avancées */}
               {initialMatches.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleDeleteAllMatches}
-                  disabled={loading}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 border border-red-500/25 hover:bg-red-500 hover:text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Tout effacer
-                </button>
+                <details className="text-xs">
+                  <summary className="cursor-pointer list-none px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5">
+                    Options avancées
+                  </summary>
+                  <div className="mt-2 flex flex-col gap-1.5 min-w-[10rem]">
+                    <button
+                      type="button"
+                      onClick={handleDeleteAllMatches}
+                      disabled={loading}
+                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-300 border border-red-500/30 hover:bg-red-500 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                      Tout effacer
+                    </button>
+                  </div>
+                </details>
               )}
             </div>
           </div>
+
+          {/* Étape 4 — Clôturer (mise en avant quand scores OK) */}
+          {flowStep === 4 && !isFinished && (
+            <GlassCard
+              className="p-4 md:p-5 border-pickle-primary/30 bg-pickle-primary/5"
+              hoverEffect={false}
+            >
+              <h3 className="text-base font-semibold text-white flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-5 h-5 text-pickle-primary" aria-hidden />
+                4. Clôturer la soirée
+              </h3>
+              <p className="text-sm text-slate-300 mb-4">
+                Tous les scores sont saisis. Terminez la session pour figer les
+                résultats et débloquer le recap.
+              </p>
+              <NeonButton
+                variant="primary"
+                className="w-full sm:w-auto py-3.5 px-6"
+                disabled={loading}
+                onClick={handleTerminateSession}
+              >
+                <CheckCircle2 className="w-4 h-4" aria-hidden />
+                Terminer la session
+              </NeonButton>
+            </GlassCard>
+          )}
+
+          {flowStep === 4 && isFinished && (
+            <GlassCard className="p-4 border-white/10" hoverEffect={false}>
+              <p className="text-sm font-semibold text-pickle-primary">
+                Session clôturée
+              </p>
+              <p className="text-sm text-slate-300 mt-1">
+                Plus de nouvelles parties. Recap et stats ci-dessous.
+              </p>
+            </GlassCard>
+          )}
 
           {(isFinished || aiRecap) && (
             <AiRecapCard
@@ -696,23 +795,39 @@ export function SessionDetailsClient({
         </div>
       </div>
 
-      {/* Barre sticky mobile — générer */}
+      {/* Barre sticky mobile — action de l'étape courante */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 p-3 bg-slate-950/95 border-t border-white/10 backdrop-blur-md safe-area-pb">
-        <NeonButton
-          className="w-full py-4 text-sm"
-          variant="primary"
-          disabled={!canGenerate || emptyCourts}
-          onClick={handleGenerateMatches}
-        >
-          <Play className="w-4 h-4" />
-          {isFinished
-            ? "Session terminée"
-            : loading
+        {flowStep <= 2 && !isFinished && (
+          <NeonButton
+            className="w-full py-4 text-sm"
+            variant="primary"
+            disabled={!canGenerate || emptyCourts}
+            onClick={handleGenerateMatches}
+          >
+            <Play className="w-4 h-4" aria-hidden />
+            {loading
               ? "Génération…"
               : presentCount < 2
-                ? "Cochez 2 présents min."
-                : "Générer les parties"}
-        </NeonButton>
+                ? "1. Cochez 2 présents min."
+                : "2. Générer les parties"}
+          </NeonButton>
+        )}
+        {flowStep === 3 && (
+          <p className="text-center text-sm text-slate-200 py-2">
+            3. Saisissez un score sur chaque match
+          </p>
+        )}
+        {flowStep === 4 && !isFinished && (
+          <NeonButton
+            className="w-full py-4 text-sm"
+            variant="primary"
+            disabled={loading}
+            onClick={handleTerminateSession}
+          >
+            <CheckCircle2 className="w-4 h-4" aria-hidden />
+            4. Terminer la session
+          </NeonButton>
+        )}
       </div>
 
       <ResultModal

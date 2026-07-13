@@ -37,21 +37,50 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Accessibilité : focus clavier visible (tous éléments interactifs) */
+:focus-visible {
+  outline: 2px solid var(--color-pickle-primary, #dcfc44);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Texte secondaire plus lisible sur glass (contraste WCAG-ish) */
+.text-muted-on-glass {
+  color: #cbd5e1; /* slate-300 */
+}
+
 /* Glassmorphism Utilities - Ezio Refined */
 .glass {
-  background: rgba(10, 15, 25, 0.7); /* Plus opaque pour masquer le fond */
+  background: rgba(10, 15, 25, 0.82); /* Plus opaque = meilleur contraste texte */
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  color: #f1f5f9; /* slate-100 */
 }
 
 .glass-neon {
-  background: rgba(15, 23, 42, 0.85); /* Haute occlusion */
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(220, 252, 68, 0.3);
+  border: 1px solid rgba(220, 252, 68, 0.35);
   box-shadow: 0 0 20px rgba(220, 252, 68, 0.15);
+  color: #f1f5f9;
+}
+
+/* Utilitaires contraste (remplacer text-slate-500/400 sur surfaces sombres) */
+.glass .text-slate-500,
+.glass-neon .text-slate-500 {
+  color: #94a3b8; /* slate-400 — un cran plus clair */
+}
+
+.glass .text-slate-400,
+.glass-neon .text-slate-400 {
+  color: #cbd5e1; /* slate-300 */
 }
 
 .glass-hover:hover {

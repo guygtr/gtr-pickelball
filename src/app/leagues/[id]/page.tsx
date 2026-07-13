@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 import { MatchDataSchema } from "@/lib/session-utils";
+import { LeagueOnboarding } from "@/components/leagues/league-onboarding";
 
 /**
  * Dashboard ligue — Option B : ton outil, prochaines sessions en avant.
@@ -39,6 +40,7 @@ export default async function LeagueDashboard({
         select: {
           players: true,
           sessions: true,
+          courts: true,
         },
       },
       players: {
@@ -123,6 +125,13 @@ export default async function LeagueDashboard({
 
   return (
     <div className="space-y-8">
+      <LeagueOnboarding
+        leagueId={resolvedParams.id}
+        playerCount={league._count.players}
+        courtCount={league._count.courts}
+        sessionCount={league._count.sessions}
+      />
+
       {/* CTA jour de match */}
       {nextSession && (
         <Link
