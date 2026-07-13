@@ -4,13 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ensureLeagueManager } from "@/lib/auth-utils";
 import OpenAI from "openai";
-import { logError } from "@/lib/logger";
-
-// Configuration du client xAI (Grok)
-const grok = new OpenAI({
-  apiKey: process.env.GROK_API_KEY,
-  baseURL: "https://api.x.ai/v1",
-});
+import { logError, publicErrorMessage } from "@/lib/logger";
+import { assertAiRateLimit } from "@/lib/rate-limit";
 
 /**
  * Génère un résumé narratif de la session via Grok IA.
@@ -30,11 +25,26 @@ export async function generateSmartRecap(sessionId: string) {
     });
 
     if (!session) return { success: false, error: "Session non trouvée" };
-    await ensureLeagueManager(session.leagueId);
+    const user = await ensureLeagueManager(session.leagueId);
+
+    // Rate limit IA (coût Grok)
+    const rl = assertAiRateLimit(user.id, "smartRecap", 5);
+    if (!rl.ok) {
+      return { success: false, error: rl.error };
+    }
 
     if (session.matches.length === 0) {
       return { success: false, error: "Pas assez de matchs terminés pour générer un résumé." };
     }
+
+    if (!process.env.GROK_API_KEY) {
+      return { success: false, error: "Clé API GROK_API_KEY manquante." };
+    }
+
+    const grok = new OpenAI({
+      apiKey: process.env.GROK_API_KEY,
+      baseURL: "https://api.x.ai/v1",
+    });
 
     // 1. Préparation des données pour le prompt
     const playersMap = new Map(session.attendances.map(a => [a.player.id, `${a.player.firstName} ${a.player.lastName}`]));
@@ -99,6 +109,9 @@ export async function generateSmartRecap(sessionId: string) {
     return { success: true, recap: recapText };
   } catch (error) {
     logError("generateSmartRecap", error);
-    return { success: false, error: "L'IA de narration a rencontré un filet." };
+    return {
+      success: false,
+      error: publicErrorMessage(error, "L'IA de narration a rencontré un filet."),
+    };
   }
 }

@@ -1,14 +1,25 @@
 {
-    "name":  "GTR-Pickelball",
-    "role":  "Description of the project\u0027s purpose",
-    "urls":  {
-                 "production":  "https://example.gtremblay.com",
-                 "staging":  ""
-             },
-    "stack":  [
-                  "Next.js",
-                  "Prisma",
-                  "Supabase",
-                  "TailwindCSS"
-              ]
+  "project_id": "gtr-pickelball",
+  "project_name": "GTR Pickelball",
+  "version": "3.3.5",
+  "fleet_role": "Gestion ligues pickleball multi-tenant mobile-first",
+  "hub": "D:\\GrokBuild",
+  "urls": {
+    "production": "https://pickelball.gtremblay.com",
+    "staging": ""
+  },
+  "stack": {
+    "framework": "Next.js 15.5 (cible Next 16)",
+    "ui": "React 19 + Tailwind + Luxury/Outfit",
+    "orm": "Prisma 7.6",
+    "database": "Supabase",
+    "validation": "Zod",
+    "auth": "Supabase Auth (@supabase/ssr)"
+  },
+  "standards": {
+    "agents_hub": "D:\\GrokBuild\\Agents",
+    "stack_doc": "D:\\GrokBuild\\Agents\\.agents\\STACK.md",
+    "session": "D:\\GrokBuild\\Agents\\.agents\\SESSION.md"
+  },
+  "notes": "Stack non encore alignée STACK.md flotte (Next 16 / Prisma 6) — migration reportée."
 }

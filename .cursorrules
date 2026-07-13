@@ -1,17 +1,26 @@
-# GTR-Team Project Rules - {{project_name}}
+# GTR-Team Project Rules - GTR-Pickelball
 
 > [!IMPORTANT]
-> Ce projet fait partie de la flotte GTR-Team. L'IA DOIT se référer au Hub Central pour toutes les directives d'agents et standards de développement.
+> Ce projet fait partie de la flotte GTR-Team. Hub unique : **D:\GrokBuild**.
 
 ## 1. ANCRAGE HUB CENTRAL
-- **Hub Central** : d:\GTR-Team\AGENTS.md
-- **Instructions Agents** : d:\GTR-Team\.agents\
-- **Standards de Code** : d:\GTR-Team\.agents\MASTER_SKILLS.md
+- **Hub Central** : D:\GrokBuild\Agents\AGENTS.md
+- **Session** : D:\GrokBuild\Agents\.agents\SESSION.md
+- **Instructions Agents** : D:\GrokBuild\Agents\.agents\
+- **Stack** : D:\GrokBuild\Agents\.agents\STACK.md
+- **Standards** : D:\GrokBuild\Agents\.agents\MASTER_SKILLS.md
+- **Tiers** : D:\GrokBuild\Agents\.agents\AGENT_TIERS.md
 
-## 2. HÉRITAGE LOCAL
-- Consultez le dossier local .gtr/ pour les spécificités de ce projet (id, rôle, objectifs prioritaires).
-- En cas de conflit, les règles de sécurité du Hub Central priment.
+## 2. HERITAGE LOCAL
+- Consultez le dossier local .gtr/ pour les specificites de ce projet.
+- En cas de conflit, les regles de securite du Hub Central priment.
 
-## 3. IDENTITÉ (Rappel)
-- Français exclusif.
+## 3. IDENTITE
+- Francais exclusif.
 - Identification obligatoire : **[NOM DE L'AGENT] →**.
+
+## 4. FLOTTE ACTIVE (v3.6)
+Projets actifs uniquement :
+- bar-manager
+- GTR-Pickelball
+- gtr-teams-agents

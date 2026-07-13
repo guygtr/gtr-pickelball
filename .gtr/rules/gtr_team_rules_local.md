@@ -1,15 +1,10 @@
-# Règles Spécifiques au Projet (Local Override)
+# Règles locales projet (template v3.6)
 
-Ce fichier permet de surcharger ou de compléter les règles globales définies dans le Hub Central `d:\GTR-Team\.agents\MASTER_SKILLS.md`.
-Les règles décrites ici ne s'appliquent qu'à **ce projet**.
+En plus du hub `D:\GrokBuild\Agents` :
 
-## 1. Contexte Métier
-Décrivez ici les règles métier spécifiques à ce projet.
-*Exemple : "Les utilisateurs de type 'Guest' n'ont accès qu'à la route /public."*
-
-## 2. Configuration Technique Locale
-- Variables d'environnement spécifiques (.env.local) requises.
-- Outils ou bibliothèques third-party utilisées de manière exclusive sur ce projet (ex: Stripe, Algolia).
-
-## 3. Personnalisation des Agents
-*Exemple : "Pour ce projet, C-3PO doit générer la documentation en anglais au lieu du français."*
+1. Lire `.gtr/project.json` pour l'identité et les URLs.
+2. Secrets : `.env.local` projet et/ou `D:\GrokBuild\.tokens\`.
+3. Architecture 3 couches + Zod + RLS.
+4. Build First, Push Never.
+5. Shared UI : `D:\GrokBuild\shared-ui\` via workflow `/use-shared-ui`.
+6. Workflows globaux : hub Agents (pas de copies locales obsolètes).

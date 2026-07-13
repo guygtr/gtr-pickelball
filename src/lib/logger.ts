@@ -1,35 +1,65 @@
 /**
- * Logger centralisé pour les Server Actions GTR-Pickleball.
- * En production, ne journalise que le message d'erreur (pas la stack trace).
- * Évite la divulgation d'informations sensibles sur la structure interne.
- * 
- * @module logger
+ * Logger centralisé GTR-Pickleball — masque les détails en production.
  */
+
+type LogMeta = Record<string, string | number | boolean | undefined>;
 
 const isProd = process.env.NODE_ENV === "production";
 
 /**
- * Journalise une erreur de façon sécurisée.
- * @param context Contexte (nom de l'action, ex: "createLeague")
- * @param error Erreur capturée dans le catch
+ * Message sûr pour le client (pas de stack Prisma/SQL).
  */
-export function logError(context: string, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-
-  if (isProd) {
-    // En production : message seulement, pas de stack trace ni d'objet Prisma
-    console.error(`[GTR-ERROR] ${context}: ${message}`);
-  } else {
-    // En développement : l'erreur complète pour faciliter le débogage
-    console.error(`[GTR-ERROR] ${context}:`, error);
+export function publicErrorMessage(
+  err: unknown,
+  fallback = "Une erreur est survenue."
+): string {
+  if (!isProd && err instanceof Error && err.message) {
+    const msg = err.message;
+    if (/password|secret|token|DATABASE|connection|Prisma/i.test(msg)) {
+      return fallback;
+    }
+    return msg.length > 200 ? fallback : msg;
   }
+  if (err instanceof Error) {
+    // Messages métier explicites (auth, droits) : OK en prod
+    if (
+      /autoris|connect|ligue|gestionnaire|propriétaire|trouvée|trouvé/i.test(
+        err.message
+      )
+    ) {
+      return err.message;
+    }
+  }
+  return fallback;
 }
 
 /**
- * Journalise un avertissement non-bloquant.
+ * Journalise une erreur serveur sans exposer de secrets.
+ */
+export function logError(
+  context: string,
+  error: unknown,
+  meta?: LogMeta
+): void {
+  const message = error instanceof Error ? error.message : String(error);
+  const payload = {
+    level: "error",
+    context,
+    message: isProd ? message.slice(0, 160) : message,
+    ts: new Date().toISOString(),
+    ...meta,
+    ...(isProd || !(error instanceof Error)
+      ? {}
+      : { stack: error.stack?.slice(0, 500) }),
+  };
+  console.error(JSON.stringify(payload));
+}
+
+/**
+ * Journalise un avertissement non-bloquant (dev).
  */
 export function logWarn(context: string, message: string): void {
   if (!isProd) {
-    console.warn(`[GTR-WARN] ${context}: ${message}`);
+    console.warn(JSON.stringify({ level: "warn", context, message }));
   }
 }

@@ -1,13 +1,24 @@
 /**
  * Vérifie si une adresse courriel appartient à un administrateur.
- * Utilisable côté client et serveur.
+ * Fail-closed : si ADMIN_EMAILS est absent/vide → personne n'est admin.
  */
-export function isUserAdmin(email?: string) {
+
+export function isUserAdmin(email?: string | null): boolean {
   if (!email) return false;
 
-  const adminEmails = (process.env.ADMIN_EMAILS || "").toLowerCase().split(",");
+  const raw = process.env.ADMIN_EMAILS?.trim();
+  if (!raw) {
+    // Fail-closed
+    return false;
+  }
 
-  const lowerEmail = email.toLowerCase();
+  const adminEmails = raw
+    .toLowerCase()
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
 
-  return adminEmails.includes(lowerEmail);
+  if (adminEmails.length === 0) return false;
+
+  return adminEmails.includes(email.toLowerCase());
 }

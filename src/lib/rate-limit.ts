@@ -1,89 +1,84 @@
 /**
- * Module de rate limiting en mémoire pour les Server Actions.
- * Protège les actions d'authentification contre les attaques par force brute.
- * 
- * @module rate-limit
+ * Rate limiting en mémoire (par instance serveur).
+ * - Login: checkRateLimit(key, 5, 15min) → { success, retryAfterSeconds }
+ * - IA: assertAiRateLimit(userId, action) → { ok, error? }
  */
 
-interface RateLimitEntry {
-  count: number;
-  firstAttempt: number;
-  blockedUntil?: number;
-}
+type Bucket = { count: number; resetAt: number };
 
-// Store en mémoire — fonctionnel pour les déploiements single-instance (Vercel)
-const store = new Map<string, RateLimitEntry>();
+const buckets = new Map<string, Bucket>();
 
-// Nettoyage automatique toutes les 5 minutes pour éviter les fuites mémoire
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of store.entries()) {
-      if (now - entry.firstAttempt > 10 * 60 * 1000) {
-        store.delete(key);
-      }
-    }
-  }, 5 * 60 * 1000);
-}
+export type RateLimitOk = {
+  success: true;
+  allowed: true;
+  remaining: number;
+};
 
-export interface RateLimitResult {
-  success: boolean;
-  remainingAttempts?: number;
-  retryAfterSeconds?: number;
-}
+export type RateLimitBlocked = {
+  success: false;
+  allowed: false;
+  retryAfterSec: number;
+  retryAfterSeconds: number;
+};
+
+export type RateLimitResult = RateLimitOk | RateLimitBlocked;
 
 /**
- * Vérifie si une clé a dépassé la limite de tentatives autorisées.
- * @param identifier Clé unique (ex: email ou IP)
- * @param maxAttempts Nombre maximum de tentatives dans la fenêtre
- * @param windowMs Fenêtre de temps en millisecondes (défaut: 15min)
- * @param blockMs Durée de blocage après dépassement (défaut: 15min)
+ * Vérifie / consomme un jeton de rate limit.
  */
 export function checkRateLimit(
-  identifier: string,
-  maxAttempts: number = 5,
-  windowMs: number = 15 * 60 * 1000,
-  blockMs: number = 15 * 60 * 1000
+  key: string,
+  limit = 10,
+  windowMs = 60_000
 ): RateLimitResult {
   const now = Date.now();
-  const entry = store.get(identifier);
+  const current = buckets.get(key);
 
-  // Vérifier si l'identifiant est bloqué
-  if (entry?.blockedUntil && now < entry.blockedUntil) {
+  if (!current || now >= current.resetAt) {
+    buckets.set(key, { count: 1, resetAt: now + windowMs });
+    return { success: true, allowed: true, remaining: limit - 1 };
+  }
+
+  if (current.count >= limit) {
+    const retryAfterSec = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
     return {
       success: false,
-      retryAfterSeconds: Math.ceil((entry.blockedUntil - now) / 1000),
+      allowed: false,
+      retryAfterSec,
+      retryAfterSeconds: retryAfterSec,
     };
   }
 
-  // Réinitialiser si la fenêtre est expirée
-  if (!entry || now - entry.firstAttempt > windowMs) {
-    store.set(identifier, { count: 1, firstAttempt: now });
-    return { success: true, remainingAttempts: maxAttempts - 1 };
-  }
-
-  entry.count++;
-
-  // Bloquer si la limite est dépassée
-  if (entry.count > maxAttempts) {
-    entry.blockedUntil = now + blockMs;
-    store.set(identifier, entry);
-    return {
-      success: false,
-      retryAfterSeconds: Math.ceil(blockMs / 1000),
-    };
-  }
-
-  store.set(identifier, entry);
+  current.count += 1;
   return {
     success: true,
-    remainingAttempts: maxAttempts - entry.count,
+    allowed: true,
+    remaining: limit - current.count,
   };
 }
 
+export function rateLimitMessage(retryAfterSec: number): string {
+  return `Trop de requêtes. Réessayez dans ${retryAfterSec}s.`;
+}
+
 /**
- * Réinitialise le compteur pour un identifiant donné (après connexion réussie).
+ * Réinitialise le bucket pour une clé (ex. après login réussi).
  */
-export function resetRateLimit(identifier: string): void {
-  store.delete(identifier);
+export function resetRateLimit(key: string): void {
+  buckets.delete(key);
+}
+
+/**
+ * Rate limit IA par utilisateur.
+ */
+export function assertAiRateLimit(
+  userId: string,
+  action: string,
+  limit = 8
+): { ok: true } | { ok: false; error: string } {
+  const result = checkRateLimit(`ai:${userId}:${action}`, limit, 60_000);
+  if (!result.allowed) {
+    return { ok: false, error: rateLimitMessage(result.retryAfterSec) };
+  }
+  return { ok: true };
 }
