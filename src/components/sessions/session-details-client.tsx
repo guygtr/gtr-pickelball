@@ -472,7 +472,7 @@ export function SessionDetailsClient({
                     {
                       id: "TOURNAMENT" as const,
                       label: "Tournoi",
-                      title: "Niveaux + jouer avec le plus de monde",
+                      title: "Parties les plus serrées possible (niveaux)",
                     },
                   ] as const
                 ).map((m) => (
@@ -493,7 +493,7 @@ export function SessionDetailsClient({
               </div>
               <p className="text-[11px] text-slate-400 leading-snug">
                 {generationMode === "TOURNAMENT" &&
-                  "Tournoi amateur : matchs équilibrés + partenaires/adversaires variés."}
+                  "Tournoi : priorité aux parties serrées (niveaux). Un peu de variété sociale, sans bloquer les rejoueurs."}
                 {generationMode === "RANDOM" &&
                   "Social : priorité à la variété, sans forcer les niveaux."}
                 {generationMode === "COMPETITIVE" &&

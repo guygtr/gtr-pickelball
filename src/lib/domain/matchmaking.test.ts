@@ -79,14 +79,17 @@ describe("matchmaking keys", () => {
 });
 
 describe("mode weights", () => {
-  it("TOURNAMENT uses skill and high social variety", () => {
+  it("TOURNAMENT prioritizes tight skill matches over social variety", () => {
     const t = getModeWeights("TOURNAMENT");
     const r = getModeWeights("RANDOM");
     const c = getModeWeights("COMPETITIVE");
     expect(t.useSkill).toBe(true);
-    expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(0);
-    expect(t.PARTNER_WEIGHT).toBeGreaterThan(c.PARTNER_WEIGHT);
-    expect(t.PARTNER_WEIGHT).toBeLessThanOrEqual(r.PARTNER_WEIGHT * 1.1);
+    // Skill dominates social in tournament
+    expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(t.PARTNER_WEIGHT);
+    expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(c.SKILL_BALANCE_WEIGHT);
+    // Social softer than pure RANDOM
+    expect(t.PARTNER_WEIGHT).toBeLessThan(r.PARTNER_WEIGHT);
+    expect(t.QUARTET_WEIGHT).toBeLessThan(r.QUARTET_WEIGHT);
   });
 });
 

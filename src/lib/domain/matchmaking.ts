@@ -15,7 +15,7 @@ export interface MatchDesign {
 /**
  * - RANDOM : social max (variété partenaires / quartets), peu de skill
  * - COMPETITIVE : équilibre de niveaux prioritaire
- * - TOURNAMENT : amateur — équilibre niveaux + variété sociale (beaucoup de monde différent)
+ * - TOURNAMENT : parties les plus serrées possible (skill), un peu de social en secondaire
  */
 export type MatchmakingMode = "RANDOM" | "COMPETITIVE" | "TOURNAMENT";
 
@@ -47,15 +47,16 @@ type ModeWeights = {
  */
 export function getModeWeights(mode: MatchmakingMode): ModeWeights {
   if (mode === "TOURNAMENT") {
-    // Social fort + compétitif sur les niveaux
+    // Priorité : parties serrées (écarts de niveau minimaux).
+    // Social léger : on tolère rejouer ensemble si ça resserre le match.
     return {
-      PARTNER_WEIGHT: 45000,
-      OPPOSITION_WEIGHT: 3500,
-      MATCHUP_WEIGHT: 18000,
-      QUARTET_WEIGHT: 90000,
-      CONSECUTIVE_OPP_WEIGHT: 22000,
-      SKILL_BALANCE_WEIGHT: 16000,
-      SKILL_SPREAD_WEIGHT: 5500,
+      PARTNER_WEIGHT: 800, // faible — rejouer ensemble OK
+      OPPOSITION_WEIGHT: 600,
+      MATCHUP_WEIGHT: 1200,
+      QUARTET_WEIGHT: 1500,
+      CONSECUTIVE_OPP_WEIGHT: 8000, // un peu éviter face-à-face immédiat
+      SKILL_BALANCE_WEIGHT: 45000, // fort — écart inter-équipes
+      SKILL_SPREAD_WEIGHT: 12000, // paires internes cohérentes
       useSkill: true,
     };
   }
@@ -289,13 +290,12 @@ export function generateFullSessionMatches(
   
   // En mode Social (4, 8, 12), on simule plusieurs SESSIONS ENTIÈRES pour éviter de se coincer
   // On réduit sessionTrials si on est en mode COMPÉTITION car le skill limite les options parfaites
-  // RANDOM / TOURNAMENT : plus d'essais session pour la variété sociale
+  // RANDOM : beaucoup d'essais pour la variété ; TOURNAMENT : assez pour le skill
   const sessionTrials =
-    isPerfectGroup &&
-    (initialStats.mode === "RANDOM" || initialStats.mode === "TOURNAMENT")
+    isPerfectGroup && initialStats.mode === "RANDOM"
       ? 100
       : initialStats.mode === "TOURNAMENT"
-        ? 20
+        ? 25
         : 10;
   let bestSessionMatches: MatchDesign[] = [];
   let minSessionCost = Infinity;
