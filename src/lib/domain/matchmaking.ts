@@ -43,7 +43,7 @@ type ModeWeights = {
 };
 
 /**
- * Profils de poids par mode (ligue amateur : TOURNAMENT = défaut produit).
+ * Profils de poids par mode (défaut UI produit : COMPETITIVE).
  */
 export function getModeWeights(mode: MatchmakingMode): ModeWeights {
   if (mode === "TOURNAMENT") {

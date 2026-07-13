@@ -78,7 +78,7 @@ export function SessionDetailsClient({
   const [loading, setLoading] = useState(false);
   const [generationMode, setGenerationMode] = useState<
     "RANDOM" | "COMPETITIVE" | "TOURNAMENT"
-  >("TOURNAMENT");
+  >("COMPETITIVE");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 
@@ -124,9 +124,9 @@ export function SessionDetailsClient({
     setLoading(true);
     const modeLabel =
       generationMode === "RANDOM"
-        ? "Aléatoire"
+        ? "Social"
         : generationMode === "COMPETITIVE"
-          ? "Compétition"
+          ? "Compétitif"
           : "Tournoi";
     const loadingToast = toast.loading(`Génération (${modeLabel})…`);
     try {
@@ -465,14 +465,14 @@ export function SessionDetailsClient({
                       title: "Variété max, peu de skill",
                     },
                     {
+                      id: "COMPETITIVE" as const,
+                      label: "Compétitif",
+                      title: "Équilibre de niveaux prioritaire",
+                    },
+                    {
                       id: "TOURNAMENT" as const,
                       label: "Tournoi",
                       title: "Niveaux + jouer avec le plus de monde",
-                    },
-                    {
-                      id: "COMPETITIVE" as const,
-                      label: "Compét.",
-                      title: "Équilibre de niveaux prioritaire",
                     },
                   ] as const
                 ).map((m) => (

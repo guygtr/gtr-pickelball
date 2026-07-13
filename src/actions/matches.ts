@@ -28,7 +28,7 @@ interface SessionWithIterations {
  */
 export async function generateMatches(
   rawSessionId: string,
-  mode: MatchmakingMode = "TOURNAMENT"
+  mode: MatchmakingMode = "COMPETITIVE"
 ) {
   try {
     const sessionId = sessionIdSchema.parse(rawSessionId);
