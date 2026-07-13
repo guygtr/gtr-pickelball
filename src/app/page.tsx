@@ -1,110 +1,99 @@
 import Link from "next/link";
 import { NeonButton } from "@/components/ui/gtr/neon-button";
 import { GlassCard } from "@/components/ui/gtr/glass-card";
-import { Zap, Smartphone, BarChart3, ChevronRight, Play } from "lucide-react";
+import { Zap, Smartphone, BarChart3, ChevronRight } from "lucide-react";
 
 /**
- * Page d'accueil GTR-Pickelball. architecture 3-tiers respectée. 🛡️ Ezio validation : WOW effect.
+ * Page d'accueil — P1 UI : titres sobres, 1 CTA primary, motion calme.
+ * Rollback : git revert du commit style(ui): P1
  */
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center px-4 py-16 md:py-32 overflow-hidden">
-      {/* Hero Section */}
-      <div className="text-center space-y-12 max-w-4xl relative animate-fade-in-up">
-        {/* Glow background decoration */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-pickle-secondary/10 blur-[120px] rounded-full -z-10" />
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[100px] rounded-full -z-10" />
-        
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-xs font-bold tracking-[0.2em] text-accent uppercase mb-4">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-            </span>
-            GTR Vision 2026 Ready
+    <div className="flex flex-col items-center justify-center px-4 py-16 md:py-28">
+      <div className="text-center space-y-10 max-w-3xl relative">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[420px] h-[420px] bg-pickle-secondary/8 blur-[100px] rounded-full -z-10" />
+
+        <div className="space-y-5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border border-white/10 text-xs font-medium text-slate-300">
+            <span className="inline-flex rounded-full h-1.5 w-1.5 bg-accent" />
+            Gestion de ligues · mobile-first
           </div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
-            LE PICKLEBALL, <br />
-            <span className="text-gradient">REDÉFINI.</span>
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-white">
+            Le pickleball,{" "}
+            <span className="text-gradient">simplifié.</span>
           </h1>
-          <p className="text-lg md:text-xl text-foreground/60 max-w-2xl mx-auto font-medium leading-relaxed">
-            La plateforme ultime pour orchestrer vos ligues et tournois avec une élégance inédite. 
-            Intelligence Monte-Carlo, organisation mobile-first et design futuriste.
+          <p className="text-base md:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
+            Organisez ligues et sessions sur le terrain : matchmaking équilibré,
+            co-gestion et outils mobiles — sans friction.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
           <Link href="/leagues/create">
-            <NeonButton variant="primary" className="px-10 py-6 text-sm tracking-[0.2em]">
-              DÉMARRER MA LIGUE
-              <ChevronRight className="w-5 h-5 ml-2" />
+            <NeonButton variant="primary" className="px-8 py-4 text-xs">
+              Créer une ligue
+              <ChevronRight className="w-4 h-4 ml-1.5" />
             </NeonButton>
           </Link>
-          <Link href="/leagues">
-            <NeonButton variant="secondary" className="px-10 py-6 text-sm tracking-[0.2em]">
-              EXPLORER LES LIGUES
-              <Play className="w-4 h-4 ml-2" />
-            </NeonButton>
+          <Link
+            href="/leagues"
+            className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-medium text-slate-300 border border-white/10 rounded-xl hover:bg-white/5 hover:text-white transition-colors"
+          >
+            Voir mes ligues
           </Link>
         </div>
       </div>
 
-      {/* Feature Preview */}
-      <div className="mt-40 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full px-4 animate-fade-in-up [animation-delay:200ms]">
-        <FeatureCard 
-          title="Gestion Intelligente" 
-          description="Algorithmes Fair Play pour équilibrer les niveaux et rotations."
-          icon={<Zap className="w-6 h-6 text-accent" />}
+      <div className="mt-28 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full px-4">
+        <FeatureCard
+          title="Matchmaking équilibré"
+          description="Rotations et niveaux pensés pour le fair-play en session."
+          icon={<Zap className="w-5 h-5 text-accent" />}
         />
-        <FeatureCard 
-          title="Expérience Mobile" 
-          description="Utilisez l'app directement sur le terrain, fluide et instantanée."
-          icon={<Smartphone className="w-6 h-6 text-pickle-secondary" />}
+        <FeatureCard
+          title="Mobile sur le terrain"
+          description="Saisie de scores et sessions, directement depuis le téléphone."
+          icon={<Smartphone className="w-5 h-5 text-pickle-secondary" />}
         />
-        <FeatureCard 
-          title="Stats en Temps Réel" 
-          description="Suivez vos performances et grimpez dans le classement global."
-          icon={<BarChart3 className="w-6 h-6 text-pickle-tertiary" />}
+        <FeatureCard
+          title="Classements clairs"
+          description="Suivi des performances et hall of fame par ligue."
+          icon={<BarChart3 className="w-5 h-5 text-pickle-tertiary" />}
         />
       </div>
 
-      {/* Stats Summary - WOW Factor */}
-      <div className="mt-32 max-w-6xl w-full px-4 animate-fade-in-up [animation-delay:400ms]">
-        <GlassCard className="p-12 md:p-20 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-pickle-secondary/5 blur-[100px] rounded-full -z-10 group-hover:bg-pickle-secondary/10 transition-all duration-700" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-center">
-            <StatItem value="1,240" label="MATCHS GÉNÉRÉS" />
-            <StatItem value="48" label="LIGUES ACTIVES" />
-            <StatItem value="3,150" label="JOUEURS INSCRITS" />
-            <StatItem value="99.9%" label="UPTIME GTR" />
-          </div>
+      <div className="mt-16 max-w-2xl w-full px-4 text-center">
+        <GlassCard className="p-7 md:p-8" hoverEffect={false}>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Co-gestion, import/export et recaps IA — pour les organisateurs qui
+            veulent avancer vite sans sacrifier la clarté.
+          </p>
         </GlassCard>
       </div>
     </div>
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string, description: string, icon: React.ReactNode }) {
+function FeatureCard({
+  title,
+  description,
+  icon,
+}: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
   return (
-    <GlassCard className="p-10 space-y-6 hover:border-white/20 transition-all duration-500 group">
-      <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-white/10 transition-colors">
+    <GlassCard className="p-7 space-y-4 hover:border-white/15 transition-colors duration-300 group">
+      <div className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-white/15 transition-colors">
         {icon}
       </div>
-      <div className="space-y-2">
-        <h3 className="text-xl font-bold tracking-tight">{title}</h3>
-        <p className="text-foreground/40 leading-relaxed text-sm">
-          {description}
-        </p>
+      <div className="space-y-1.5">
+        <h3 className="text-base font-semibold tracking-tight text-white">
+          {title}
+        </h3>
+        <p className="text-slate-500 leading-relaxed text-sm">{description}</p>
       </div>
     </GlassCard>
-  );
-}
-
-function StatItem({ value, label }: { value: string, label: string }) {
-  return (
-    <div className="space-y-1">
-      <div className="text-4xl md:text-5xl font-black text-white tracking-tighter">{value}</div>
-      <div className="text-[10px] font-bold text-accent tracking-[0.3em] uppercase opacity-60">{label}</div>
-    </div>
   );
 }

@@ -1,6 +1,6 @@
 /**
- * NeonButton — aligné sur D:\GrokBuild\shared-ui\neon-button.tsx
- * Variantes pickle-* (tokens du projet).
+ * NeonButton — P1 UI : moins de glow agressif, transitions plus courtes.
+ * Rollback : git revert du commit style(ui): P1
  */
 import React from "react";
 
@@ -22,20 +22,20 @@ export function NeonButton({
   type = "button",
 }: NeonButtonProps) {
   const baseClasses =
-    "px-6 py-2.5 rounded-xl font-bold uppercase tracking-[0.1em] text-[11px] flex items-center justify-center gap-2.5 transition-all duration-500 active:scale-[0.98] border";
+    "px-6 py-2.5 rounded-xl font-semibold tracking-wide text-xs flex items-center justify-center gap-2 transition-colors duration-200 active:scale-[0.99] border";
 
   const variants: Record<string, string> = {
     primary:
-      "bg-pickle-primary/5 border-white/10 text-pickle-primary hover:bg-pickle-primary hover:text-black hover:border-pickle-primary hover:shadow-[0_8px_30px_rgba(220,252,68,0.4)] shadow-inner",
+      "bg-pickle-primary/10 border-pickle-primary/30 text-pickle-primary hover:bg-pickle-primary hover:text-black hover:border-pickle-primary",
     muted:
-      "bg-pickle-muted/5 border-white/10 text-pickle-muted hover:bg-pickle-muted hover:text-black hover:border-pickle-muted hover:shadow-[0_8px_30px_rgba(132,204,22,0.4)] shadow-inner",
+      "bg-pickle-muted/5 border-white/10 text-pickle-muted hover:bg-pickle-muted hover:text-black hover:border-pickle-muted",
     tertiary:
-      "bg-pickle-tertiary/5 border-white/10 text-pickle-tertiary hover:bg-pickle-tertiary hover:text-white hover:border-pickle-tertiary hover:shadow-[0_8px_30px_rgba(59,130,246,0.4)] shadow-inner",
+      "bg-pickle-tertiary/5 border-white/10 text-pickle-tertiary hover:bg-pickle-tertiary hover:text-white hover:border-pickle-tertiary",
     secondary:
-      "bg-pickle-secondary/5 border-white/10 text-pickle-secondary/90 hover:bg-pickle-secondary hover:text-white hover:border-pickle-secondary hover:shadow-[0_8px_30px_rgba(227,24,55,0.4)] shadow-inner",
+      "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white hover:border-white/20",
     yellow:
-      "bg-pickle-yellow/5 border-white/10 text-pickle-yellow/90 hover:bg-pickle-yellow hover:text-black hover:border-pickle-yellow hover:shadow-[0_8px_30px_rgba(253,224,71,0.4)] shadow-inner",
-    acid: "bg-[#dcfc44] border-[#dcfc44] text-black hover:bg-[#cbfb10] hover:shadow-[0_0_30px_rgba(220,252,68,0.5)] shadow-lg shadow-black/20",
+      "bg-pickle-yellow/5 border-white/10 text-pickle-yellow/90 hover:bg-pickle-yellow hover:text-black hover:border-pickle-yellow",
+    acid: "bg-pickle-primary border-pickle-primary text-black hover:bg-[#cbfb10]",
     gold: "bg-transparent border-[var(--color-gold)]/30 text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 hover:border-[var(--color-gold)]",
   };
 
