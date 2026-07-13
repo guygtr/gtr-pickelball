@@ -7,18 +7,18 @@
 - **Hub** : D:\GrokBuild (v3.6)
 
 ## Stack actuelle
-- Next.js 15.5 · React 19 · Prisma 7.6 · Supabase · Zod
-- Écart flotte : cible STACK = Next 16 + Prisma 6.x (plus tard)
+- Next.js **16.2.10** · `src/proxy.ts` · React **19.2** · Prisma **7.x** · Supabase · Zod 4
+- UI : GlassCard / NeonButton alignés `D:\GrokBuild\shared-ui`
 
 ## Dernier jalon (2026-07-13)
 - [x] P0 hygiène : tmp + debug-ai retirés du tracking
 - [x] P1 sécu : rate-limit IA, logger, ADMIN_EMAILS fail-closed, RLS SQL schema pb
 - [x] ADMIN_EMAILS confirmé sur Vercel prod (utilisateur)
+- [x] P2 : Next 16 + proxy.ts · shared-ui · README stack exacte
 
 ## Roadmap
-- [ ] Aligner Next 16 / proxy.ts si besoin
-- [ ] Harmoniser UI avec shared-ui GrokBuild
-- [ ] Smoke QA ownership + deploy prod post-P0/P1
+- [ ] Smoke QA + deploy prod post-P2
+- [ ] (Optionnel) Prisma 6 alignement bar-manager — non prioritaire
 
 ## Notes agents locaux
 - `agents/yoda.md`, `mario.md`, `ezio.md`, `leia.md` conservés

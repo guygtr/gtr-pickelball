@@ -1,5 +1,6 @@
 # Journal de bord — GTR Pickelball
 
+- **2026-07-13** : **P2** — Next.js 16.2.10 + `src/proxy.ts` (retrait middleware.ts) ; shared-ui GlassCard/NeonButton ; README stack exacte.
 - **2026-07-13** : **P0/P1 sécu** — purge tmp + debug-ai ; rate-limit IA recap ; logger ; ADMIN_EMAILS fail-closed ; RLS schema pb ; npm audit.
 - **2026-07-13** : Alignement structure .gtr v3.6 (homogène flotte).
 

@@ -1,25 +1,28 @@
 {
   "project_id": "gtr-pickelball",
   "project_name": "GTR Pickelball",
-  "version": "3.3.5",
+  "version": "3.6.0",
   "fleet_role": "Gestion ligues pickleball multi-tenant mobile-first",
   "hub": "D:\\GrokBuild",
   "urls": {
     "production": "https://pickelball.gtremblay.com",
+    "github": "https://github.com/guygtr/gtr-pickelball",
     "staging": ""
   },
   "stack": {
-    "framework": "Next.js 15.5 (cible Next 16)",
-    "ui": "React 19 + Tailwind + Luxury/Outfit",
-    "orm": "Prisma 7.6",
-    "database": "Supabase",
-    "validation": "Zod",
-    "auth": "Supabase Auth (@supabase/ssr)"
+    "framework": "Next.js 16.2.10",
+    "edge": "src/proxy.ts",
+    "ui": "React 19.2 + Tailwind 4 + shared-ui (GlassCard/NeonButton)",
+    "orm": "Prisma 7.x + adapter-pg",
+    "database": "Supabase PostgreSQL schema pb",
+    "validation": "Zod 4",
+    "auth": "Supabase Auth (@supabase/ssr)",
+    "ai": "xAI Grok (api.x.ai)"
   },
   "standards": {
     "agents_hub": "D:\\GrokBuild\\Agents",
     "stack_doc": "D:\\GrokBuild\\Agents\\.agents\\STACK.md",
-    "session": "D:\\GrokBuild\\Agents\\.agents\\SESSION.md"
-  },
-  "notes": "Stack non encore alignée STACK.md flotte (Next 16 / Prisma 6) — migration reportée."
+    "session": "D:\\GrokBuild\\Agents\\.agents\\SESSION.md",
+    "shared_ui": "D:\\GrokBuild\\shared-ui"
+  }
 }

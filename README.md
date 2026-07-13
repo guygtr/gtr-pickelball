@@ -1,40 +1,88 @@
-# GTR-Pickelball 🥒🎾
+# GTR-Pickelball
 
-La plateforme moderne de gestion de ligues de Pickleball par la **GTR-Team**. 🛸
+Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team** · Hub `D:\GrokBuild`
 
-## Architecture GTR-2026 👽
+- **Prod** : https://pickelball.gtremblay.com  
+- **Repo** : https://github.com/guygtr/gtr-pickelball  
+- **Version métier** : ~3.3.5 · **Alignement hub** : v3.6 (2026-07)
 
-Le projet suit une **Architecture 3-couches** stricte pour garantir l'isolation de la logique métier et la sécurité des données.
+---
 
-1. **Couche UI (React/Next.js)** : Composants dynamiques et responsives conçus pour la performance mobile.
-   - Localisation : `src/app`, `src/components`.
-2. **Couche Actions / Validation (Zod)** : Server Actions Next.js avec validation systématique des entrées via schémas Zod.
-   - Localisation : `src/actions`, `src/lib/validations`.
-3. **Couche Domaine (Business Logic)** : Cœur algorithmique isolé (ex: Matchmaking Monte-Carlo).
-   - Localisation : `src/lib/domain`.
-4. **Couche Données (Prisma/Supabase)** : Persistance PostgreSQL avec Prisma ORM.
-   - Localisation : `prisma/schema.prisma`.
+## Stack exacte (package.json)
 
-## Standards Techniques
+| Technologie | Version | Rôle |
+|-------------|---------|------|
+| **Next.js** | **16.2.10** | App Router · **`src/proxy.ts`** (session Supabase) |
+| **React** | **19.2.3** | UI |
+| **TypeScript** | 5.9 | Strict |
+| **Tailwind CSS** | 4 | Styles + tokens pickle |
+| **Prisma** | **7.x** (+ `@prisma/adapter-pg`) | ORM · schema PostgreSQL **`pb`** |
+| **pg** | 8.x | Driver Prisma |
+| **Supabase** | `@supabase/ssr` 0.10 · `supabase-js` 2.x | Auth SSR |
+| **Zod** | 4.x | Validation Server Actions |
+| **OpenAI SDK** | 6.x → **xAI Grok** (`api.x.ai`) | Recap / niveaux IA |
+| **Framer / Lucide / papaparse** | — | UX, icônes, import CSV |
 
-- **Langue** : Français exclusif pour les commentaires, la documentation technique et les messages d'erreur utilisateurs.
-- **Typage** : TypeScript strict. Interdiction formelle du type `any`.
-- **Validation** : Zod obligatoire pour toutes les interfaces d'écriture en base de données.
-- **Matchmaking** : Algorithme Monte-Carlo paramétrable via le champ `iterations` configure en base de données pour chaque session.
+> **Note flotte** : bar-manager est en Prisma **6.3**. Pickelball reste en Prisma **7** (adapter-pg) — migration Prisma 6 non requise pour l’instant.
 
-## Développement Local
+---
+
+## Architecture 3 couches
+
+1. **UI** — `src/app`, `src/components` (dont `components/ui/gtr` = GlassCard / NeonButton alignés **shared-ui**)
+2. **Actions + Zod** — `src/actions`, validations
+3. **Domaine** — `src/lib/domain` (matchmaking, ELO…)
+4. **Données** — `prisma/schema.prisma` (schema `pb`, multi-tenant ligue / co-managers)
+
+---
+
+## Sécurité (P0/P1 2026-07)
+
+- `ensureLeagueManager` / co-gestion sur les actions sensibles  
+- RLS Postgres schema **`pb`** (13 policies) — `supabase/migrations/20260713_rls_league_manager.sql`  
+- Rate-limit login + IA recap  
+- `ADMIN_EMAILS` fail-closed  
+- Routes `debug-ai` et dossier `tmp/` retirés du repo  
+- Logger centralisé `src/lib/logger.ts`
+
+---
+
+## Shared UI
+
+Source flotte : `D:\GrokBuild\shared-ui\`  
+Projet : `src/components/ui/gtr/{glass-card,neon-button}.tsx` (API alignée + palette pickle).
+
+---
+
+## Développement local
 
 ```bash
-# Installation des dépendances
 npm install
-
-# Synchronisation de la base de données
-npx prisma db push
-
-# Lancement du serveur de développement
+npx prisma generate
 npm run dev
 ```
 
+Variables : voir `.env.example` (ou `.env` local) — `DATABASE_URL`, `DIRECT_URL`, Supabase, `GROK_API_KEY`, `ADMIN_EMAILS`.
+
+```bash
+# Réappliquer RLS si besoin
+node scripts/apply-rls-p1.mjs
+```
+
+---
+
 ## Déploiement
 
-Le projet est optimisé pour un déploiement sur **Vercel** avec synchronisation automatique via le workflow GTR-Team.
+- Branche Git : **`master`**  
+- Vercel + éventuellement :
+  ```powershell
+  powershell -File D:\GrokBuild\scripts\vercel-deploy.ps1 -Project GTR-Pickelball -Prod
+  ```
+
+---
+
+## Contexte agents
+
+`.gtr/project.json` · `.gtr/memory/status.md` · Hub : `D:\GrokBuild\Agents\.agents\SESSION.md`
+
+*GTR-Team v3.6*
