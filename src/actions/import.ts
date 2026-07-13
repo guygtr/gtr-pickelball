@@ -186,10 +186,46 @@ export async function importUserData(jsonData: unknown) {
  * Restaure une ligue complète à partir d'un backup JSON.
  * Gère la création d'une nouvelle ligue (Scénario 1).
  */
+type LeagueBackup = {
+  league: {
+    name: string;
+    description?: string | null;
+    settings?: Record<string, unknown> | null;
+  };
+  players: Array<{
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+    phone?: string | null;
+    level?: number;
+    skillLevel?: number;
+    aiLevel?: number | null;
+    isActive?: boolean;
+  }>;
+  courts?: Array<{
+    id?: string;
+    name: string;
+    note?: string | null;
+    playerCapacity?: number;
+  }>;
+  sessions?: Array<Record<string, unknown>>;
+};
+
+function asLeagueBackup(data: unknown): LeagueBackup | null {
+  if (!data || typeof data !== "object") return null;
+  const d = data as Record<string, unknown>;
+  if (!d.league || typeof d.league !== "object" || !Array.isArray(d.players)) {
+    return null;
+  }
+  return data as LeagueBackup;
+}
+
 export async function restoreLeagueFromBackup(jsonData: unknown, importSessions: boolean = true) {
   const user = await ensurePrismaManager();
-  
-  if (!jsonData.league || !jsonData.players) {
+  const backup = asLeagueBackup(jsonData);
+
+  if (!backup) {
     return { success: false, error: "Format de backup invalide." };
   }
 
@@ -198,9 +234,9 @@ export async function restoreLeagueFromBackup(jsonData: unknown, importSessions:
       // 1. Création de la ligue
       const newLeague = await tx.league.create({
         data: {
-          name: `${jsonData.league.name} (Restauré)`,
-          description: jsonData.league.description,
-          settings: (jsonData.league.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
+          name: `${backup.league.name} (Restauré)`,
+          description: backup.league.description,
+          settings: (backup.league.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
           managerId: user.id,
         },
       });
@@ -209,7 +245,7 @@ export async function restoreLeagueFromBackup(jsonData: unknown, importSessions:
       const courtIdMap: Record<string, string> = {};
 
       // 2. Joueurs
-      for (const p of jsonData.players) {
+      for (const p of backup.players) {
         const player = await tx.player.create({
           data: {
             firstName: p.firstName,
@@ -222,12 +258,12 @@ export async function restoreLeagueFromBackup(jsonData: unknown, importSessions:
             leagueId: newLeague.id,
           },
         });
-        playerIdMap[p.id] = player.id;
+        if (p.id) playerIdMap[p.id] = player.id;
       }
 
       // 3. Terrains
-      if (jsonData.courts) {
-        for (const c of jsonData.courts) {
+      if (backup.courts) {
+        for (const c of backup.courts) {
           const court = await tx.court.create({
             data: {
               name: c.name,
@@ -236,57 +272,84 @@ export async function restoreLeagueFromBackup(jsonData: unknown, importSessions:
               leagueId: newLeague.id,
             },
           });
-          courtIdMap[c.id] = court.id;
+          if (c.id) courtIdMap[c.id] = court.id;
         }
       }
 
       // 4. Sessions (Optionnel)
-      if (importSessions && jsonData.sessions) {
-        for (const s of jsonData.sessions) {
+      if (importSessions && backup.sessions) {
+        for (const s of backup.sessions) {
+          const sess = s as {
+            date: string;
+            status: string;
+            location?: string | null;
+            maxPlayers: number;
+            duration?: number | null;
+            description?: string | null;
+            settings?: Record<string, unknown> | null;
+            attendances?: Array<{ playerId: string; isPresent: boolean }>;
+            matches?: Array<{
+              courtId?: string | null;
+              startTime?: string | null;
+              duration?: number | null;
+              data?: Record<string, unknown> | null;
+            }>;
+          };
           const newSession = await tx.session.create({
             data: {
-              date: new Date(s.date),
-              status: s.status,
-              location: s.location,
-              maxPlayers: s.maxPlayers,
-              duration: s.duration,
-              description: s.description,
-              settings: (s.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
+              date: new Date(sess.date),
+              status: sess.status,
+              location: sess.location,
+              maxPlayers: sess.maxPlayers,
+              duration: sess.duration,
+              description: sess.description,
+              settings: (sess.settings as Prisma.InputJsonValue) || Prisma.JsonNull,
               leagueId: newLeague.id,
             },
           });
 
-          // Présences
-          if (s.attendances) {
-             await tx.attendance.createMany({
-                data: s.attendances
-                    .filter((a: { playerId: string }) => playerIdMap[a.playerId])
-                    .map((a: { playerId: string, isPresent: boolean }) => ({
-                        sessionId: newSession.id,
-                        playerId: playerIdMap[a.playerId],
-                        isPresent: a.isPresent,
-                    })),
-             });
+          if (sess.attendances) {
+            await tx.attendance.createMany({
+              data: sess.attendances
+                .filter((a) => playerIdMap[a.playerId])
+                .map((a) => ({
+                  sessionId: newSession.id,
+                  playerId: playerIdMap[a.playerId],
+                  isPresent: a.isPresent,
+                })),
+            });
           }
 
-          // Matchs
-          if (s.matches) {
-            for (const m of s.matches) {
+          if (sess.matches) {
+            for (const m of sess.matches) {
               let updatedData = m.data;
-              if (updatedData && typeof updatedData === 'object') {
-                const data = { ...updatedData };
-                if (Array.isArray(data.team1)) data.team1 = data.team1.map((id: string) => playerIdMap[id] || id);
-                if (Array.isArray(data.team2)) data.team2 = data.team2.map((id: string) => playerIdMap[id] || id);
+              if (updatedData && typeof updatedData === "object") {
+                const data = { ...updatedData } as Record<string, unknown>;
+                if (Array.isArray(data.team1)) {
+                  data.team1 = (data.team1 as string[]).map(
+                    (id) => playerIdMap[id] || id
+                  );
+                }
+                if (Array.isArray(data.team2)) {
+                  data.team2 = (data.team2 as string[]).map(
+                    (id) => playerIdMap[id] || id
+                  );
+                }
                 updatedData = data;
               }
               await tx.match.create({
                 data: {
                   sessionId: newSession.id,
-                  courtId: courtIdMap[m.courtId] || (Object.values(courtIdMap)[0] || ""),
+                  courtId:
+                    (m.courtId && courtIdMap[m.courtId]) ||
+                    Object.values(courtIdMap)[0] ||
+                    "",
                   startTime: m.startTime ? new Date(m.startTime) : null,
                   duration: m.duration,
-                  data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
-                }
+                  data: updatedData
+                    ? (updatedData as Prisma.InputJsonValue)
+                    : Prisma.JsonNull,
+                },
               });
             }
           }
@@ -312,7 +375,11 @@ export async function smartImportIntoLeague(
     options: { players: boolean, sessions: boolean }
 ) {
   await ensureLeagueManager(leagueId);
-  
+  const backup = asLeagueBackup(jsonData);
+  if (!backup) {
+    return { success: false as const, error: "Format de backup invalide." };
+  }
+
   try {
     return await prisma.$transaction(async (tx) => {
       const playerIdMap: Record<string, string> = {};
@@ -322,8 +389,8 @@ export async function smartImportIntoLeague(
       let sessionsSkipped = 0;
 
       // 1. Joueurs : Toujours construire le mapping pour garantir l'intégrité des relations
-      if (jsonData.players) {
-        for (const p of jsonData.players) {
+      if (backup.players) {
+        for (const p of backup.players) {
           const existing = await tx.player.findFirst({
             where: {
               leagueId,
@@ -334,7 +401,7 @@ export async function smartImportIntoLeague(
           });
 
           if (existing) {
-            playerIdMap[p.id] = existing.id;
+            if (p.id) playerIdMap[p.id] = existing.id;
             playersSkipped++;
           } else if (options.players || options.sessions) {
             // Création activée explicitement ou implicitement via les sessions
@@ -350,7 +417,7 @@ export async function smartImportIntoLeague(
                 leagueId,
               },
             });
-            playerIdMap[p.id] = player.id;
+            if (p.id) playerIdMap[p.id] = player.id;
             playersCreated++;
           }
         }
@@ -359,11 +426,11 @@ export async function smartImportIntoLeague(
       // 2. Terrains (essentiel pour les matchs si on importe les sessions)
       const courtIdMap: Record<string, string> = {};
       const existingCourts = await tx.court.findMany({ where: { leagueId } });
-      if (jsonData.courts) {
-        for (const c of jsonData.courts) {
+      if (backup.courts) {
+        for (const c of backup.courts) {
           const existing = existingCourts.find(ec => ec.name === c.name);
           if (existing) {
-            courtIdMap[c.id] = existing.id;
+            if (c.id) courtIdMap[c.id] = existing.id;
           } else {
              const court = await tx.court.create({
                 data: {
@@ -373,14 +440,30 @@ export async function smartImportIntoLeague(
                     leagueId,
                 }
              });
-             courtIdMap[c.id] = court.id;
+             if (c.id) courtIdMap[c.id] = court.id;
           }
         }
       }
 
       // 3. Sessions (si activé)
-      if (options.sessions && jsonData.sessions) {
-        for (const s of jsonData.sessions) {
+      if (options.sessions && backup.sessions) {
+        for (const raw of backup.sessions) {
+          const s = raw as {
+            date: string;
+            status: string;
+            location?: string | null;
+            maxPlayers: number;
+            duration?: number | null;
+            description?: string | null;
+            settings?: Record<string, unknown> | null;
+            attendances?: Array<{ playerId: string; isPresent: boolean }>;
+            matches?: Array<{
+              courtId?: string | null;
+              startTime?: string | null;
+              duration?: number | null;
+              data?: Record<string, unknown> | null;
+            }>;
+          };
           const sessionDate = new Date(s.date);
           const existing = await tx.session.findFirst({
             where: { 
@@ -425,20 +508,33 @@ export async function smartImportIntoLeague(
           if (s.matches) {
             for (const m of s.matches) {
               let updatedData = m.data;
-              if (updatedData && typeof updatedData === 'object') {
-                const data = { ...updatedData };
-                if (Array.isArray(data.team1)) data.team1 = data.team1.map((id: string) => playerIdMap[id] || id);
-                if (Array.isArray(data.team2)) data.team2 = data.team2.map((id: string) => playerIdMap[id] || id);
+              if (updatedData && typeof updatedData === "object") {
+                const data = { ...updatedData } as Record<string, unknown>;
+                if (Array.isArray(data.team1)) {
+                  data.team1 = (data.team1 as string[]).map(
+                    (id) => playerIdMap[id] || id
+                  );
+                }
+                if (Array.isArray(data.team2)) {
+                  data.team2 = (data.team2 as string[]).map(
+                    (id) => playerIdMap[id] || id
+                  );
+                }
                 updatedData = data;
               }
               await tx.match.create({
                 data: {
                   sessionId: newSession.id,
-                  courtId: courtIdMap[m.courtId] || (existingCourts[0]?.id || ""),
+                  courtId:
+                    (m.courtId && courtIdMap[m.courtId]) ||
+                    existingCourts[0]?.id ||
+                    "",
                   startTime: m.startTime ? new Date(m.startTime) : null,
                   duration: m.duration,
-                  data: updatedData ? (updatedData as Prisma.InputJsonValue) : Prisma.JsonNull,
-                }
+                  data: updatedData
+                    ? (updatedData as Prisma.InputJsonValue)
+                    : Prisma.JsonNull,
+                },
               });
             }
           }
@@ -446,17 +542,17 @@ export async function smartImportIntoLeague(
       }
 
       revalidatePath(`/leagues/${leagueId}`);
-      return { 
-        success: true, 
-        results: { 
-            players: { created: playersCreated, skipped: playersSkipped },
-            sessions: { created: sessionsCreated, skipped: sessionsSkipped } 
-        } 
+      return {
+        success: true as const,
+        results: {
+          players: { created: playersCreated, skipped: playersSkipped },
+          sessions: { created: sessionsCreated, skipped: sessionsSkipped },
+        },
       };
     }, { timeout: 60000 });
   } catch (error) {
     logError("smartImportIntoLeague", error);
     const msg = error instanceof Error ? error.message : "Erreur inconnue";
-    return { success: false, error: msg };
+    return { success: false as const, error: msg };
   }
 }

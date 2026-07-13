@@ -70,7 +70,7 @@ export function ImportExportCard({ leagueId, leagueName }: { leagueId: string, l
                     result = await smartImportIntoLeague(leagueId, json, { players: true, sessions: true });
                 }
 
-                if (result.success && result.results) {
+                if (result.success) {
                     const { players, sessions } = result.results;
                     setStatus({ 
                         type: 'success', 

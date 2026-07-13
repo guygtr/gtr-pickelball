@@ -2,36 +2,47 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { ensureLeagueManager } from "@/lib/auth-utils";
+import { ensureSessionManager } from "@/lib/auth-utils";
 import OpenAI from "openai";
 import { logError, publicErrorMessage } from "@/lib/logger";
 import { assertAiRateLimit } from "@/lib/rate-limit";
+import type { MatchData } from "@/lib/domain/match-types";
+
+function isCompletedMatchData(value: unknown): value is MatchData {
+  if (!value || typeof value !== "object") return false;
+  const m = value as Record<string, unknown>;
+  const status = String(m.status ?? "").toUpperCase();
+  return (
+    Array.isArray(m.team1) &&
+    Array.isArray(m.team2) &&
+    status === "COMPLETED"
+  );
+}
 
 /**
  * Génère un résumé narratif de la session via Grok IA.
  */
 export async function generateSmartRecap(sessionId: string) {
   try {
-    const session = await prisma.session.findUnique({
-      where: { id: sessionId },
-      include: {
-        league: true,
-        matches: true, // On récupère tous les matchs et on filtre en JS pour plus de robustesse sur le JSON
-        attendances: {
-          where: { isPresent: true },
-          include: { player: true }
-        }
-      }
-    });
-
-    if (!session) return { success: false, error: "Session non trouvée" };
-    const user = await ensureLeagueManager(session.leagueId);
-
-    // Rate limit IA (coût Grok)
+    const user = await ensureSessionManager(sessionId);
     const rl = assertAiRateLimit(user.id, "smartRecap", 5);
     if (!rl.ok) {
       return { success: false, error: rl.error };
     }
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        league: true,
+        matches: true,
+        attendances: {
+          where: { isPresent: true },
+          include: { player: true },
+        },
+      },
+    });
+
+    if (!session) return { success: false, error: "Session non trouvée" };
 
     if (session.matches.length === 0) {
       return { success: false, error: "Pas assez de matchs terminés pour générer un résumé." };
@@ -49,15 +60,22 @@ export async function generateSmartRecap(sessionId: string) {
     // 1. Préparation des données pour le prompt
     const playersMap = new Map(session.attendances.map(a => [a.player.id, `${a.player.firstName} ${a.player.lastName}`]));
     
-    // Filtrage JS robuste pour s'assurer que seuls les matchs terminés sont traités
-    const matches = session.matches
-      .map(m => m.data as any)
-      .filter(m => m && m.status === "COMPLETED");
+    const matches: MatchData[] = [];
+    for (const row of session.matches) {
+      if (isCompletedMatchData(row.data)) {
+        matches.push(row.data);
+      }
+    }
 
     const processedMatches = matches.map((d, index) => {
-      const t1 = d.team1.map((id: string) => playersMap.get(id) || "Inconnu").join(" & ");
-      const t2 = d.team2.map((id: string) => playersMap.get(id) || "Inconnu").join(" & ");
-      const winner = d.winner === 1 ? t1 : d.winner === 2 ? t2 : "Égalité";
+      const t1 = d.team1
+        .map((id) => playersMap.get(id) || "Inconnu")
+        .join(" & ");
+      const t2 = d.team2
+        .map((id) => playersMap.get(id) || "Inconnu")
+        .join(" & ");
+      const winner =
+        Number(d.winner) === 1 ? t1 : Number(d.winner) === 2 ? t2 : "Égalité";
       return `Match ${index + 1}: ${t1} VS ${t2} -> Gagnant: ${winner}`;
     });
 
@@ -92,17 +110,21 @@ export async function generateSmartRecap(sessionId: string) {
 
     const recapText = completion.choices[0].message.content;
 
-    // 3. Sauvegarder dans les settings de la session
-    const currentSettings = (session.settings as Record<string, any>) || {};
+    const currentSettings =
+      session.settings &&
+      typeof session.settings === "object" &&
+      !Array.isArray(session.settings)
+        ? (session.settings as Record<string, unknown>)
+        : {};
     await prisma.session.update({
       where: { id: sessionId },
       data: {
         settings: {
           ...currentSettings,
           aiRecap: recapText,
-          recapGeneratedAt: new Date().toISOString()
-        }
-      }
+          recapGeneratedAt: new Date().toISOString(),
+        },
+      },
     });
 
     revalidatePath(`/leagues/${session.leagueId}/sessions/${sessionId}`);

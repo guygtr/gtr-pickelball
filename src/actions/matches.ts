@@ -75,6 +75,7 @@ export async function generateMatches(rawSessionId: string, mode: MatchmakingMod
       matchupCount: new Map<string, number>(),
       quartetCount: new Map<string, number>(),
       lastMatchups: new Set<string>(),
+      lastOppositions: new Set<string>(),
       playerSkills: new Map<string, number>(presentPlayers.map(p => [p.id, p.skillLevel])),
       mode
     };

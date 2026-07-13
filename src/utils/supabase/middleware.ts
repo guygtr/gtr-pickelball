@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Middleware pour rafraîchir la session Supabase Auth sur chaque requête.
+ * Rafraîchit la session Supabase + protège les routes privées (redirect login).
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -34,8 +34,36 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Rafraîchissement de la session si nécessaire
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+  const isPublic =
+    path === "/" ||
+    path.startsWith("/auth") ||
+    path.startsWith("/manifest") ||
+    path === "/favicon.ico";
+
+  const isProtected =
+    path.startsWith("/leagues") ||
+    path.startsWith("/admin") ||
+    path.startsWith("/settings");
+
+  if (isProtected && !user && !isPublic) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/login";
+    url.searchParams.set("next", path);
+    return NextResponse.redirect(url);
+  }
+
+  // Déjà connecté sur /auth/login → ligues
+  if (user && path.startsWith("/auth/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/leagues";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

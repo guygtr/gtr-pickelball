@@ -1,12 +1,29 @@
 /**
  * Rate limiting en mémoire (par instance serveur).
- * - Login: checkRateLimit(key, 5, 15min) → { success, retryAfterSeconds }
- * - IA: assertAiRateLimit(userId, action) → { ok, error? }
+ * - Login: checkRateLimit(key, 5, 15min)
+ * - IA: assertAiRateLimit(userId, action)
+ *
+ * Note multi-instances Vercel : buckets non partagés entre régions/instances.
+ * Pour un store partagé, définir RATE_LIMIT_BACKEND=redis + service externe plus tard.
+ * En attendant : clé composite user+action + fenêtre courte réduit l'abus.
  */
 
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
+const MAX_BUCKETS = 10_000;
+
+function pruneIfNeeded(now: number) {
+  if (buckets.size < MAX_BUCKETS) return;
+  for (const [key, b] of buckets) {
+    if (now >= b.resetAt) buckets.delete(key);
+  }
+  // Si encore trop plein, vider les plus anciens naïvement
+  if (buckets.size >= MAX_BUCKETS) {
+    const keys = [...buckets.keys()].slice(0, Math.floor(MAX_BUCKETS / 2));
+    for (const k of keys) buckets.delete(k);
+  }
+}
 
 export type RateLimitOk = {
   success: true;
@@ -32,6 +49,7 @@ export function checkRateLimit(
   windowMs = 60_000
 ): RateLimitResult {
   const now = Date.now();
+  pruneIfNeeded(now);
   const current = buckets.get(key);
 
   if (!current || now >= current.resetAt) {

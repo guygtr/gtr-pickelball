@@ -64,17 +64,19 @@ powershell -File D:\GrokBuild\scripts\quality-gate.ps1 -Project GTR-Pickelball
 ## Pièges connus
 
 1. **Prisma 7** ≠ bar-manager (6.3) — `prisma.config.ts`, adapter-pg, preview flags.
-2. **ensureLeagueManager** sur settings / mutations ligue.
-3. Schema Supabase **`pb`** + RLS — ne pas casser les policies.
+2. **ensureLeagueManager** : layout `[id]` + mutations (anti-IDOR lecture/écriture). Prisma **contourne RLS**.
+3. Schema Supabase **`pb`** + RLS — défense PostgREST seulement.
 4. **ADMIN_EMAILS** fail-closed en prod.
 5. UI : accent **pickle lime** / ton outil — pas le gold bar-manager.
 6. Mobile-first : jour de match = gros boutons, sticky bottom.
-7. Rate-limit IA + logger centralisé.
-8. Rollback UI Option B : `git revert fdf5591` (si besoin historique).
+7. Rate-limit IA + logger centralisé (pas de query SQL en logs prod).
+8. Routes privées protégées par `proxy` → login si non authentifié.
+9. Rollback UI Option B : `git revert fdf5591` (si besoin historique).
 
 ## DoD express
 
 - [ ] `npm run build` OK  
 - [ ] Zod + ownership / ensureLeagueManager  
 - [ ] Pas d’IDOR sur `leagues/[id]`  
-- [ ] M/L : Luke + Optimus  
+- [ ] M/L : SpaceX + Optimus (evidence + chemins)  
+

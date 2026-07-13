@@ -29,9 +29,10 @@ export async function addCoManager(leagueId: string, email: string) {
     });
 
     if (!targetManager) {
-      return { 
-        success: false, 
-        error: "Ce gestionnaire n'existe pas. Il doit s'être connecté au moins une fois à la plateforme." 
+      // Message neutre : éviter l'énumération d'emails
+      return {
+        success: false,
+        error: "Impossible d'ajouter ce co-gestionnaire. Vérifiez l'email ou réessayez plus tard.",
       };
     }
 

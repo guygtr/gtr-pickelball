@@ -25,12 +25,13 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
   });
 
   const generatePassword = () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    const chars =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
     let pass = "";
-    for (let i = 0; i < 12; i++) {
-        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < 16; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setFormData(prev => ({ ...prev, password: pass }));
+    setFormData((prev) => ({ ...prev, password: pass }));
   };
 
   const filteredManagers = managers.filter(m => 
@@ -131,6 +132,7 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="••••••••••••"
                   required
+                  minLength={12}
                   className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-12 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-secondary/50 transition-all placeholder:text-slate-700 font-mono text-sm"
                 />
                 <button 

@@ -2,10 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { ensureLeagueManager } from "@/lib/auth-utils";
+import { ensureLeagueManager, ensureSessionManager } from "@/lib/auth-utils";
 import { computeSessionImpact } from "@/lib/domain/elo";
 import { logError } from "@/lib/logger";
 import { MatchData } from "@/lib/domain/match-types";
+import { assertAiRateLimit } from "@/lib/rate-limit";
 
 /**
  * Traite les résultats d'une session pour mettre à jour les niveaux IA des participants.
@@ -13,16 +14,26 @@ import { MatchData } from "@/lib/domain/match-types";
  */
 export async function processSessionAiLevels(sessionId: string) {
   try {
+    // Authz d'abord (évite lecture DB utile sans droits)
+    const user = await ensureSessionManager(sessionId);
+    const rl = assertAiRateLimit(user.id, "processSessionAiLevels", 10);
+    if (!rl.ok) {
+      return { success: false, error: rl.error };
+    }
+
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
-            include: {
-        matches: true
-      }
+      include: {
+        matches: true,
+      },
     });
 
-    if (!session || (session.status !== "COMPLETED" && session.status !== "Completed")) return { success: false, error: "Session non valide pour le calcul IA" };
-
-    await ensureLeagueManager(session.leagueId);
+    if (
+      !session ||
+      (session.status !== "COMPLETED" && session.status !== "Completed")
+    ) {
+      return { success: false, error: "Session non valide pour le calcul IA" };
+    }
 
     // Récupérer TOUS les joueurs de la ligue pour garantir les correspondances (même si l'attendance est imprécise)
     const players = await prisma.player.findMany({
@@ -31,16 +42,18 @@ export async function processSessionAiLevels(sessionId: string) {
 
     // Filtrage robuste : seuls les matchs terminés avec un vainqueur et des équipes valides
     const matches = session.matches
-      .map(m => m.data as unknown as MatchData)
-      .filter((m) => {
-        const isValid = m && 
-          (m.status === "COMPLETED" || m.status === "Completed") && 
-          m.winner !== undefined && 
+      .map((m) => m.data as unknown)
+      .filter((raw): raw is MatchData => {
+        if (!raw || typeof raw !== "object") return false;
+        const m = raw as Record<string, unknown>;
+        const status = String(m.status ?? "").toUpperCase();
+        return (
+          status === "COMPLETED" &&
+          m.winner !== undefined &&
           m.winner !== null &&
-          Array.isArray(m.team1) && 
-          Array.isArray(m.team2);
-        
-        return isValid;
+          Array.isArray(m.team1) &&
+          Array.isArray(m.team2)
+        );
       });
 
     const updates = players.map(async (player) => {
@@ -72,12 +85,18 @@ export async function processSessionAiLevels(sessionId: string) {
       if (playerMatches.length === 0) return;
 
       // 2. Calculer le nouvel ELO impulsé par la session
-      const metadata = (player.aiMetadata as Record<string, any>) || { matchesPlayed: 0 };
+      const metadata =
+        (player.aiMetadata as Record<string, unknown> | null) &&
+        typeof player.aiMetadata === "object"
+          ? (player.aiMetadata as Record<string, number | string>)
+          : { matchesPlayed: 0 };
+      const matchesPlayed =
+        typeof metadata.matchesPlayed === "number" ? metadata.matchesPlayed : 0;
       const newAiLevel = computeSessionImpact(
         player.aiLevel,
         player.skillLevel,
         playerMatches,
-        metadata.matchesPlayed || 0
+        matchesPlayed
       );
 
       // 3. Sauvegarder
@@ -87,10 +106,10 @@ export async function processSessionAiLevels(sessionId: string) {
           aiLevel: newAiLevel,
           aiMetadata: {
             ...metadata,
-            matchesPlayed: (metadata.matchesPlayed || 0) + playerMatches.length,
-            lastUpdate: new Date().toISOString()
-          }
-        }
+            matchesPlayed: matchesPlayed + playerMatches.length,
+            lastUpdate: new Date().toISOString(),
+          },
+        },
       });
     });
 

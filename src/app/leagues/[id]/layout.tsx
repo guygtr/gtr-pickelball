@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { LeagueNav } from "@/components/leagues/league-nav";
 import { z } from "zod";
+import { createClient } from "@/utils/supabase/server";
+import { ensureLeagueManager } from "@/lib/auth-utils";
 
 const leagueIdSchema = z.string().cuid("Identifiant de ligue invalide.");
 
+/**
+ * Layout ligue — P0 sécu : auth + ownership avant tout rendu (anti-IDOR lecture).
+ */
 export default async function LeagueLayout({
   children,
   params,
@@ -14,25 +19,38 @@ export default async function LeagueLayout({
 }) {
   const resolvedParams = await params;
 
-  // Validation du format de l'identifiant (CUID) avant toute requête DB
   const parsedId = leagueIdSchema.safeParse(resolvedParams.id);
   if (!parsedId.success) {
     notFound();
   }
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/auth/login?next=/leagues/${parsedId.data}`);
+  }
+
+  try {
+    await ensureLeagueManager(parsedId.data);
+  } catch {
+    notFound();
+  }
+
   const league = await prisma.league.findUnique({
     where: { id: parsedId.data },
+    select: { id: true, name: true, description: true },
   });
 
   if (!league) {
     notFound();
   }
 
-
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-bold text-white tracking-tight">
@@ -44,10 +62,8 @@ export default async function LeagueLayout({
           </div>
         </div>
 
-        {/* Navigation & Back Button */}
-        <LeagueNav leagueId={resolvedParams.id} />
+        <LeagueNav leagueId={parsedId.data} />
 
-        {/* Dynamic Content */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

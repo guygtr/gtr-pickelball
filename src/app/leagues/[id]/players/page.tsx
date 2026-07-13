@@ -167,7 +167,12 @@ export default async function PlayersPage({
                   <td className="px-6 py-4 text-right">
                     <PlayerActions 
                       leagueId={resolvedParams.id} 
-                      player={player}
+                      player={{
+                        ...player,
+                        type: (player.type === "remplacant" ? "remplacant" : "permanent") as
+                          | "permanent"
+                          | "remplacant",
+                      }}
                     />
                   </td>
                 </tr>

@@ -30,7 +30,7 @@ export function AiRecapCard({
     try {
       const result = await generateSmartRecap(sessionId);
       if (result.success) {
-        setRecap(result.recap);
+        setRecap(result.recap ?? undefined);
         toast.success("Recap prêt", { id: loadingToast });
       } else {
         toast.error(result.error || "Erreur", { id: loadingToast });

@@ -3,9 +3,11 @@
 import { prisma } from "@/lib/prisma";
 import { getEnsuredUser, ensureLeagueManager } from "@/lib/auth-utils";
 import { Prisma } from "@prisma/client";
+import { logWarn } from "@/lib/logger";
 
 export async function exportLeagueData(leagueId: string) {
-  await ensureLeagueManager(leagueId);
+  const user = await ensureLeagueManager(leagueId);
+  logWarn("exportLeagueData", `user=${user.id} leagueId=${leagueId}`);
 
   const league = await prisma.league.findUnique({
     where: { id: leagueId },
@@ -87,6 +89,7 @@ export async function exportLeagueData(leagueId: string) {
 
 export async function exportUserData() {
   const user = await getEnsuredUser();
+  logWarn("exportUserData", `user=${user.id}`);
 
   const managedLeagues = await prisma.league.findMany({
     where: { managerId: user.id },

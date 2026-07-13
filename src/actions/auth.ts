@@ -7,15 +7,27 @@ import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 import { logError } from "@/lib/logger";
 
 export async function signIn(prevState: unknown, formData: FormData) {
-  const email = (formData.get("email") as string).toLowerCase().trim();
+  const email = (formData.get("email") as string)?.toLowerCase().trim() ?? "";
   const password = formData.get("password") as string;
 
-  // Rate limiting : 5 tentatives par email par fenêtre de 15 minutes
-  const rateLimitKey = `signin:${email}`;
-  const rateLimit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000);
+  if (!email || !password) {
+    return { error: "Email et mot de passe requis." };
+  }
 
-  if (!rateLimit.success) {
-    const minutes = Math.ceil((rateLimit.retryAfterSeconds ?? 900) / 60);
+  // Rate limiting : 5 tentatives par email par fenêtre de 15 minutes
+  // (+ bucket global soft pour limiter le spray multi-emails sur une instance)
+  const rateLimitKey = `signin:${email}`;
+  const globalKey = `signin:global`;
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000);
+  const globalLimit = checkRateLimit(globalKey, 40, 15 * 60 * 1000);
+
+  if (!rateLimit.success || !globalLimit.success) {
+    const retrySec = !rateLimit.success
+      ? rateLimit.retryAfterSeconds
+      : !globalLimit.success
+        ? globalLimit.retryAfterSeconds
+        : 900;
+    const minutes = Math.ceil(retrySec / 60);
     return { error: `Trop de tentatives. Réessayez dans ${minutes} minute(s).` };
   }
 
@@ -49,8 +61,8 @@ export async function changePassword(prevState: unknown, formData: FormData) {
     return { error: "Les nouveaux mots de passe ne correspondent pas." };
   }
 
-  if (newPassword.length < 8) {
-    return { error: "Le nouveau mot de passe doit faire au moins 8 caractères." };
+  if (newPassword.length < 12) {
+    return { error: "Le nouveau mot de passe doit faire au moins 12 caractères." };
   }
 
   try {

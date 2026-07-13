@@ -10,7 +10,9 @@ import { logError, logWarn } from "@/lib/logger";
 
 const ManagerAccountSchema = z.object({
   email: z.string().email("Format d'email invalide"),
-  password: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères"),
+  password: z
+    .string()
+    .min(12, "Le mot de passe doit faire au moins 12 caractères"),
   name: z.string().min(2, "Le nom doit faire au moins 2 caractères"),
 });
 
@@ -31,26 +33,52 @@ export interface ManagerAuthData {
 }
 
 /**
- * Récupère tous les gestionnaires.
- * Combine les données de Prisma avec les données de Supabase Auth si possible.
- * @returns {Promise<Array<Object>>} Liste des gestionnaires enrichie.
+ * Charge les users Auth par pages (évite listUsers monolithe).
+ */
+async function listAuthUsersPaged(maxPages = 10, perPage = 200) {
+  const adminClient = createAdminClient();
+  const all: { id: string; email?: string; last_sign_in_at?: string }[] = [];
+
+  for (let page = 1; page <= maxPages; page++) {
+    const { data, error } = await adminClient.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+    if (error) throw error;
+    const batch = data.users ?? [];
+    all.push(
+      ...batch.map((u) => ({
+        id: u.id,
+        email: u.email,
+        last_sign_in_at: u.last_sign_in_at,
+      }))
+    );
+    if (batch.length < perPage) break;
+  }
+
+  return all;
+}
+
+/**
+ * Récupère tous les gestionnaires (Prisma + last_sign_in Auth paginé).
  */
 export async function getManagers() {
   await ensureAdmin();
-  
+
   const managers = await prisma.manager.findMany({
     orderBy: { createdAt: "desc" },
   });
 
   try {
-    const adminClient = createAdminClient();
-    const { data: { users }, error } = await adminClient.auth.admin.listUsers();
-    
-    if (error) throw error;
+    const users = await listAuthUsersPaged();
+    const byEmail = new Map(
+      users
+        .filter((u) => u.email)
+        .map((u) => [u.email!.toLowerCase(), u] as const)
+    );
 
-    // Fusionner les données pour afficher par exemple last_sign_in_at
     return managers.map((m) => {
-      const authUser = users.find(u => u.email === m.email);
+      const authUser = byEmail.get(m.email.toLowerCase());
       return {
         ...m,
         lastSignIn: authUser?.last_sign_in_at || null,
@@ -58,7 +86,10 @@ export async function getManagers() {
       };
     });
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Erreur inconnue lors de la récupération des infos Auth";
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Erreur inconnue lors de la récupération des infos Auth";
     logError("getManagers", errorMessage);
     return managers;
   }
@@ -67,40 +98,45 @@ export async function getManagers() {
 /**
  * Crée un nouveau compte gestionnaire (Supabase Auth + Prisma).
  */
-export async function createManagerAccount(email: string, password: string, name: string) {
+export async function createManagerAccount(
+  email: string,
+  password: string,
+  name: string
+) {
   await ensureAdmin();
 
   const validated = ManagerAccountSchema.parse({ email, password, name });
 
   try {
     const adminClient = createAdminClient();
-    
-    // 1. Création du compte dans Supabase Auth
+
     const { data, error } = await adminClient.auth.admin.createUser({
-      email,
-      password,
+      email: validated.email,
+      password: validated.password,
       email_confirm: true,
-      user_metadata: { name, role: 'manager' }
+      user_metadata: { name: validated.name, role: "manager" },
     });
 
     if (error) throw error;
 
-    // 2. Création de l'entrée dans Prisma
     await prisma.manager.upsert({
       where: { email: validated.email },
-      update: { name: validated.name, role: 'manager' },
+      update: { name: validated.name, role: "manager" },
       create: {
         id: data.user.id,
         email: validated.email,
         name: validated.name,
-        role: 'manager'
-      }
+        role: "manager",
+      },
     });
 
     revalidatePath("/admin");
     return { success: true, user: data.user };
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Erreur lors de la création du compte gestionnaire";
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Erreur lors de la création du compte gestionnaire";
     logError("createManagerAccount", err);
     return { success: false, error: errorMessage };
   }
@@ -108,30 +144,57 @@ export async function createManagerAccount(email: string, password: string, name
 
 /**
  * Supprime un gestionnaire (Prisma + Supabase Auth).
+ * Préfère l'id Auth (aligné Prisma id à la création).
  */
 export async function deleteManager(id: string, email: string) {
   await ensureAdmin();
-  
+
   try {
     const adminClient = createAdminClient();
-    
-    // On essaie de supprimer dans Auth d'abord (plus critique)
-    // On cherche l'utilisateur par email si l'id Prisma ne correspond pas à l'id Auth
-    const { data: { users } } = await adminClient.auth.admin.listUsers();
-    const authUser = users.find(u => u.email === email);
-    
-    if (authUser) {
-      const { error } = await adminClient.auth.admin.deleteUser(authUser.id);
-      if (error) logWarn("deleteManager", `Erreur suppression Auth (peut-être déjà supprimé): ${error.message}`);
+
+    // 1. Essai direct par id (cas normal : id Prisma = id Auth)
+    let deletedAuth = false;
+    if (id) {
+      const { error } = await adminClient.auth.admin.deleteUser(id);
+      if (!error) {
+        deletedAuth = true;
+      } else {
+        logWarn(
+          "deleteManager",
+          `deleteUser(${id}): ${error.message} — fallback email`
+        );
+      }
     }
 
-    // Suppression Prisma
-    await prisma.manager.delete({ where: { email } });
+    // 2. Fallback recherche paginée par email
+    if (!deletedAuth && email) {
+      const users = await listAuthUsersPaged();
+      const authUser = users.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase()
+      );
+      if (authUser) {
+        const { error } = await adminClient.auth.admin.deleteUser(authUser.id);
+        if (error) {
+          logWarn(
+            "deleteManager",
+            `Erreur suppression Auth: ${error.message}`
+          );
+        }
+      }
+    }
+
+    await prisma.manager.delete({ where: { email } }).catch(async () => {
+      // fallback id
+      await prisma.manager.delete({ where: { id } });
+    });
 
     revalidatePath("/admin");
     return { success: true };
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : "Erreur lors de la suppression du gestionnaire";
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : "Erreur lors de la suppression du gestionnaire";
     logError("deleteManager", err);
     return { success: false, error: errorMessage };
   }
