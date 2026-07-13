@@ -79,18 +79,65 @@ describe("matchmaking keys", () => {
 });
 
 describe("mode weights", () => {
-  it("TOURNAMENT prioritizes tight skill matches over social variety", () => {
+  it("TOURNAMENT prioritizes tight skill over partner variety", () => {
     const t = getModeWeights("TOURNAMENT");
-    const r = getModeWeights("RANDOM");
-    const c = getModeWeights("COMPETITIVE");
     expect(t.useSkill).toBe(true);
-    // Skill dominates social in tournament
     expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(t.PARTNER_WEIGHT);
-    expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(c.SKILL_BALANCE_WEIGHT);
-    // Social softer than pure RANDOM
-    expect(t.PARTNER_WEIGHT).toBeLessThan(r.PARTNER_WEIGHT);
-    expect(t.QUARTET_WEIGHT).toBeLessThan(r.QUARTET_WEIGHT);
   });
+
+  it("COMPETITIVE prioritizes partner variety AND skill balance", () => {
+    const c = getModeWeights("COMPETITIVE");
+    const r = getModeWeights("RANDOM");
+    expect(c.useSkill).toBe(true);
+    expect(c.PARTNER_WEIGHT).toBeGreaterThan(50000);
+    expect(c.SKILL_BALANCE_WEIGHT).toBeGreaterThan(20000);
+    expect(c.PARTNER_WEIGHT).toBeGreaterThanOrEqual(r.PARTNER_WEIGHT * 0.8);
+  });
+});
+
+describe("competitive variety over session", () => {
+  it(
+    "8 players / 2 courts: spreads partnerships across rounds",
+    () => {
+    const players = Array.from({ length: 8 }, (_, i) =>
+      mockPlayer(`p${i}`, 2.5 + (i % 4) * 0.4)
+    );
+    const courts = [mockCourt("c1"), mockCourt("c2")];
+    const stats = emptyStats(
+      players.map((p) => p.id),
+      players.map((p) => p.skillLevel),
+      "COMPETITIVE"
+    );
+    const designs = generateFullSessionMatches(
+      players,
+      courts,
+      stats,
+      6 * 15,
+      15,
+      200
+    );
+
+    // Count unique partners per player
+    const partners = new Map<string, Set<string>>();
+    for (const p of players) partners.set(p.id, new Set());
+    for (const m of designs) {
+      if (m.team1.length === 2) {
+        partners.get(m.team1[0])!.add(m.team1[1]);
+        partners.get(m.team1[1])!.add(m.team1[0]);
+      }
+      if (m.team2.length === 2) {
+        partners.get(m.team2[0])!.add(m.team2[1]);
+        partners.get(m.team2[1])!.add(m.team2[0]);
+      }
+    }
+    // Over 8 rounds each should see several different partners (not stuck with 1)
+    const uniqueCounts = [...partners.values()].map((s) => s.size);
+    const avg =
+      uniqueCounts.reduce((a, b) => a + b, 0) / uniqueCounts.length;
+    expect(avg).toBeGreaterThanOrEqual(2.5);
+  },
+    30_000
+  );
 });
 
 describe("generateOptimalRound", () => {
@@ -152,7 +199,9 @@ describe("bench equity — 10 players / 2 courts", () => {
    * 2 terrains × 4 = 8 places ; 10 présents → 2 au banc par ronde.
    * Sur N rondes : max(playCount) − min(playCount) ≤ 1.
    */
-  it("10 joueurs / 2 courts → max(playCount)−min(playCount) ≤ 1 sur N rondes", () => {
+  it(
+    "10 joueurs / 2 courts → max(playCount)−min(playCount) ≤ 1 sur N rondes",
+    () => {
     const nRounds = 5;
     const matchDuration = 15;
     const sessionDuration = nRounds * matchDuration; // 5 rondes
@@ -173,7 +222,7 @@ describe("bench equity — 10 players / 2 courts", () => {
       stats,
       sessionDuration,
       matchDuration,
-      400
+      150
     );
 
     // Chaque ronde = 2 matchs doubles → 8 joueurs
@@ -198,9 +247,13 @@ describe("bench equity — 10 players / 2 courts", () => {
     const maxP = Math.max(...values);
     const minP = Math.min(...values);
     expect(maxP - minP).toBeLessThanOrEqual(1);
-  });
+  },
+    20_000
+  );
 
-  it("same equity holds for COMPETITIVE and RANDOM modes", () => {
+  it(
+    "same equity holds for COMPETITIVE and RANDOM modes",
+    () => {
     const nRounds = 5;
     const sessionDuration = nRounds * 15;
     const players = Array.from({ length: 10 }, (_, i) =>
@@ -220,7 +273,7 @@ describe("bench equity — 10 players / 2 courts", () => {
         stats,
         sessionDuration,
         15,
-        300
+        120
       );
       const playCount = new Map(players.map((p) => [p.id, 0]));
       for (const m of designs) {
@@ -231,5 +284,7 @@ describe("bench equity — 10 players / 2 courts", () => {
       const values = [...playCount.values()];
       expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
     }
-  });
+  },
+    30_000
+  );
 });

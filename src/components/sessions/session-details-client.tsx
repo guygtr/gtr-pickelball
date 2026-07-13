@@ -467,7 +467,8 @@ export function SessionDetailsClient({
                     {
                       id: "COMPETITIVE" as const,
                       label: "Compétitif",
-                      title: "Équilibre de niveaux prioritaire",
+                      title:
+                        "Jouer avec le plus de monde + parties équilibrées",
                     },
                     {
                       id: "TOURNAMENT" as const,
@@ -497,7 +498,7 @@ export function SessionDetailsClient({
                 {generationMode === "RANDOM" &&
                   "Social : priorité à la variété, sans forcer les niveaux."}
                 {generationMode === "COMPETITIVE" &&
-                  "Compétition : priorité à l’équilibre des niveaux."}
+                  "Compétitif : chacun avec le plus de partenaires différents, matchs les plus équilibrés possible."}
               </p>
 
               <div className="hidden lg:block">

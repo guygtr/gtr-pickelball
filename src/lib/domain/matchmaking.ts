@@ -13,9 +13,9 @@ export interface MatchDesign {
 }
 
 /**
- * - RANDOM : social max (variété partenaires / quartets), peu de skill
- * - COMPETITIVE : équilibre de niveaux prioritaire
- * - TOURNAMENT : parties les plus serrées possible (skill), un peu de social en secondaire
+ * - RANDOM : social max (variété), peu de skill
+ * - COMPETITIVE : jouer avec le plus de monde différent + parties équilibrées (niveaux)
+ * - TOURNAMENT : parties les plus serrées possible (skill), social secondaire
  */
 export type MatchmakingMode = "RANDOM" | "COMPETITIVE" | "TOURNAMENT";
 
@@ -61,14 +61,15 @@ export function getModeWeights(mode: MatchmakingMode): ModeWeights {
     };
   }
   if (mode === "COMPETITIVE") {
+    // Ligue amateur : chacun joue avec/contre le plus de monde + matchs équilibrés
     return {
-      PARTNER_WEIGHT: 2000,
-      OPPOSITION_WEIGHT: 2500,
-      MATCHUP_WEIGHT: 5000,
-      QUARTET_WEIGHT: 3000,
-      CONSECUTIVE_OPP_WEIGHT: 25000,
-      SKILL_BALANCE_WEIGHT: 15000,
-      SKILL_SPREAD_WEIGHT: 5000,
+      PARTNER_WEIGHT: 90000, // fort — éviter le même partenaire
+      OPPOSITION_WEIGHT: 5000, // variété d'adversaires
+      MATCHUP_WEIGHT: 35000, // éviter le même 2v2
+      QUARTET_WEIGHT: 8000, // même 4 OK si les paires changent
+      CONSECUTIVE_OPP_WEIGHT: 18000,
+      SKILL_BALANCE_WEIGHT: 40000, // parties serrées entre équipes
+      SKILL_SPREAD_WEIGHT: 3500, // laisse fort+faible pour équilibrer le terrain
       useSkill: true,
     };
   }
@@ -210,19 +211,69 @@ function calculateMatchCost(
 }
 
 /**
+ * Les 3 façons de couper 4 joueurs en 2 paires (doubles).
+ */
+function doublesTeamSplits(
+  a: string,
+  b: string,
+  c: string,
+  d: string
+): Array<[string[], string[]]> {
+  return [
+    [
+      [a, b],
+      [c, d],
+    ],
+    [
+      [a, c],
+      [b, d],
+    ],
+    [
+      [a, d],
+      [b, c],
+    ],
+  ];
+}
+
+/**
+ * Meilleure répartition doubles pour 4 joueurs selon le coût.
+ */
+function bestDoublesForQuartet(
+  ids: [string, string, string, string],
+  stats: MatchmakingStats
+): { team1: string[]; team2: string[]; cost: number } {
+  let best = {
+    team1: [ids[0], ids[1]] as string[],
+    team2: [ids[2], ids[3]] as string[],
+    cost: Infinity,
+  };
+  for (const [t1, t2] of doublesTeamSplits(ids[0], ids[1], ids[2], ids[3])) {
+    const cost = calculateMatchCost(t1, t2, stats);
+    if (cost < best.cost) {
+      best = { team1: t1, team2: t2, cost };
+    }
+  }
+  return best;
+}
+
+/**
  * Algorithme Monte-Carlo pour optimiser un round de jeu unique.
+ * Pour chaque groupe de 4, évalue les 3 pairings doubles (pas seulement ordre du shuffle).
  */
 export function generateOptimalRound(
   playersInRound: Player[],
   courts: Court[],
   stats: MatchmakingStats,
   iterations: number
-): { matches: MatchDesign[], cost: number } {
+): { matches: MatchDesign[]; cost: number } {
   let bestMatches: MatchDesign[] = [];
   let minRoundCost = Infinity;
 
-  // Pour les petits rounds (ex: 8 joueurs), on peut faire plus d'itérations
-  const actualIterations = playersInRound.length <= 12 ? Math.max(iterations, 5000) : iterations;
+  // Ne pas forcer des milliers d'itérations si l'appelant en a déjà fixé un budget
+  const actualIterations =
+    playersInRound.length <= 12
+      ? Math.max(iterations, Math.min(2000, Math.max(iterations, 400)))
+      : iterations;
 
   for (let i = 0; i < actualIterations; i++) {
     const shuffled = [...playersInRound].sort(() => Math.random() - 0.5);
@@ -232,25 +283,40 @@ export function generateOptimalRound(
 
     for (let c = 0; c < courts.length && tempPlayers.length >= 2; c++) {
       const isDoubles = tempPlayers.length >= 4;
-      const courtPlayers = isDoubles ? tempPlayers.splice(0, 4) : tempPlayers.splice(0, 2);
-      
-      const t1 = isDoubles ? [courtPlayers[0].id, courtPlayers[1].id] : [courtPlayers[0].id];
-      const t2 = isDoubles ? [courtPlayers[2].id, courtPlayers[3].id] : [courtPlayers[1].id];
-
-      currentRoundCost += calculateMatchCost(t1, t2, stats);
-      
-      roundMatches.push({
-        team1: t1,
-        team2: t2,
-        courtId: courts[c].id,
-        type: isDoubles ? "DOUBLES" : "SINGLES"
-      });
+      if (isDoubles) {
+        const courtPlayers = tempPlayers.splice(0, 4);
+        const ids = courtPlayers.map((p) => p.id) as [
+          string,
+          string,
+          string,
+          string,
+        ];
+        const best = bestDoublesForQuartet(ids, stats);
+        currentRoundCost += best.cost;
+        roundMatches.push({
+          team1: best.team1,
+          team2: best.team2,
+          courtId: courts[c].id,
+          type: "DOUBLES",
+        });
+      } else {
+        const courtPlayers = tempPlayers.splice(0, 2);
+        const t1 = [courtPlayers[0].id];
+        const t2 = [courtPlayers[1].id];
+        currentRoundCost += calculateMatchCost(t1, t2, stats);
+        roundMatches.push({
+          team1: t1,
+          team2: t2,
+          courtId: courts[c].id,
+          type: "SINGLES",
+        });
+      }
     }
 
     if (currentRoundCost < minRoundCost) {
       minRoundCost = currentRoundCost;
       bestMatches = roundMatches;
-      if (minRoundCost === 0) break; // Optimisation parfaite trouvée
+      if (minRoundCost === 0) break;
     }
   }
 
@@ -288,20 +354,28 @@ export function generateFullSessionMatches(
   const roundsCount = Math.max(1, Math.floor(sessionDuration / matchDuration));
   const isPerfectGroup = [4, 8, 12].includes(presentPlayers.length) && (presentPlayers.length / 4 === courts.length);
   
-  // En mode Social (4, 8, 12), on simule plusieurs SESSIONS ENTIÈRES pour éviter de se coincer
-  // On réduit sessionTrials si on est en mode COMPÉTITION car le skill limite les options parfaites
-  // RANDOM : beaucoup d'essais pour la variété ; TOURNAMENT : assez pour le skill
+  // COMPETITIVE / RANDOM (8, 12…) : plus d'essais session pour variété + équilibre
+  // Budgets bornés pour rester < ~2s sur un generate en prod
   const sessionTrials =
-    isPerfectGroup && initialStats.mode === "RANDOM"
-      ? 100
-      : initialStats.mode === "TOURNAMENT"
-        ? 25
-        : 10;
+    isPerfectGroup && initialStats.mode === "COMPETITIVE"
+      ? 50
+      : isPerfectGroup && initialStats.mode === "RANDOM"
+        ? 80
+        : initialStats.mode === "TOURNAMENT"
+          ? 20
+          : 12;
   let bestSessionMatches: MatchDesign[] = [];
   let minSessionCost = Infinity;
 
-  // Réduire les itérations par round lors d'une simulation globale pour rester rapide
-  const roundIterations = isPerfectGroup ? 1000 : (iterations || (presentPlayers.length > 4 ? 20000 : 10000));
+  const roundIterations =
+    iterations ??
+    (isPerfectGroup
+      ? initialStats.mode === "COMPETITIVE"
+        ? 900
+        : 700
+      : presentPlayers.length > 4
+        ? 8000
+        : 4000);
 
   for (let trial = 0; trial < sessionTrials; trial++) {
     const currentSessionMatches: MatchDesign[] = [];
