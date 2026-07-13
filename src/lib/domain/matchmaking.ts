@@ -259,6 +259,7 @@ function bestDoublesForQuartet(
 /**
  * Algorithme Monte-Carlo pour optimiser un round de jeu unique.
  * Pour chaque groupe de 4, évalue les 3 pairings doubles (pas seulement ordre du shuffle).
+ * Budget volontairement bas + arrêt anticipé si plus d'amélioration.
  */
 export function generateOptimalRound(
   playersInRound: Player[],
@@ -269,11 +270,10 @@ export function generateOptimalRound(
   let bestMatches: MatchDesign[] = [];
   let minRoundCost = Infinity;
 
-  // Ne pas forcer des milliers d'itérations si l'appelant en a déjà fixé un budget
-  const actualIterations =
-    playersInRound.length <= 12
-      ? Math.max(iterations, Math.min(2000, Math.max(iterations, 400)))
-      : iterations;
+  // Budget strict : l'appelant décide (défaut ~200–400 en prod)
+  const actualIterations = Math.max(40, Math.min(iterations, 800));
+  const stallLimit = Math.max(25, Math.floor(actualIterations / 4));
+  let stalled = 0;
 
   for (let i = 0; i < actualIterations; i++) {
     const shuffled = [...playersInRound].sort(() => Math.random() - 0.5);
@@ -316,7 +316,11 @@ export function generateOptimalRound(
     if (currentRoundCost < minRoundCost) {
       minRoundCost = currentRoundCost;
       bestMatches = roundMatches;
+      stalled = 0;
       if (minRoundCost === 0) break;
+    } else {
+      stalled += 1;
+      if (stalled >= stallLimit) break;
     }
   }
 
@@ -351,31 +355,36 @@ export function generateFullSessionMatches(
   matchDuration: number = 15,
   iterations?: number
 ): MatchDesign[] {
-  const roundsCount = Math.max(1, Math.floor(sessionDuration / matchDuration));
-  const isPerfectGroup = [4, 8, 12].includes(presentPlayers.length) && (presentPlayers.length / 4 === courts.length);
-  
-  // COMPETITIVE / RANDOM (8, 12…) : plus d'essais session pour variété + équilibre
-  // Budgets bornés pour rester < ~2s sur un generate en prod
+  // Cap des rondes générées d'un coup (évite 8×N essais longs)
+  const rawRounds = Math.max(1, Math.floor(sessionDuration / matchDuration));
+  const roundsCount = Math.min(rawRounds, 8);
+  const isPerfectGroup =
+    [4, 8, 12].includes(presentPlayers.length) &&
+    presentPlayers.length / 4 === courts.length;
+
+  // Budgets rapides (cible < ~500ms–1s sur 8 joueurs / 2 terrains)
   const sessionTrials =
-    isPerfectGroup && initialStats.mode === "COMPETITIVE"
-      ? 50
-      : isPerfectGroup && initialStats.mode === "RANDOM"
-        ? 80
-        : initialStats.mode === "TOURNAMENT"
-          ? 20
-          : 12;
+    initialStats.mode === "COMPETITIVE"
+      ? isPerfectGroup
+        ? 12
+        : 10
+      : initialStats.mode === "RANDOM"
+        ? isPerfectGroup
+          ? 14
+          : 10
+        : 8; // TOURNAMENT
+
   let bestSessionMatches: MatchDesign[] = [];
   let minSessionCost = Infinity;
 
-  const roundIterations =
-    iterations ??
-    (isPerfectGroup
-      ? initialStats.mode === "COMPETITIVE"
-        ? 900
-        : 700
-      : presentPlayers.length > 4
-        ? 8000
-        : 4000);
+  // iterations explicite (tests) ou défaut léger — plus de 10000 hardcodés côté action
+  const roundIterations = Math.min(
+    iterations ?? (presentPlayers.length <= 8 ? 220 : 320),
+    500
+  );
+
+  const sessionStallLimit = Math.max(3, Math.floor(sessionTrials / 2));
+  let sessionStalled = 0;
 
   for (let trial = 0; trial < sessionTrials; trial++) {
     const currentSessionMatches: MatchDesign[] = [];
@@ -384,17 +393,27 @@ export function generateFullSessionMatches(
 
     for (let round = 0; round < roundsCount; round++) {
       // 1. Sélectionner les joueurs (équité de temps de jeu)
-      const sortedCandidates = [...presentPlayers].sort((a, b) => 
-        (stats.playCount.get(a.id) || 0) - (stats.playCount.get(b.id) || 0) || Math.random() - 0.5
+      const sortedCandidates = [...presentPlayers].sort(
+        (a, b) =>
+          (stats.playCount.get(a.id) || 0) - (stats.playCount.get(b.id) || 0) ||
+          Math.random() - 0.5
       );
 
       const totalPlaces = courts.length * 4;
-      const playersInRound = sortedCandidates.slice(0, Math.min(sortedCandidates.length, totalPlaces));
-      
+      const playersInRound = sortedCandidates.slice(
+        0,
+        Math.min(sortedCandidates.length, totalPlaces)
+      );
+
       if (playersInRound.length < 2) break;
 
       // 2. Générer le round optimal
-      const { matches: roundMatches, cost: roundCost } = generateOptimalRound(playersInRound, courts, stats, roundIterations);
+      const { matches: roundMatches, cost: roundCost } = generateOptimalRound(
+        playersInRound,
+        courts,
+        stats,
+        roundIterations
+      );
       currentSessionCost += roundCost;
       
       // 3. Préparer les Matchups de la ronde précédente
@@ -433,7 +452,11 @@ export function generateFullSessionMatches(
     if (currentSessionCost < minSessionCost) {
       minSessionCost = currentSessionCost;
       bestSessionMatches = currentSessionMatches;
-      if (minSessionCost === 0) break; // Session parfaite trouvée !
+      sessionStalled = 0;
+      if (minSessionCost === 0) break;
+    } else {
+      sessionStalled += 1;
+      if (sessionStalled >= sessionStallLimit) break;
     }
   }
 

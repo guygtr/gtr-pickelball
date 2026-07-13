@@ -121,15 +121,20 @@ export async function generateMatches(
       matchmakingStats.matchupCount.set(mKey, (matchmakingStats.matchupCount.get(mKey) || 0) + 1);
     });
 
-    // 4. Appel à la couche Domaine pour le matchmaking
+    // 4. Appel domaine — budget itérations léger (défaut moteur ~220–320)
     const sessionWithIter = session as unknown as SessionWithIterations;
+    const iterBudget =
+      typeof sessionWithIter.iterations === "number" &&
+      sessionWithIter.iterations > 0
+        ? Math.min(sessionWithIter.iterations, 500)
+        : undefined;
     const matchDesigns = generateFullSessionMatches(
       presentPlayers,
       courts,
       matchmakingStats,
       session.duration || 120,
-      15, // Durée fixe par match (standard)
-      sessionWithIter.iterations || 10000
+      15,
+      iterBudget
     );
 
     // 5. Création massive des matchs en base
