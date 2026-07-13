@@ -76,9 +76,9 @@ export function SessionDetailsClient({
   statusLabel: string;
 }) {
   const [loading, setLoading] = useState(false);
-  const [generationMode, setGenerationMode] = useState<"RANDOM" | "COMPETITIVE">(
-    "COMPETITIVE"
-  );
+  const [generationMode, setGenerationMode] = useState<
+    "RANDOM" | "COMPETITIVE" | "TOURNAMENT"
+  >("TOURNAMENT");
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const router = useRouter();
 
@@ -123,7 +123,11 @@ export function SessionDetailsClient({
   async function handleGenerateMatches() {
     setLoading(true);
     const modeLabel =
-      generationMode === "RANDOM" ? "Aléatoire" : "Compétition";
+      generationMode === "RANDOM"
+        ? "Aléatoire"
+        : generationMode === "COMPETITIVE"
+          ? "Compétition"
+          : "Tournoi";
     const loadingToast = toast.loading(`Génération (${modeLabel})…`);
     try {
       const result = await generateMatches(session.id, generationMode);
@@ -449,33 +453,52 @@ export function SessionDetailsClient({
                 2. Mode puis générer
               </p>
               <div
-                className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/30 border border-white/10"
+                className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-black/30 border border-white/10"
                 role="group"
                 aria-label="Mode de matchmaking"
               >
-                <button
-                  type="button"
-                  onClick={() => setGenerationMode("RANDOM")}
-                  className={`py-2.5 rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pickle-primary ${
-                    generationMode === "RANDOM"
-                      ? "bg-white/15 text-white"
-                      : "text-slate-300 hover:text-white"
-                  }`}
-                >
-                  Aléatoire
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGenerationMode("COMPETITIVE")}
-                  className={`py-2.5 rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pickle-primary ${
-                    generationMode === "COMPETITIVE"
-                      ? "bg-pickle-primary/25 text-pickle-primary"
-                      : "text-slate-300 hover:text-white"
-                  }`}
-                >
-                  Compétition
-                </button>
+                {(
+                  [
+                    {
+                      id: "RANDOM" as const,
+                      label: "Social",
+                      title: "Variété max, peu de skill",
+                    },
+                    {
+                      id: "TOURNAMENT" as const,
+                      label: "Tournoi",
+                      title: "Niveaux + jouer avec le plus de monde",
+                    },
+                    {
+                      id: "COMPETITIVE" as const,
+                      label: "Compét.",
+                      title: "Équilibre de niveaux prioritaire",
+                    },
+                  ] as const
+                ).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    title={m.title}
+                    onClick={() => setGenerationMode(m.id)}
+                    className={`py-2.5 px-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pickle-primary ${
+                      generationMode === m.id
+                        ? "bg-pickle-primary/25 text-pickle-primary"
+                        : "text-slate-300 hover:text-white"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
               </div>
+              <p className="text-[11px] text-slate-400 leading-snug">
+                {generationMode === "TOURNAMENT" &&
+                  "Tournoi amateur : matchs équilibrés + partenaires/adversaires variés."}
+                {generationMode === "RANDOM" &&
+                  "Social : priorité à la variété, sans forcer les niveaux."}
+                {generationMode === "COMPETITIVE" &&
+                  "Compétition : priorité à l’équilibre des niveaux."}
+              </p>
 
               <div className="hidden lg:block">
                 <NeonButton

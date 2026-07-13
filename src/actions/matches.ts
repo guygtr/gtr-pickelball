@@ -24,9 +24,12 @@ interface SessionWithIterations {
 /**
  * Génère les matchs pour une session donnée en utilisant l'algorithme Monte-Carlo du domaine.
  * @param {string} rawSessionId Identifiant de la session.
- * @param {MatchmakingMode} mode Mode de génération (RANDOM ou COMPETITIVE).
+ * @param {MatchmakingMode} mode RANDOM | COMPETITIVE | TOURNAMENT
  */
-export async function generateMatches(rawSessionId: string, mode: MatchmakingMode = "RANDOM") {
+export async function generateMatches(
+  rawSessionId: string,
+  mode: MatchmakingMode = "TOURNAMENT"
+) {
   try {
     const sessionId = sessionIdSchema.parse(rawSessionId);
     await ensureSessionManager(sessionId);

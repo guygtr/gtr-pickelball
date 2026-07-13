@@ -12,7 +12,12 @@ export interface MatchDesign {
   type: "SINGLES" | "DOUBLES";
 }
 
-export type MatchmakingMode = "RANDOM" | "COMPETITIVE";
+/**
+ * - RANDOM : social max (variété partenaires / quartets), peu de skill
+ * - COMPETITIVE : équilibre de niveaux prioritaire
+ * - TOURNAMENT : amateur — équilibre niveaux + variété sociale (beaucoup de monde différent)
+ */
+export type MatchmakingMode = "RANDOM" | "COMPETITIVE" | "TOURNAMENT";
 
 export interface MatchmakingStats {
   playCount: Map<string, number>;
@@ -24,6 +29,59 @@ export interface MatchmakingStats {
   lastOppositions: Set<string>;
   playerSkills: Map<string, number>;
   mode: MatchmakingMode;
+}
+
+type ModeWeights = {
+  PARTNER_WEIGHT: number;
+  OPPOSITION_WEIGHT: number;
+  MATCHUP_WEIGHT: number;
+  QUARTET_WEIGHT: number;
+  CONSECUTIVE_OPP_WEIGHT: number;
+  SKILL_BALANCE_WEIGHT: number;
+  SKILL_SPREAD_WEIGHT: number;
+  useSkill: boolean;
+};
+
+/**
+ * Profils de poids par mode (ligue amateur : TOURNAMENT = défaut produit).
+ */
+export function getModeWeights(mode: MatchmakingMode): ModeWeights {
+  if (mode === "TOURNAMENT") {
+    // Social fort + compétitif sur les niveaux
+    return {
+      PARTNER_WEIGHT: 45000,
+      OPPOSITION_WEIGHT: 3500,
+      MATCHUP_WEIGHT: 18000,
+      QUARTET_WEIGHT: 90000,
+      CONSECUTIVE_OPP_WEIGHT: 22000,
+      SKILL_BALANCE_WEIGHT: 16000,
+      SKILL_SPREAD_WEIGHT: 5500,
+      useSkill: true,
+    };
+  }
+  if (mode === "COMPETITIVE") {
+    return {
+      PARTNER_WEIGHT: 2000,
+      OPPOSITION_WEIGHT: 2500,
+      MATCHUP_WEIGHT: 5000,
+      QUARTET_WEIGHT: 3000,
+      CONSECUTIVE_OPP_WEIGHT: 25000,
+      SKILL_BALANCE_WEIGHT: 15000,
+      SKILL_SPREAD_WEIGHT: 5000,
+      useSkill: true,
+    };
+  }
+  // RANDOM — purement social
+  return {
+    PARTNER_WEIGHT: 50000,
+    OPPOSITION_WEIGHT: 500,
+    MATCHUP_WEIGHT: 20000,
+    QUARTET_WEIGHT: 100000,
+    CONSECUTIVE_OPP_WEIGHT: 10000,
+    SKILL_BALANCE_WEIGHT: 0,
+    SKILL_SPREAD_WEIGHT: 0,
+    useSkill: false,
+  };
 }
 
 /**
@@ -58,28 +116,17 @@ function calculateMatchCost(
   stats: MatchmakingStats
 ): number {
   const isDoubles = team1.length === 2 && team2.length === 2;
-  const totalPlayers = stats.playCount.size;
-  const isRandomMode = stats.mode === "RANDOM" || totalPlayers <= 12; 
-  
+  const w = getModeWeights(stats.mode);
+
   let currentCost = 0;
 
-  // Configuration des poids de rotation
-  const PARTNER_WEIGHT = isRandomMode ? 50000 : 1000; 
-  const OPPOSITION_WEIGHT = isRandomMode ? 500 : 2000; // Élevé pour décourager les redites face à face
-  const MATCHUP_WEIGHT = isRandomMode ? 20000 : 5000;
-  const QUARTET_WEIGHT = isRandomMode ? 100000 : 2000; // Forte pénalité pour éviter que les 4 mêmes restent ensemble
-  const CONSECUTIVE_OPP_WEIGHT = isRandomMode ? 10000 : 25000; // Interdiction d'affronter deux rondes consécutives
-
-  // Configuration des poids de niveau (Skill)
-  // En mode COMPÉTITION, l'équilibre des niveaux devient crucial
-  const SKILL_BALANCE_WEIGHT = stats.mode === "COMPETITIVE" ? 15000 : 0;
-  const SKILL_SPREAD_WEIGHT = stats.mode === "COMPETITIVE" ? 5000 : 0;
-
   if (isDoubles) {
-    // 1. ROTATION
-    const p1 = stats.partnershipCount.get(getPartnershipKey(team1[0], team1[1])) || 0;
-    const p2 = stats.partnershipCount.get(getPartnershipKey(team2[0], team2[1])) || 0;
-    
+    // 1. ROTATION / diversité sociale
+    const p1 =
+      stats.partnershipCount.get(getPartnershipKey(team1[0], team1[1])) || 0;
+    const p2 =
+      stats.partnershipCount.get(getPartnershipKey(team2[0], team2[1])) || 0;
+
     const kO1 = getPartnershipKey(team1[0], team2[0]);
     const kO2 = getPartnershipKey(team1[0], team2[1]);
     const kO3 = getPartnershipKey(team1[1], team2[0]);
@@ -90,30 +137,35 @@ function calculateMatchCost(
     const o3 = stats.oppositionCount.get(kO3) || 0;
     const o4 = stats.oppositionCount.get(kO4) || 0;
 
-    const consecutiveOppCost = (
-      (stats.lastOppositions.has(kO1) ? 1 : 0) +
-      (stats.lastOppositions.has(kO2) ? 1 : 0) +
-      (stats.lastOppositions.has(kO3) ? 1 : 0) +
-      (stats.lastOppositions.has(kO4) ? 1 : 0)
-    ) * CONSECUTIVE_OPP_WEIGHT;
-    
+    const consecutiveOppCost =
+      ((stats.lastOppositions.has(kO1) ? 1 : 0) +
+        (stats.lastOppositions.has(kO2) ? 1 : 0) +
+        (stats.lastOppositions.has(kO3) ? 1 : 0) +
+        (stats.lastOppositions.has(kO4) ? 1 : 0)) *
+      w.CONSECUTIVE_OPP_WEIGHT;
+
     const matchupKey = getMatchupKey(team1, team2);
     const mCount = stats.matchupCount.get(matchupKey) || 0;
-    
+
     const quartetKey = getQuartetKey([...team1, ...team2]);
     const qCount = stats.quartetCount.get(quartetKey) || 0;
 
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
-    
-    currentCost += (p1 + p2) * PARTNER_WEIGHT + 
-                   (Math.pow(o1, 2) + Math.pow(o2, 2) + Math.pow(o3, 2) + Math.pow(o4, 2)) * OPPOSITION_WEIGHT + 
-                   consecutiveOppCost +
-                   (mCount * MATCHUP_WEIGHT) + 
-                   (qCount * QUARTET_WEIGHT) +
-                   immediatePenalty;
 
-    // 2. SKILL (Équité de niveau)
-    if (stats.mode === "COMPETITIVE") {
+    currentCost +=
+      (p1 + p2) * w.PARTNER_WEIGHT +
+      (Math.pow(o1, 2) +
+        Math.pow(o2, 2) +
+        Math.pow(o3, 2) +
+        Math.pow(o4, 2)) *
+        w.OPPOSITION_WEIGHT +
+      consecutiveOppCost +
+      mCount * w.MATCHUP_WEIGHT +
+      qCount * w.QUARTET_WEIGHT +
+      immediatePenalty;
+
+    // 2. SKILL (COMPETITIVE + TOURNAMENT)
+    if (w.useSkill) {
       const s1 = stats.playerSkills.get(team1[0]) || 3.0;
       const s2 = stats.playerSkills.get(team1[1]) || 3.0;
       const s3 = stats.playerSkills.get(team2[0]) || 3.0;
@@ -121,32 +173,35 @@ function calculateMatchCost(
 
       const team1Avg = (s1 + s2) / 2;
       const team2Avg = (s3 + s4) / 2;
-      
-      // Écart entre les deux équipes (Fair Play)
+
       const balanceGap = Math.abs(team1Avg - team2Avg);
-      
-      // Écart au sein de la même équipe (Vouloir jouer avec des gens de son niveau)
       const spreadGap1 = Math.abs(s1 - s2);
       const spreadGap2 = Math.abs(s3 - s4);
 
-      currentCost += (balanceGap * SKILL_BALANCE_WEIGHT) + (spreadGap1 + spreadGap2) * SKILL_SPREAD_WEIGHT;
+      currentCost +=
+        balanceGap * w.SKILL_BALANCE_WEIGHT +
+        (spreadGap1 + spreadGap2) * w.SKILL_SPREAD_WEIGHT;
     }
-
   } else {
-    // Mode Simple
+    // Simple (1v1)
     const kO = getPartnershipKey(team1[0], team2[0]);
     const o = stats.oppositionCount.get(kO) || 0;
-    const consecutiveOppCost = stats.lastOppositions.has(kO) ? CONSECUTIVE_OPP_WEIGHT : 0;
-    
+    const consecutiveOppCost = stats.lastOppositions.has(kO)
+      ? w.CONSECUTIVE_OPP_WEIGHT
+      : 0;
+
     const matchupKey = getMatchupKey(team1, team2);
     const immediatePenalty = stats.lastMatchups.has(matchupKey) ? 2000000 : 0;
-    
-    currentCost += (Math.pow(o, 2) * OPPOSITION_WEIGHT) + consecutiveOppCost + immediatePenalty;
 
-    if (stats.mode === "COMPETITIVE") {
+    currentCost +=
+      Math.pow(o, 2) * w.OPPOSITION_WEIGHT +
+      consecutiveOppCost +
+      immediatePenalty;
+
+    if (w.useSkill) {
       const s1 = stats.playerSkills.get(team1[0]) || 3.0;
       const s2 = stats.playerSkills.get(team2[0]) || 3.0;
-      currentCost += Math.abs(s1 - s2) * SKILL_BALANCE_WEIGHT;
+      currentCost += Math.abs(s1 - s2) * w.SKILL_BALANCE_WEIGHT;
     }
   }
 
@@ -234,7 +289,14 @@ export function generateFullSessionMatches(
   
   // En mode Social (4, 8, 12), on simule plusieurs SESSIONS ENTIÈRES pour éviter de se coincer
   // On réduit sessionTrials si on est en mode COMPÉTITION car le skill limite les options parfaites
-  const sessionTrials = (isPerfectGroup && initialStats.mode === "RANDOM") ? 100 : 10;
+  // RANDOM / TOURNAMENT : plus d'essais session pour la variété sociale
+  const sessionTrials =
+    isPerfectGroup &&
+    (initialStats.mode === "RANDOM" || initialStats.mode === "TOURNAMENT")
+      ? 100
+      : initialStats.mode === "TOURNAMENT"
+        ? 20
+        : 10;
   let bestSessionMatches: MatchDesign[] = [];
   let minSessionCost = Infinity;
 

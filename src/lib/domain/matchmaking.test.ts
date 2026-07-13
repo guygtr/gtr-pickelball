@@ -8,7 +8,10 @@ import {
   getQuartetKey,
   getMatchupKey,
   generateOptimalRound,
+  generateFullSessionMatches,
+  getModeWeights,
   type MatchmakingStats,
+  type MatchmakingMode,
 } from "./matchmaking";
 
 function mockPlayer(id: string, skill = 3): Player {
@@ -44,7 +47,7 @@ function mockCourt(id: string): Court {
 function emptyStats(
   playerIds: string[],
   skills: number[],
-  mode: "RANDOM" | "COMPETITIVE" = "RANDOM"
+  mode: MatchmakingMode = "RANDOM"
 ): MatchmakingStats {
   return {
     playCount: new Map(playerIds.map((id) => [id, 0])),
@@ -72,6 +75,18 @@ describe("matchmaking keys", () => {
     const k1 = getMatchupKey(["a", "b"], ["c", "d"]);
     const k2 = getMatchupKey(["c", "d"], ["a", "b"]);
     expect(k1).toBe(k2);
+  });
+});
+
+describe("mode weights", () => {
+  it("TOURNAMENT uses skill and high social variety", () => {
+    const t = getModeWeights("TOURNAMENT");
+    const r = getModeWeights("RANDOM");
+    const c = getModeWeights("COMPETITIVE");
+    expect(t.useSkill).toBe(true);
+    expect(t.SKILL_BALANCE_WEIGHT).toBeGreaterThan(0);
+    expect(t.PARTNER_WEIGHT).toBeGreaterThan(c.PARTNER_WEIGHT);
+    expect(t.PARTNER_WEIGHT).toBeLessThanOrEqual(r.PARTNER_WEIGHT * 1.1);
   });
 });
 
@@ -126,5 +141,92 @@ describe("generateOptimalRound", () => {
     expect(matches[0].type).toBe("SINGLES");
     expect(matches[0].team1).toHaveLength(1);
     expect(matches[0].team2).toHaveLength(1);
+  });
+});
+
+describe("bench equity — 10 players / 2 courts", () => {
+  /**
+   * 2 terrains × 4 = 8 places ; 10 présents → 2 au banc par ronde.
+   * Sur N rondes : max(playCount) − min(playCount) ≤ 1.
+   */
+  it("10 joueurs / 2 courts → max(playCount)−min(playCount) ≤ 1 sur N rondes", () => {
+    const nRounds = 5;
+    const matchDuration = 15;
+    const sessionDuration = nRounds * matchDuration; // 5 rondes
+
+    const players = Array.from({ length: 10 }, (_, i) =>
+      mockPlayer(`p${i}`, 2.0 + (i % 5) * 0.5)
+    );
+    const courts = [mockCourt("c1"), mockCourt("c2")];
+    const stats = emptyStats(
+      players.map((p) => p.id),
+      players.map((p) => p.skillLevel),
+      "TOURNAMENT"
+    );
+
+    const designs = generateFullSessionMatches(
+      players,
+      courts,
+      stats,
+      sessionDuration,
+      matchDuration,
+      400
+    );
+
+    // Chaque ronde = 2 matchs doubles → 8 joueurs
+    expect(designs.length).toBeGreaterThanOrEqual(nRounds * 2);
+
+    const playCount = new Map<string, number>(
+      players.map((p) => [p.id, 0])
+    );
+    for (const m of designs) {
+      for (const id of [...m.team1, ...m.team2]) {
+        playCount.set(id, (playCount.get(id) || 0) + 1);
+      }
+    }
+
+    // Tous les présents doivent avoir joué au moins une fois sur plusieurs rondes
+    expect(playCount.size).toBe(10);
+    for (const p of players) {
+      expect(playCount.get(p.id)).toBeGreaterThan(0);
+    }
+
+    const values = [...playCount.values()];
+    const maxP = Math.max(...values);
+    const minP = Math.min(...values);
+    expect(maxP - minP).toBeLessThanOrEqual(1);
+  });
+
+  it("same equity holds for COMPETITIVE and RANDOM modes", () => {
+    const nRounds = 5;
+    const sessionDuration = nRounds * 15;
+    const players = Array.from({ length: 10 }, (_, i) =>
+      mockPlayer(`q${i}`, 3)
+    );
+    const courts = [mockCourt("c1"), mockCourt("c2")];
+
+    for (const mode of ["RANDOM", "COMPETITIVE"] as const) {
+      const stats = emptyStats(
+        players.map((p) => p.id),
+        players.map(() => 3),
+        mode
+      );
+      const designs = generateFullSessionMatches(
+        players,
+        courts,
+        stats,
+        sessionDuration,
+        15,
+        300
+      );
+      const playCount = new Map(players.map((p) => [p.id, 0]));
+      for (const m of designs) {
+        for (const id of [...m.team1, ...m.team2]) {
+          playCount.set(id, (playCount.get(id) || 0) + 1);
+        }
+      }
+      const values = [...playCount.values()];
+      expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
+    }
   });
 });
