@@ -1,10 +1,11 @@
 # GTR-Pickelball
 
-Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team** · Hub `D:\GrokBuild`
+Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team v3.6.1** · Hub `D:\GrokBuild`
 
 - **Prod** : https://pickelball.gtremblay.com  
 - **Repo** : https://github.com/guygtr/gtr-pickelball  
-- **Version métier** : ~3.3.5 · **Alignement hub** : v3.6 (2026-07)
+- **Version métier** : ~3.3.5 · **Alignement flotte** : **v3.6.1**  
+- **Roster** : Elon · Tesla · Ezio · Altair · SpaceX · Optimus · Starship · Jarvis
 
 ---
 
@@ -85,4 +86,4 @@ node scripts/apply-rls-p1.mjs
 
 `.gtr/project.json` · `.gtr/memory/status.md` · Hub : `D:\GrokBuild\Agents\.agents\SESSION.md`
 
-*GTR-Team v3.6*
+*GTR-Team v3.6.1 — Elon · Tesla · Ezio · Altair · SpaceX · Optimus · Starship · Jarvis*
