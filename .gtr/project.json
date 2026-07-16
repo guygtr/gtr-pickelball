@@ -11,20 +11,31 @@
     "github": "https://github.com/guygtr/gtr-pickelball",
     "staging": ""
   },
+  "dual_env": {
+    "local": "GTR-Database-Dev",
+    "preview": "GTR-Database-Dev",
+    "production": "GTR-Database",
+    "table_prefix": "pb",
+    "tokens_local": "GTR_DB_DEV_*",
+    "tokens_production": "GTR_DB_*",
+    "write_env_script": "scripts/write-env-local-dev.cjs"
+  },
   "stack": {
     "framework": "Next.js 16.2.10",
     "edge": "src/proxy.ts",
     "ui": "React 19.2 + Tailwind 4 + shared-ui (GlassCard/NeonButton)",
     "orm": "Prisma 7.x + adapter-pg",
-    "database": "Supabase PostgreSQL schema pb",
+    "database": "Supabase PostgreSQL schema pb (GTR-Database dual-env)",
     "validation": "Zod 4",
     "auth": "Supabase Auth (@supabase/ssr)",
-    "ai": "xAI Grok (api.x.ai)"
+    "ai": "xAI Grok grok-4.5 (api.x.ai)"
   },
   "standards": {
     "agents_hub": "D:\\GrokBuild\\Agents",
     "stack_doc": "D:\\GrokBuild\\Agents\\.agents\\STACK.md",
     "session": "D:\\GrokBuild\\Agents\\.agents\\SESSION.md",
-    "shared_ui": "D:\\GrokBuild\\shared-ui"
+    "shared_ui": "D:\\GrokBuild\\shared-ui",
+    "dual_env_runbook": "D:\\GrokBuild\\scripts\\GTR-DATABASE-ENV.md",
+    "dual_env_gate": "D:\\GrokBuild\\scripts\\check-dual-env.ps1"
   }
 }

@@ -86,6 +86,8 @@ Runbook clone : `D:\GrokBuild\scripts\GTR-DATABASE-ENV.md` · scripts `scripts/e
 
 ## DoD express
 
+- [ ] Dual-env : `.env.local` = **GTR-Database-Dev** · prod Vercel = **GTR-Database**  
+- [ ] `powershell -File D:\GrokBuild\scripts\check-dual-env.ps1 -Project GTR-Pickelball` PASS  
 - [ ] `npm run build` OK  
 - [ ] Zod + ownership / ensureLeagueManager  
 - [ ] Pas d’IDOR sur `leagues/[id]`  
