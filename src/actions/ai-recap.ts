@@ -7,6 +7,7 @@ import OpenAI from "openai";
 import { logError, publicErrorMessage } from "@/lib/logger";
 import { assertAiRateLimit } from "@/lib/rate-limit";
 import type { MatchData } from "@/lib/domain/match-types";
+import { getGrokApiKey, GROK_BASE_URL, GROK_MODEL } from "@/lib/grok";
 
 function isCompletedMatchData(value: unknown): value is MatchData {
   if (!value || typeof value !== "object") return false;
@@ -48,13 +49,14 @@ export async function generateSmartRecap(sessionId: string) {
       return { success: false, error: "Pas assez de matchs terminés pour générer un résumé." };
     }
 
-    if (!process.env.GROK_API_KEY) {
+    const apiKey = getGrokApiKey();
+    if (!apiKey) {
       return { success: false, error: "Clé API GROK_API_KEY manquante." };
     }
 
     const grok = new OpenAI({
-      apiKey: process.env.GROK_API_KEY,
-      baseURL: "https://api.x.ai/v1",
+      apiKey,
+      baseURL: GROK_BASE_URL,
     });
 
     // 1. Préparation des données pour le prompt
@@ -98,9 +100,9 @@ export async function generateSmartRecap(sessionId: string) {
       ${Array.from(playersMap.values()).join(", ")}
     `;
 
-    // 2. Appel à Grok
+    // 2. Appel à Grok (canon lib/grok — grok-4.5 latest)
     const completion = await grok.chat.completions.create({
-      model: "grok-4-1-fast-non-reasoning", // Modèle 2026 optimisé pour le texte narratif
+      model: GROK_MODEL,
       messages: [
         { role: "system", content: "Tu es un assistant IA expert en Pickleball et en narration sportive." },
         { role: "user", content: prompt }
