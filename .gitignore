@@ -53,3 +53,7 @@ src/app/api/debug-ai/
 .gtr/_archive_*/
 
 .vercel
+
+/playwright-report/
+/test-results/
+
