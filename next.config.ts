@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  images: {
+    // Autoriser quality={100} (BackgroundScene) en plus du défaut 75
+    qualities: [75, 100],
+  },
   async headers() {
     return [
       {

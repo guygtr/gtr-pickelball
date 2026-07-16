@@ -61,6 +61,16 @@ powershell -File D:\GrokBuild\scripts\quality-gate.ps1 -Project GTR-Pickelball
 | UI | `src/components/<domaine>/` |
 | Shared glass | aligner sur `D:\GrokBuild\shared-ui` |
 
+## Environnements data (canon flotte)
+
+| Palier | Supabase | Env app |
+|--------|----------|---------|
+| **Local / Preview** | **GTR-Database-Dev** | `.env.local` · tokens `GTR_DB_DEV_*` |
+| **Production** | **GTR-Database** | Vercel Production · tokens `GTR_DB_*` |
+
+Schema / tables : **`pb` / `pb_*`**.  
+Runbook clone : `D:\GrokBuild\scripts\GTR-DATABASE-ENV.md` · scripts `scripts/export-gtr-data.cjs`, `scripts/import-gtr-data.cjs`.
+
 ## Pièges connus
 
 1. **Prisma 7** ≠ bar-manager (6.3) — `prisma.config.ts`, adapter-pg, preview flags.
@@ -72,6 +82,7 @@ powershell -File D:\GrokBuild\scripts\quality-gate.ps1 -Project GTR-Pickelball
 7. Rate-limit IA + logger centralisé (pas de query SQL en logs prod).
 8. Routes privées protégées par `proxy` → login si non authentifié.
 9. Rollback UI Option B : `git revert fdf5591` (si besoin historique).
+10. **Ne jamais** pointer `.env.local` sur GTR-Database **prod**.
 
 ## DoD express
 

@@ -20,6 +20,7 @@ export const BackgroundScene: React.FC = () => {
           src="/Background.png"
           alt="Studio Atmosphere"
           fill
+          sizes="100vw"
           className="object-cover"
           priority
           quality={100}

@@ -208,18 +208,27 @@ export function SessionDetailsClient({
   }
 
   async function handleTerminateSession() {
+    const scoredHint =
+      initialMatches.length > 0
+        ? `\nScores saisis : ${scoredCount}/${initialMatches.length}.`
+        : "";
     if (
       !confirm(
-        "Terminer cette session ?\nPlus de nouvelles parties ne pourront être générées."
+        "Terminer cette session maintenant ?" +
+          scoredHint +
+          "\n\n• Plus de nouvelles parties ni corrections de scores sur cette session." +
+          "\n• Calcul des niveaux / scores des joueurs présents (IA) lancé."
       )
     )
       return;
     setLoading(true);
-    const loadingToast = toast.loading("Fermeture…");
+    const loadingToast = toast.loading("Clôture de la session…");
     try {
       const result = await terminateSession(session.id);
       if (result.success) {
-        toast.success("Session terminée", { id: loadingToast });
+        toast.success("Session clôturée — scores des présents mis à jour", {
+          id: loadingToast,
+        });
         router.refresh();
       } else {
         toast.error(result.error || "Erreur", { id: loadingToast });
@@ -543,29 +552,48 @@ export function SessionDetailsClient({
             </h3>
 
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Secondaire : actions avancées */}
-              {initialMatches.length > 0 && (
-                <details className="text-xs">
+              {/* Secondaire : clôture forcée + reset matchs */}
+              {!isFinished && (
+                <details className="text-xs relative z-10">
                   <summary className="cursor-pointer list-none px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5">
                     Options avancées
                   </summary>
-                  <div className="mt-2 flex flex-col gap-1.5 min-w-[10rem]">
+                  <div className="mt-2 flex flex-col gap-1.5 min-w-[12.5rem] p-2 rounded-xl border border-white/10 bg-slate-950/95 shadow-xl">
                     <button
                       type="button"
-                      onClick={handleDeleteAllMatches}
+                      onClick={handleTerminateSession}
                       disabled={loading}
-                      className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-300 border border-red-500/30 hover:bg-red-500 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold text-pickle-primary border border-pickle-primary/35 hover:bg-pickle-primary/15 rounded-lg transition-colors disabled:opacity-50 text-left"
                     >
-                      <Trash2 className="w-3.5 h-3.5" aria-hidden />
-                      Tout effacer
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                      <span>
+                        Terminer la session
+                        {initialMatches.length > 0 && (
+                          <span className="block font-normal text-slate-400 mt-0.5">
+                            Même si toutes les parties ne sont pas jouées (
+                            {scoredCount}/{initialMatches.length} scorés)
+                          </span>
+                        )}
+                      </span>
                     </button>
+                    {initialMatches.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleDeleteAllMatches}
+                        disabled={loading}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-300 border border-red-500/30 hover:bg-red-500 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                        Tout effacer les parties
+                      </button>
+                    )}
                   </div>
                 </details>
               )}
             </div>
           </div>
 
-          {/* Étape 4 — Clôturer (mise en avant quand scores OK) */}
+          {/* Étape 4 — Clôturer (mise en avant quand tous les scores OK) */}
           {flowStep === 4 && !isFinished && (
             <GlassCard
               className="p-4 md:p-5 border-pickle-primary/30 bg-pickle-primary/5"
@@ -577,7 +605,9 @@ export function SessionDetailsClient({
               </h3>
               <p className="text-sm text-slate-300 mb-4">
                 Tous les scores sont saisis. Terminez la session pour figer les
-                résultats et débloquer le recap.
+                résultats, lancer le calcul des niveaux des présents et débloquer
+                le recap. (Aussi dispo dans Options avancées si la soirée est
+                incomplète.)
               </p>
               <NeonButton
                 variant="primary"

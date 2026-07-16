@@ -105,7 +105,30 @@ export async function createManagerAccount(
 ) {
   await ensureAdmin();
 
-  const validated = ManagerAccountSchema.parse({ email, password, name });
+  // Nom : trim ; si vide, dériver du local-part email (min 2 car.)
+  const trimmedName = (name ?? "").trim();
+  const emailTrim = (email ?? "").trim().toLowerCase();
+  const fallbackFromEmail = emailTrim.includes("@")
+    ? emailTrim.split("@")[0]!.replace(/[._+]/g, " ").trim()
+    : "";
+  const resolvedName =
+    trimmedName.length >= 2
+      ? trimmedName
+      : fallbackFromEmail.length >= 2
+        ? fallbackFromEmail
+        : trimmedName;
+
+  const parsed = ManagerAccountSchema.safeParse({
+    email: emailTrim,
+    password,
+    name: resolvedName,
+  });
+  if (!parsed.success) {
+    const msg =
+      parsed.error.issues[0]?.message ?? "Données du formulaire invalides";
+    return { success: false as const, error: msg };
+  }
+  const validated = parsed.data;
 
   try {
     const adminClient = createAdminClient();
@@ -131,7 +154,7 @@ export async function createManagerAccount(
     });
 
     revalidatePath("/admin");
-    return { success: true, user: data.user };
+    return { success: true as const, user: data.user };
   } catch (err: unknown) {
     const errorMessage =
       err instanceof Error

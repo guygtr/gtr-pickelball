@@ -33,6 +33,7 @@ export const Navbar = ({ userEmail, isAdmin }: NavbarProps) => {
                 src="/logo.png"
                 alt="GTR-Pickelball Logo"
                 fill
+                sizes="36px"
                 className="object-cover"
               />
             </div>

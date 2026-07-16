@@ -43,18 +43,31 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
     e.preventDefault();
     if (!formData.email || !formData.password) return;
 
+    const name =
+      formData.name.trim() ||
+      formData.email.split("@")[0]?.replace(/[._+]/g, " ").trim() ||
+      "";
+    if (name.length < 2) {
+      alert("Le nom doit faire au moins 2 caractères (ou un email valide).");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await createManagerAccount(formData.email, formData.password, formData.name);
+      const res = await createManagerAccount(
+        formData.email.trim(),
+        formData.password,
+        name
+      );
       if (res.success && res.user) {
-        setManagers(prev => [
+        setManagers((prev) => [
           {
             id: res.user.id,
-            email: formData.email,
-            name: formData.name,
+            email: formData.email.trim(),
+            name,
             role: "manager",
           },
-          ...prev
+          ...prev,
         ]);
         setFormData({ email: "", name: "", password: "" });
       } else {
@@ -147,14 +160,17 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nom (Optionnel)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                Nom d&apos;affichage
+              </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input 
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Nom du gestionnaire"
+                  placeholder="Ex. Guy IA (min. 2 car., sinon dérivé de l'email)"
+                  minLength={2}
                   className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:ring-2 focus:ring-pickle-secondary/50 transition-all placeholder:text-slate-700"
                 />
               </div>
@@ -228,7 +244,13 @@ export function UserManagementClient({ initialManagers }: { initialManagers: Man
                 <div className="text-[9px] text-slate-600 uppercase tracking-widest font-black flex items-center justify-between mt-1">
                     <span>Connexion</span>
                     <span className="text-slate-500">
-                        {m.lastSignIn ? new Date(m.lastSignIn).toLocaleDateString() : 'Jamais'}
+                        {m.lastSignIn
+                          ? new Date(m.lastSignIn).toLocaleDateString("fr-CA", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            })
+                          : "Jamais"}
                     </span>
                 </div>
             </div>
