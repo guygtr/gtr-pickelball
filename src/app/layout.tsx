@@ -67,6 +67,9 @@ export default async function RootLayout({
         <Navbar userEmail={user?.email} isAdmin={isAdmin} />
         <main className="relative z-10 min-h-screen pt-24 isolate">
           {children}
+          <p className="relative z-10 pb-10 pt-16 text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-white/30">
+            Site réalisé par la GTR-Teams
+          </p>
         </main>
       </body>
     </html>

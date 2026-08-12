@@ -16,7 +16,7 @@
 
 | Couche | Version |
 |--------|---------|
-| Next.js | **16.2.10** |
+| Next.js | **16.3.x** |
 | React | **19.2** |
 | Prisma | **7.x** + **adapter-pg** |
 | Zod | **4.x** |
