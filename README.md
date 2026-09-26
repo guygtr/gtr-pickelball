@@ -1,23 +1,25 @@
+**Reprendre le travail après une pause :** [REPRISE.md](./REPRISE.md)
+
 # GTR-Pickelball
 
-Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team v3.6.1** · Hub `D:\GrokBuild`
+Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team v3.6.6** · Hub `D:\GrokBuild`
 
 - **Prod** : https://pickelball.gtremblay.com  
 - **Repo** : https://github.com/guygtr/gtr-pickelball  
-- **Version métier** : ~3.3.5 · **Alignement flotte** : **v3.6.1**  
+- **Version métier** : ~3.3.5 · **Alignement flotte** : **v3.6.6**  
 - **Roster** : Elon · Tesla · Ezio · Altair · SpaceX · Optimus · Starship · Jarvis
 
 ---
 
-## Stack exacte (package.json)
+## Stack installée (lock, 2026-09-26)
 
 | Technologie | Version | Rôle |
 |-------------|---------|------|
-| **Next.js** | **16.2.10** | App Router · **`src/proxy.ts`** (session Supabase) |
-| **React** | **19.2.3** | UI |
-| **TypeScript** | 5.9 | Strict |
-| **Tailwind CSS** | 4 | Styles + tokens pickle |
-| **Prisma** | **7.x** (+ `@prisma/adapter-pg`) | ORM · schema PostgreSQL **`pb`** |
+| **Next.js** | **16.3.6** | App Router · **`src/proxy.ts`** (session Supabase) |
+| **React** | **19.2.8** | UI |
+| **TypeScript** | **5.9.3** | Strict |
+| **Tailwind CSS** | **4.2.2** | Styles + tokens pickle |
+| **Prisma** | CLI **7.8.0** · client **7.7.0** · adapter-pg **7.7.0** (`package.json` `^7.6.0`) | ORM · schema PostgreSQL **`pb`** |
 | **pg** | 8.x | Driver Prisma |
 | **Supabase** | `@supabase/ssr` 0.10 · `supabase-js` 2.x | Auth SSR |
 | **Zod** | 4.x | Validation Server Actions |

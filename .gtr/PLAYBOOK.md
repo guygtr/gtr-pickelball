@@ -16,9 +16,9 @@
 
 | Couche | Version |
 |--------|---------|
-| Next.js | **16.3.x** |
-| React | **19.2** |
-| Prisma | **7.x** + **adapter-pg** |
+| Next.js | **^16.3.6** |
+| React | **^19.2.8** |
+| Prisma | `package.json` **^7.6.0** · lock : CLI **7.8.0**, client **7.7.0**, adapter-pg **7.7.0** |
 | Zod | **4.x** |
 | Tailwind | **4** |
 | Auth | Supabase SSR |
@@ -44,8 +44,9 @@ prisma/                # schema + config Prisma 7
 
 ```powershell
 cd D:\GrokBuild\Projects\GTR-Pickelball
-npm run dev
+npm run dev            # next dev --turbopack
 npm run lint
+npm test               # vitest
 npm run build          # prisma generate && next build --turbopack
 # Deploy prod (confirm humain) :
 powershell -File D:\GrokBuild\scripts\vercel-deploy.ps1 -Project GTR-Pickelball -Prod
