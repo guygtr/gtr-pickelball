@@ -19,7 +19,7 @@ Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team v3.6.6** · 
 | **React** | **19.2.8** | UI |
 | **TypeScript** | **5.9.3** | Strict |
 | **Tailwind CSS** | **4.2.2** | Styles + tokens pickle |
-| **Prisma** | CLI **7.8.0** · client **7.7.0** · adapter-pg **7.7.0** (`package.json` `^7.6.0`) | ORM · schema PostgreSQL **`pb`** |
+| **Prisma** | **7.10.0** (CLI, client, adapter-pg) | ORM · schema PostgreSQL **`pb`** |
 | **pg** | 8.x | Driver Prisma |
 | **Supabase** | `@supabase/ssr` 0.10 · `supabase-js` 2.x | Auth SSR |
 | **Zod** | 4.x | Validation Server Actions |

@@ -18,7 +18,7 @@
 |--------|---------|
 | Next.js | **^16.3.6** |
 | React | **^19.2.8** |
-| Prisma | `package.json` **^7.6.0** · lock : CLI **7.8.0**, client **7.7.0**, adapter-pg **7.7.0** |
+| Prisma | **7.10.0** (`prisma`, `@prisma/client`, `@prisma/adapter-pg`) |
 | Zod | **4.x** |
 | Tailwind | **4** |
 | Auth | Supabase SSR |
