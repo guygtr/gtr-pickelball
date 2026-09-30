@@ -18,15 +18,15 @@ Plateforme de gestion de ligues de Pickleball — flotte **GTR-Team v3.6.6** · 
 | **Next.js** | **16.3.6** | App Router · **`src/proxy.ts`** (session Supabase) |
 | **React** | **19.2.8** | UI |
 | **TypeScript** | **5.9.3** | Strict |
-| **Tailwind CSS** | **4.2.2** | Styles + tokens pickle |
+| **Tailwind CSS** | **4.3.3** | Styles + tokens pickle |
 | **Prisma** | **7.10.0** (CLI, client, adapter-pg) | ORM · schema PostgreSQL **`pb`** |
 | **pg** | 8.x | Driver Prisma |
 | **Supabase** | `@supabase/ssr` 0.10 · `supabase-js` 2.x | Auth SSR |
-| **Zod** | 4.x | Validation Server Actions |
+| **Zod** | **4.6.5** | Validation Server Actions |
 | **OpenAI SDK** | 6.x → **xAI Grok** (`api.x.ai`) | Recap / niveaux IA |
 | **Framer / Lucide / papaparse** | — | UX, icônes, import CSV |
 
-> **Note flotte** : bar-manager est en Prisma **6.3**. Pickelball reste en Prisma **7** (adapter-pg) — migration Prisma 6 non requise pour l’instant.
+> **Note flotte** : bar-manager est en Prisma **6.19.3**. Pickelball reste en Prisma **7.10.0** (adapter-pg).
 
 ---
 
