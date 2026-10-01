@@ -74,7 +74,7 @@ Runbook clone : `D:\GrokBuild\scripts\GTR-DATABASE-ENV.md` · scripts `scripts/e
 
 ## Pièges connus
 
-1. **Prisma 7** ≠ bar-manager (6.3) — `prisma.config.ts`, adapter-pg, preview flags.
+1. **Prisma 7** ≠ bar-manager (6.19.3) — `prisma.config.ts`, adapter-pg, preview flags.
 2. **ensureLeagueManager** : layout `[id]` + mutations (anti-IDOR lecture/écriture). Prisma **contourne RLS**.
 3. Schema Supabase **`pb`** + RLS — défense PostgREST seulement.
 4. **ADMIN_EMAILS** fail-closed en prod.
